@@ -121,10 +121,10 @@ test('actual second Store protocol mutation during provider await cannot borrow 
  const cloud={...f.cloud,request:async r=>{const response=await request(r);if(armed&&!changed&&r.method==='GET'&&response.status===404){changed=true;const rows=[];for await(const row of f.c.core.rows('outbox'))rows.push(row);await peer.repository.transaction(true,tx=>tx.delete('meta',rows[0].id));}return response;}};
  const pub=producer(f.c,cloud);await pub.prepare();const n=writes(f.cloud);armed=true;await assert.rejects(pub.publish());assert.equal(changed,true);assert.equal(writes(f.cloud),n);
 });
-test('actual repeated complete-cut work exhausts the unchanged outer ledger without a replacement ticket',async t=>{
+test('repeated complete-cut work after exact outbound omission preserves content and confirms',async t=>{
  const f=await restored(t,{added:0}),first=producer(f.c,f.cloud);await first.prepare();await first.publish();await source(f.c,'budget_local_0');await source(f.c,'budget_local_1');const request=f.cloud.request;let rewrites=0;
  const cloud={...f.cloud,request:async r=>{const response=await request(r);if(r.method==='POST'){const rows=[];for await(const row of f.c.core.rows('outbox'))rows.push(row);await f.c.core.transaction(true,tx=>tx.put('meta',rows[0]));rewrites++;}return response;}};
- const pub=producer(f.c,cloud);await pub.prepare();await assert.rejects(pub.publish(),{code:'BNS_CHECKPOINT_PUBLICATION_LIMIT'});assert.ok(rewrites>0);assert.notEqual((await pub.status()).state,'confirmed');
+ const pub=producer(f.c,cloud);await pub.prepare();const before=await f.c.store.snapshot();assert.equal((await pub.publish()).state,'confirmed');assert.ok(rewrites>0);assert.deepEqual(await f.c.store.snapshot(),before);assert.equal((await pub.status()).state,'confirmed');
 });
 test('ordinary restored union can publish one new local group before disposable stage cleanup',async t=>{
  const f=await fixture(t),session=recovery(f.c,f.cloud);await session.recoverDiscovered();await source(f.c,'uncleaned_local');const pub=producer(f.c,f.cloud);await pub.prepare();assert.equal((await pub.publish()).state,'confirmed');
@@ -171,12 +171,12 @@ test('cleanup consumes the original cumulative recovery work and never renews an
 test('publish never acquires prepare cleanup authority even when the old disposable stage reappears',async t=>{
  const f=await uncleaned(t),originalRows=stageRows(f,await state(f.c)),pub=producer(f.c,f.cloud);await pub.prepare();await f.c.core.transaction(true,async tx=>{for(const row of originalRows)await tx.put('meta',row);});const before=stageRows(f,await state(f.c)),original=GroupedCheckpointRestore.prototype.cleanup;let calls=0;
  GroupedCheckpointRestore.prototype.cleanup=async function(options){if(options?.publication)calls++;return original.call(this,options);};
- try{await assert.rejects(pub.publish(),{code:'BNS_CHECKPOINT_PUBLICATION_LIMIT'});}finally{GroupedCheckpointRestore.prototype.cleanup=original;}assert.equal(calls,0);assert.deepEqual(stageRows(f,await state(f.c)),before);assert.notEqual((await pub.status()).state,'confirmed');
+ try{assert.equal((await pub.publish()).state,'confirmed');}finally{GroupedCheckpointRestore.prototype.cleanup=original;}assert.equal(calls,0);assert.deepEqual(stageRows(f,await state(f.c)),before);assert.equal((await pub.status()).state,'confirmed');
 });
 
 // Append enters only through the existing capture/journal owner. No positive
 // fixture manufactures a revision, receipt, head, counter, or outbox row.
-for(const anchor of ['ancestor','local_0'])test('three original appends to '+anchor+' retain exact rows and fail closed at cumulative publication budget',async t=>{
+for(const anchor of ['ancestor','local_0'])test('three original appends to '+anchor+' retain exact rows within the unchanged cumulative publication budget',async t=>{
  const f=await restored(t,{added:anchor==='ancestor'?0:1}),before=await state(f.c),oldSnapshot=await f.c.store.snapshot(),original=structuredClone(f.original);
  await appendSource(f.c,anchor,'known_later',{time:1640995200});await appendSource(f.c,anchor,'unknown',{order:3});await appendSource(f.c,anchor,'known_earlier',{time:1609459200,order:4});
  const after=await state(f.c),snapshot=await f.c.store.snapshot();assert.equal(after.documents.length,before.documents.length);assert.equal(after.records.length,before.records.length+3);
@@ -185,7 +185,12 @@ for(const anchor of ['ancestor','local_0'])test('three original appends to '+anc
  const target=snapshot.library.documents.find(row=>row.sourceConversationId==='SYNTHETIC_chat_'+anchor);assert.equal(target.firstSourceSentAt,'2021-01-01T00:00:00.000Z');assert.equal(target.lastSourceSentAt,'2022-01-01T00:00:00.000Z');
  assert.deepEqual(snapshot.records.filter(row=>oldSnapshot.records.some(old=>old.id===row.id)),oldSnapshot.records);
  await qualify(f.c);f.c=await reopen(t,f.c);const pub=producer(f.c,f.cloud),beforeWrites=writes(f.cloud);let phase='prepare';
- await assert.rejects(async()=>{await pub.prepare();phase='publish';await pub.publish();},{code:'BNS_CHECKPOINT_PUBLICATION_LIMIT'});t.diagnostic(JSON.stringify({resourceLimitPhase:phase,syntheticWrites:writes(f.cloud)-beforeWrites}));
+ if(anchor==='ancestor'){
+  await pub.prepare();phase='publish';assert.equal((await pub.publish()).state,'confirmed');
+  const d=await fresh(t,'SYNTHETIC_three_append_installation');await recovery(d,f.cloud).recoverDiscovered();const cold=await reopen(t,d),actual=await state(cold),sort=rows=>rows.slice().sort((a,b)=>a.id.localeCompare(b.id)),history=rows=>sort(rows.map(({sequence,listKey,documentList,...row})=>row));
+  assert.deepEqual(sort(actual.records.map(row=>row.value)),sort(after.records.map(row=>row.value)));assert.deepEqual(sort(actual.blocks.map(row=>row.value)),sort(after.blocks.map(row=>row.value)));assert.deepEqual(history(actual.revisions),history(after.revisions));assert.deepEqual(sort(actual.filterIntents),sort(after.filterIntents));assert.deepEqual(actual.times,after.times);
+ }else await assert.rejects(async()=>{await pub.prepare();phase='publish';await pub.publish();},{code:'BNS_CHECKPOINT_PUBLICATION_LIMIT'});
+ t.diagnostic(JSON.stringify({publicationResult:anchor==='ancestor'?'confirmed':'resource-limit',resourceLimitPhase:phase,syntheticWrites:writes(f.cloud)-beforeWrites}));
  assert.deepEqual((await f.c.store.snapshot()).records,snapshot.records);assert.deepEqual(await new GroupedCheckpointRestore(f.c.core,{store:f.c.store,restoreId:f.session.restoreId}).stage.read('restore'),original);
 
 });

@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: new original publication keeps only its final owner manifest in exact outbound vector
+ok 1 - new original publication keeps only its final owner manifest in exact outbound vector
+  ---
+  duration_ms: 104.242458
+  type: 'test'
+  ...
+# Subtest: google new outbound omits exactly encoder intermediate, keeps dependency bytes, final identity and actual discovery
+ok 2 - google new outbound omits exactly encoder intermediate, keeps dependency bytes, final identity and actual discovery
+  ---
+  duration_ms: 220.03775
+  type: 'test'
+  ...
+# Subtest: onedrive new outbound omits exactly encoder intermediate, keeps dependency bytes, final identity and actual discovery
+ok 3 - onedrive new outbound omits exactly encoder intermediate, keeps dependency bytes, final identity and actual discovery
+  ---
+  duration_ms: 213.615458
+  type: 'test'
+  ...
+# Subtest: google original-encoder full journal fixture cold resumes full exact vector unchanged
+ok 4 - google original-encoder full journal fixture cold resumes full exact vector unchanged
+  ---
+  duration_ms: 245.060042
+  type: 'test'
+  ...
+# Subtest: onedrive original-encoder full journal fixture cold resumes full exact vector unchanged
+ok 5 - onedrive original-encoder full journal fixture cold resumes full exact vector unchanged
+  ---
+  duration_ms: 276.461125
+  type: 'test'
+  ...
+# Subtest: original-encoder full journal attempted internal manifest remains GET-only after lost committed POST and cold reopen
+ok 6 - original-encoder full journal attempted internal manifest remains GET-only after lost committed POST and cold reopen
+  ---
+  duration_ms: 217.0335
+  type: 'test'
+  ...
+# Subtest: missing-shard is neither exact original vector nor exact compact vector
+ok 7 - missing-shard is neither exact original vector nor exact compact vector
+  ---
+  duration_ms: 63.89875
+  type: 'test'
+  ...
+# Subtest: extra is neither exact original vector nor exact compact vector
+ok 8 - extra is neither exact original vector nor exact compact vector
+  ---
+  duration_ms: 63.804583
+  type: 'test'
+  ...
+# Subtest: reorder-full is neither exact original vector nor exact compact vector
+ok 9 - reorder-full is neither exact original vector nor exact compact vector
+  ---
+  duration_ms: 77.837625
+  type: 'test'
+  ...
+# Subtest: wrong-ref is neither exact original vector nor exact compact vector
+ok 10 - wrong-ref is neither exact original vector nor exact compact vector
+  ---
+  duration_ms: 70.104416
+  type: 'test'
+  ...
+# Subtest: duplicate is neither exact original vector nor exact compact vector
+ok 11 - duplicate is neither exact original vector nor exact compact vector
+  ---
+  duration_ms: 51.99725
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1817.783083

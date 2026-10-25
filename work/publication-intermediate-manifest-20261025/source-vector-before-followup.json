@@ -1,0 +1,19 @@
+{
+  "base": "54e15e911c297dd687d7162b7dcacb576c644c23",
+  "node": "22.23.3",
+  "scope": "local synthetic Node/fake IndexedDB/provider fixtures only",
+  "files": {
+    "extension/core/browser-native-sync/checkpoint-publication.js": {
+      "sha256": "b44986fd190bd7d98906b80bcc2c0f328b8f2d8d2256ac8d2f8fb13c51b2cc2a",
+      "bytes": 21158
+    },
+    "extension/tests/checkpoint-publication-outbound.test.mjs": {
+      "sha256": "43e72be9f6dfa80783a4ae49ad1aa0b3a63f53b832755b4e3a84cd51e753280e",
+      "bytes": 11835
+    },
+    "extension/tests/checkpoint-publication-third-working.test.mjs": {
+      "sha256": "fd79c5558a4fe07eab509d6dcdb530400e94c88d9592a84203f822a6532a16bd",
+      "bytes": 8453
+    }
+  }
+}

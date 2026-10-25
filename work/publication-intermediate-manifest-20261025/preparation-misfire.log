@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: publish never acquires prepare cleanup authority even when the old disposable stage reappears
+not ok 1 - publish never acquires prepare cleanup authority even when the old disposable stage reappears
+  ---
+  duration_ms: 965.454542
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/tests/source-union-publication-continuation.test.mjs:171:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_CHECKPOINT_PUBLICATION_LIMIT'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/tests/source-union-publication-continuation.test.mjs:174:6)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: three original appends to ancestor retain exact rows and fail closed at cumulative publication budget
+not ok 2 - three original appends to ancestor retain exact rows and fail closed at cumulative publication budget
+  ---
+  duration_ms: 1029.183667
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/tests/source-union-publication-continuation.test.mjs:179:44'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected rejection.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_CHECKPOINT_PUBLICATION_LIMIT'
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/tests/source-union-publication-continuation.test.mjs:188:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2209.042083

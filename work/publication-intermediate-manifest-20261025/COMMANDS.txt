@@ -1,0 +1,13 @@
+Node: /Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node
+Working directory: /Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest
+
+1. baseline: node --test extension/tests/checkpoint-publication-outbound.test.mjs (initial single positive; original base runtime)
+2. first-positive: same initial single positive after runtime change
+3. focused-first: node --test extension/tests/checkpoint-publication-outbound.test.mjs (11 controls; retained exact first source)
+4. focused-corrected: same file, corrected old-vector synthetic fixture
+5. third-working-once: node --test extension/tests/checkpoint-publication-third-working.test.mjs (two original third-edit positive cases, once each on changed runtime)
+6. owning-combined: node --test extension/tests/checkpoint-publication.test.mjs extension/tests/source-purge-checkpoint-publication.test.mjs extension/tests/source-union-publication-continuation.test.mjs
+7. budget-controls: node --test --test-name-pattern="original publication (refs|bytes) ticket" extension/tests/checkpoint-publication-outbound.test.mjs
+8. budget-bytes-corrected: node --test --test-name-pattern="original publication bytes ticket" extension/tests/checkpoint-publication-outbound.test.mjs
+9. preparation-misfire: failed edit (before any write) then accidentally continued Node --test --test-name-pattern="repeated complete-cut work after|publish never acquires prepare cleanup|three original appends to ancestor" extension/tests/source-union-publication-continuation.test.mjs; two original cases 0/2
+10. three-followup-cases: same pattern after separately confirmed exact edit; changed 3 cases only

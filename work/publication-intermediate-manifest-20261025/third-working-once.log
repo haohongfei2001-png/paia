@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: third coalesced Working edit after original sibling union publishes and restores through cold reopen
+ok 1 - third coalesced Working edit after original sibling union publishes and restores through cold reopen
+  ---
+  duration_ms: 1148.285542
+  type: 'test'
+  ...
+# Subtest: third allocated Working edit after original sibling union publishes and restores through cold reopen
+ok 2 - third allocated Working edit after original sibling union publishes and restores through cold reopen
+  ---
+  duration_ms: 1081.610792
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2425.488292

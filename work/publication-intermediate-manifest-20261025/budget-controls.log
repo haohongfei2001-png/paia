@@ -1,0 +1,55 @@
+TAP version 13
+# Subtest: original publication refs ticket exhaustion refuses before POST without confirmation or renewal
+ok 1 - original publication refs ticket exhaustion refuses before POST without confirmation or renewal
+  ---
+  duration_ms: 113.103916
+  type: 'test'
+  ...
+# Subtest: original publication bytes ticket exhaustion refuses before POST without confirmation or renewal
+not ok 2 - original publication bytes ticket exhaustion refuses before POST without confirmation or renewal
+  ---
+  duration_ms: 63.9805
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/tests/checkpoint-publication-outbound.test.mjs:81:41'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'BNS_HUMAN_GRAPH_LIMIT'
+    -   code: 'BNS_CHECKPOINT_PUBLICATION_LIMIT'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'BNS_CHECKPOINT_PUBLICATION_LIMIT'
+  actual:
+  error: 'BNS_HUMAN_GRAPH_LIMIT'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/core/browser-native-sync/value.js:5:32)
+    add (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/core/browser-native-sync/source-working-physical.js:32:52)
+    text (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/core/browser-native-sync/source-working-physical.js:34:124)
+    visit (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/core/browser-native-sync/source-working-physical.js:40:27)
+    measureSourceWorkingPhysicalTree (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/core/browser-native-sync/source-working-physical.js:49:2)
+    chargeOriginalCheckpointPublicationWork (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/core/browser-native-sync/checkpoint-publication.js:25:203)
+    LocalSyncRecoverySession.discoverPublicationParents (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/tests/checkpoint-publication-outbound.test.mjs:83:145)
+    file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/core/browser-native-sync/checkpoint-publication.js:86:674
+    file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/core/browser-native-sync/checkpoint-publication.js:57:406
+    async #await (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/core/browser-native-sync/checkpoint-publication.js:57:333)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/publication-intermediate-manifest/extension/tests/checkpoint-publication-outbound.test.mjs:84:6)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 369.725417

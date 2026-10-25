@@ -1,0 +1,86 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
+import {LibraryDocumentsStore} from '../core/library-documents-store.js';
+import {local,capture,inputEdit} from './harness/thought-m1.mjs';
+import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';
+import {SourceBootstrapJournal} from '../core/browser-native-sync/source-bootstrap-journal.js';
+import {SourcePurgeJournal} from '../core/browser-native-sync/source-purge-journal.js';
+import {InputWorkingSyncJournal} from '../core/browser-native-sync/input-working-journal.js';
+import {FilterIntentSyncJournal} from '../core/browser-native-sync/filter-intent-journal.js';
+import {keyedHash} from '../core/thought-model.js';
+import {HumanLibrarySyncJournal} from '../core/browser-native-sync/human-library-journal.js';
+import {PromptSyncJournal} from '../core/browser-native-sync/prompt-journal.js';
+import {PromptReuseService} from '../core/prompt-reuse-service.js';
+import {protocolObject} from '../core/browser-native-sync/segments.js';
+import {buildCheckpoint} from '../core/browser-native-sync/checkpoints.js';
+import {requireGroupedCheckpointDispatchCut} from '../core/browser-native-sync/group-checkpoint.js';
+import {RecoverableCheckpointPublication,chargeOriginalCheckpointPublicationWork} from '../core/browser-native-sync/checkpoint-publication.js';
+import {LocalSyncRecoverySession} from '../core/browser-native-sync/recovery-session.js';
+import {GoogleDriveAppDataTransport,GOOGLE_APPDATA_SCOPE} from '../core/browser-native-sync/providers/google-drive.js';
+import {OneDriveAppFolderTransport,ONEDRIVE_APPFOLDER_SCOPE} from '../core/browser-native-sync/providers/onedrive.js';
+import {fakeGoogleCheckpointHTTP,fakeOneDriveCheckpointHTTP} from './harness/checkpoint-publication-http.mjs';
+globalThis.IDBKeyRange=IDBKeyRange;
+const DATASET='SYNTHETIC_checkpoint_publication',google={subject:'SYNTHETIC_google_subject',clientId:'000000000000-synthetic.apps.googleusercontent.com',generation:'SYNTHETIC_generation',scopes:[GOOGLE_APPDATA_SCOPE]},onedrive={subject:'SYNTHETIC_subject',tenantId:'9188040d-6c67-4c5b-b112-36a304b66dad',clientId:'00000000-0000-0000-0000-000000000001',generation:'SYNTHETIC_generation',scopes:[ONEDRIVE_APPFOLDER_SCOPE]};
+function storageFixture(){const data={};let lose=false,drop=false,hold=null;return {async get(k){return structuredClone(k===null?data:{[k]:data[k]});},async set(v){const journal=Object.keys(v).some(k=>k.startsWith('paia-sync-checkpoint-publication:v1:'));if(journal&&hold){const h=hold;hold=null;h.enter();await h.promise;}if(journal&&drop){drop=false;throw Error('SYNTHETIC lost uncommitted local set');}Object.assign(data,structuredClone(v));if(journal&&lose){lose=false;throw Error('SYNTHETIC lost committed local set');}},lose(){lose=true;},drop(){drop=true;},hold(){let enter,release;const entered=new Promise(r=>enter=r),promise=new Promise(r=>release=r);hold={enter,promise};return {entered,release};},data};}
+const snapshot=s=>s.repository.transaction(false,async t=>Object.fromEntries(await Promise.all(s.repository.stores.map(async k=>[k,await t.all(k)]))));
+function journals(store,device){const core=new BrowserNativeSyncCore(store.repository,{datasetId:DATASET,deviceId:device});store.sourceBootstrapJournal=new SourceBootstrapJournal(core);store.sourcePurgeJournal=new SourcePurgeJournal(core);store.filterIntentJournal=new FilterIntentSyncJournal(core);store.inputWorkingJournal=new InputWorkingSyncJournal(core,{filterJournal:store.filterIntentJournal,logicalCommits:true});store.humanLibraryJournal=new HumanLibrarySyncJournal(core);return core;}
+async function fresh(t,device,{factory=new IDBFactory(),storage=storageFixture(),name='SYNTHETIC_'+device,reopen=false}={}){let n=0;const store=new LibraryDocumentsStore(storage,{indexedDB:factory,name,clock:()=>new Date(Date.UTC(2026,9,24)+70000*n++).toISOString()});if(!reopen)await store.consent(true);await store.finishFoundation();t.after(()=>store.repository.db?.close());return {store,core:journals(store,device),storage,factory,name,device};}
+async function seeded(t,mixed=false){const f=await fresh(t,'SYNTHETIC_producer');await f.store.capture(capture((await f.store.status()).epoch));f.input=(await f.store.snapshot()).library.blocks[0].id;await inputEdit(f.store,f.input,{note:'SYNTHETIC original Working 中文🙂'});if(mixed){f.topic=await f.store.createTopic({name:'SYNTHETIC topic',operationId:crypto.randomUUID()});f.entry=await f.store.createEntry({actor:'user',type:'idea',formation:'explicit',body:'SYNTHETIC human text 中文🙂',evidence:[],operationId:crypto.randomUUID()});await f.store.placeEntry({entryId:f.entry.id,topicId:f.topic.id,expectedEntryRevision:0,expectedTopicRevision:0,operationId:crypto.randomUUID()});await new PromptReuseService(f.store,{syncJournal:new PromptSyncJournal(f.core)}).change({action:'create',revision:0,text:'SYNTHETIC manual prompt'});}return f;}
+function provider(f,kind,cloud,{request,isCurrent=()=>true}={}){const binding=kind==='google'?google:onedrive,C=kind==='google'?GoogleDriveAppDataTransport:OneDriveAppFolderTransport;return new C(f.core,{binding,request:request??cloud.request,isCurrent});}
+function producer(f,kind,cloud,options={}){const binding={...(kind==='google'?google:onedrive),provider:kind==='google'?'google-drive-appdata':'onedrive-appfolder'};return new RecoverableCheckpointPublication(f.core,{store:f.store,binding,request:options.request??cloud.request,isCurrent:options.isCurrent??(()=>true),...options});}
+function service(kind){return kind==='google'?fakeGoogleCheckpointHTTP(google):fakeOneDriveCheckpointHTTP(onedrive);}
+const writes=cloud=>cloud.requests.filter(r=>['POST','PUT'].includes(r.method)).length;
+
+
+test('new original publication keeps only its final owner manifest in exact outbound vector',async t=>{
+ const f=await seeded(t),cloud=service('google'),p=producer(f,'google',cloud),ready=await p.prepare();
+ const row=Object.values(f.storage.data).find(x=>x?.taskId===ready.taskId);
+ assert.equal(row.objects.filter(x=>x.ref.kind==='checkpoint-manifest').length,1);
+ assert.deepEqual(row.objects.at(-1).ref,ready.ref);
+});
+
+const journal=(f,id)=>Object.values(f.storage.data).find(x=>x?.taskId===id);
+const refs=row=>row.objects.map(x=>x.ref);
+async function encoded(f){const objects=new Map(),transport={putImmutable:async(ref,raw)=>objects.set(ref.id,{ref:structuredClone(ref),raw:raw.slice()}),get:async ref=>objects.get(ref.id).raw.slice()},result=await buildCheckpoint(f.core,transport,{grouped:{store:f.store,dispatchQualification:true}});return {objects,result};}
+// Compatibility fixture: use the unchanged original encoder's full ordered object
+// vector with an actual original-owner prepared journal. This is synthetic old
+// journal shape, not an independently executed historical producer receipt.
+async function fullJournal(f,p){const original=await encoded(f),ready=await p.prepare(),row=journal(f,ready.taskId);assert.deepEqual(row.ref,original.result.ref);const all=[...original.objects.values()].map(x=>({ref:structuredClone(x.ref),state:'ready'}));assert.equal(all.filter(x=>x.ref.kind==='checkpoint-manifest').length,2);row.objects=all;return ready;}
+for(const kind of ['google','onedrive'])test(kind+' new outbound omits exactly encoder intermediate, keeps dependency bytes, final identity and actual discovery',async t=>{
+ const f=await seeded(t),original=await encoded(f),cloud=service(kind),p=producer(f,kind,cloud),ready=await p.prepare(),row=journal(f,ready.taskId);
+ assert.deepEqual(ready.ref,original.result.ref);const full=[...original.objects.values()].map(x=>x.ref),internal=full.filter(x=>x.kind==='checkpoint-manifest'&&x.id!==ready.ref.id);assert.equal(internal.length,1);
+ assert.deepEqual(refs(row),full.filter(x=>x.id!==internal[0].id));assert.equal(row.ref.id,original.result.ref.id);assert.equal((await p.publish()).state,'confirmed');
+ const remote=provider(f,kind,cloud),listed=await remote.listCheckpoints({limit:100});assert.deepEqual(listed.items,[ready.ref]);assert.equal(listed.nextCursor,null);
+ for(const ref of refs(row))assert.deepEqual(await remote.get(ref),original.objects.get(ref.id).raw);await assert.rejects(remote.get(internal[0]),{code:'BNS_OBJECT_NOT_FOUND'});
+ assert.equal(cloud.files.size,row.objects.length);remote.close();
+});
+for(const kind of ['google','onedrive'])test(kind+' original-encoder full journal fixture cold resumes full exact vector unchanged',async t=>{
+ const f=await seeded(t),cloud=service(kind),old=producer(f,kind,cloud),ready=await fullJournal(f,old),before=structuredClone(journal(f,ready.taskId));assert.equal(before.objects.filter(x=>x.ref.kind==='checkpoint-manifest').length,2);old.close();await f.store.repository.close();
+ const cold=await fresh(t,f.device,{...f,reopen:true}),p=producer(cold,kind,cloud);assert.equal((await p.status()).taskId,ready.taskId);assert.deepEqual(refs(journal(cold,ready.taskId)),refs(before));
+ assert.equal((await p.publish()).state,'confirmed');assert.deepEqual(refs(journal(cold,ready.taskId)),refs(before));assert.equal(cloud.files.size,before.objects.length);
+ const again=await p.prepare();assert.notEqual(again.taskId,ready.taskId);assert.equal(journal(cold,again.taskId).objects.filter(x=>x.ref.kind==='checkpoint-manifest').length,1);
+});
+test('original-encoder full journal attempted internal manifest remains GET-only after lost committed POST and cold reopen',async t=>{
+ const f=await seeded(t),cloud=service('google');let hit=false;
+ const request=async r=>{const response=await cloud.request(r),text=r.method==='POST'?new TextDecoder().decode(r.body):'';if(!hit&&text.includes('"paiaKind":"checkpoint-manifest"')&&!text.includes('"paiaRecovery":"grouped-v1"')){hit=true;throw Error('SYNTHETIC lost intermediate ACK');}return response;};
+ const old=producer(f,'google',cloud,{request}),ready=await fullJournal(f,old);await assert.rejects(old.publish());assert.equal(hit,true);const before=structuredClone(journal(f,ready.taskId)),attempt=before.objects.find(x=>x.state==='attempting');assert.equal(attempt.ref.kind,'checkpoint-manifest');assert.notEqual(attempt.ref.id,ready.ref.id);
+ const id=[...cloud.files.values()].find(x=>x.appProperties.paiaDigest===attempt.ref.id).id,posts=()=>cloud.requests.filter(r=>r.method==='POST'&&new TextDecoder().decode(r.body).includes('"id":"'+id+'"')).length;assert.equal(posts(),1);old.close();await f.store.repository.close();
+ const cold=await fresh(t,f.device,{...f,reopen:true}),p=producer(cold,'google',cloud);assert.equal((await p.publish()).state,'confirmed');assert.equal(posts(),1);assert.deepEqual(refs(journal(cold,ready.taskId)),refs(before));assert.ok(cloud.requests.some(r=>r.method==='GET'&&r.url.endsWith('/'+id+'?alt=media')));
+});
+for(const kind of ['missing-shard','extra','reorder-full','wrong-ref','duplicate'])test(kind+' is neither exact original vector nor exact compact vector',async t=>{
+ const f=await seeded(t),cloud=service('google'),p=producer(f,'google',cloud),ready=kind==='reorder-full'?await fullJournal(f,p):await p.prepare(),row=journal(f,ready.taskId);p.close();
+ if(kind==='missing-shard')row.objects.splice(0,1);
+ if(kind==='extra'){const object=await protocolObject('chunk',new TextEncoder().encode('SYNTHETIC extra'));row.objects.splice(0,0,{ref:object.ref,state:'ready'});}
+ if(kind==='reorder-full')[row.objects[0],row.objects[1]]=[row.objects[1],row.objects[0]];
+ if(kind==='wrong-ref')row.objects[0].ref.decodedBytes++;
+ if(kind==='duplicate')row.objects.splice(0,0,structuredClone(row.objects[0]));
+ const vector=structuredClone(row),before=await snapshot(f.store);await assert.rejects(producer(f,'google',cloud).publish());assert.equal(writes(cloud),0);assert.deepEqual(journal(f,ready.taskId),vector);assert.deepEqual(await snapshot(f.store),before);
+});
+
+for(const dimension of ['refs','bytes'])test('original publication '+dimension+' ticket exhaustion refuses before POST without confirmation or renewal',async t=>{
+ const f=await seeded(t),cloud=service('google'),p=producer(f,'google',cloud),ready=await p.prepare(),before=structuredClone(journal(f,ready.taskId)),rows=await snapshot(f.store),original=LocalSyncRecoverySession.prototype.discoverPublicationParents;let ticket=null,calls=0;
+ LocalSyncRecoverySession.prototype.discoverPublicationParents=async function(options){calls++;ticket=options.publicationWork;assert.ok(ticket);if(dimension==='refs')chargeOriginalCheckpointPublicationWork(ticket,f.core,f.store,undefined,4096);else for(let i=0;i<16;i++)chargeOriginalCheckpointPublicationWork(ticket,f.core,f.store,'x'.repeat(128*1024));return Reflect.apply(original,this,[options]);};
+ try{await assert.rejects(p.publish(),{code:'BNS_CHECKPOINT_PUBLICATION_LIMIT'});}finally{LocalSyncRecoverySession.prototype.discoverPublicationParents=original;}
+ assert.ok(ticket);assert.equal(calls,1);assert.equal(writes(cloud),0);assert.deepEqual(journal(f,ready.taskId),before);assert.deepEqual(await snapshot(f.store),rows);assert.equal((await p.status()).state,'prepared');
+});

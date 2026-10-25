@@ -90,16 +90,38 @@ export class RecoverableCheckpointPublication {
   let sourcePurgeProjection=false;for await(const row of this.#core.rows('revision')){if(row.operation.type==='sourcePurgeIntent')sourcePurgeProjection=true;}
   const result=await this.#await(work,()=>buildCheckpoint(this.#core,local,{grouped:{store:this.#store,dispatchQualification:true,sourcePurgeProjection,publicationWork:work.publicationToken,publicationFinalCut},parents}));
   if(!objects.has(result.ref.id)||!result.manifest.ownerScope)fail('BNS_CHECKPOINT_PUBLICATION_JOURNAL');
-  // The encoder's internal unscoped manifest is not discoverable; keep original
-  // dependency order and move only the final authenticated owner manifest last.
+  // Keep the encoder's complete map for its original local readback and for
+  // exact old journals. New tasks omit only the authenticated, unreferenced
+  // intermediate manifest, never a shard, chunk, parent or arbitrary subset.
   const final=objects.get(result.ref.id);objects.delete(result.ref.id);objects.set(result.ref.id,final);
-  return {result,objects,local};
+  const expected=clone(result.manifest);delete expected.ownerScope;
+  chargeOriginalCheckpointPublicationWork(work.publicationToken,this.#core,this.#store,expected);
+  let intermediate=null;
+  for(const object of objects.values())if(object.ref.kind==='checkpoint-manifest'&&object.ref.id!==result.ref.id){
+   this.#charge(work,object.ref);
+   const value=decodeJSON(await this.#await(work,()=>readObject(object.ref,local.get)),SEGMENT_PROFILE.decoded);
+   chargeOriginalCheckpointPublicationWork(work.publicationToken,this.#core,this.#store,value);
+   if(equal(value,expected)){
+    if(intermediate!==null||result.manifest.parents.includes(object.ref.id)||result.manifest.root.id===object.ref.id)fail('BNS_CHECKPOINT_PUBLICATION_JOURNAL');
+    intermediate=object.ref.id;
+   }
+  }
+  const outbound=new Map(objects);if(intermediate!==null)outbound.delete(intermediate);
+  return {result,objects:outbound,fullObjects:objects,local};
  }
  async #causal(work,prepared,parent){if(!parent)return;const manifest=decodeJSON(await this.#remote(work,parent),SEGMENT_PROFILE.decoded),old=[];for await(const item of checkpointItems(manifest,ref=>this.#remote(work,ref))){if(++work.refs>LIMIT.refs||(work.bytes+=bytes(item).length)>LIMIT.bytes)fail('BNS_CHECKPOINT_PUBLICATION_LIMIT');if(item.kind==='revision')old.push(item);}
   const next=[];for await(const item of checkpointItems(prepared.result.manifest,prepared.local.get)){if(++work.refs>LIMIT.refs||(work.bytes+=bytes(item).length)>LIMIT.bytes)fail('BNS_CHECKPOINT_PUBLICATION_LIMIT');next.push(item);}
   await requireCheckpointRevisionRetention(this.#core,old,next,'BNS_CHECKPOINT_PUBLICATION_CAUSAL');
  }
- async #same(work,row,finalCut=false){const prepared=await this.#prepareObjects(work,row.parents,finalCut);if(!equal(prepared.result.ref,row.ref)||!equal(prepared.result.cut,row.cut)||!equal([...prepared.objects.values()].map(x=>x.ref),row.objects.map(x=>x.ref)))fail('BNS_CHECKPOINT_PUBLICATION_CUT_CHANGED');return prepared;}
+ async #same(work,row,finalCut=false){
+  const prepared=await this.#prepareObjects(work,row.parents,finalCut),refs=row.objects.map(x=>x.ref);
+  if(!equal(prepared.result.ref,row.ref)||!equal(prepared.result.cut,row.cut))fail('BNS_CHECKPOINT_PUBLICATION_CUT_CHANGED');
+  if(equal([...prepared.objects.values()].map(x=>x.ref),refs))return prepared;
+  // An old task keeps its complete original ordered vector and every object's
+  // durable attempting/verified state. No migration, omitted GET or replay.
+  if(equal([...prepared.fullObjects.values()].map(x=>x.ref),refs))return {...prepared,objects:prepared.fullObjects};
+  fail('BNS_CHECKPOINT_PUBLICATION_CUT_CHANGED');
+ }
  async status(){return this.#exclusive(async work=>{const identity=await this.#identity(work),row=await this.#load(work,identity);return row?this.#view(row):{state:'idle',readiness:'not-prepared'};});}
  #view(row){return {state:row.state,taskId:row.taskId,ref:clone(row.ref),readiness:row.state==='confirmed'?'recoverable-checkpoint-confirmed':'checkpoint-publication-incomplete',verified:row.objects.filter(x=>x.state==='verified').length,objects:row.objects.length};}
  async prepare(){return this.#exclusive(async work=>{work.action='prepare';const identity=await this.#identity(work),previous=await this.#load(work,identity);if(previous&&previous.state!=='confirmed')return this.#view(previous);

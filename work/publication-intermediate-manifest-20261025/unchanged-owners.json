@@ -1,0 +1,42 @@
+[
+  {
+    "path": "extension/tests/checkpoint-publication.test.mjs",
+    "unchanged": true,
+    "sha256": "91bf855eca179b9ade506a523e89dee5437a3d366cf43f4e8a5cec5a219dbad6"
+  },
+  {
+    "path": "extension/tests/source-purge-checkpoint-publication.test.mjs",
+    "unchanged": true,
+    "sha256": "ab0f60b56a00d21c5e4a3ef2b70b9c770a49c08346b4c7800e73300af5d60bb9"
+  },
+  {
+    "path": "extension/tests/source-union-publication-continuation.test.mjs",
+    "unchanged": true,
+    "sha256": "c4372734f8eb2065e37e858ab5067a0ba80ceee9804d767a0adc039d72020bcb"
+  },
+  {
+    "path": "extension/core/browser-native-sync/checkpoints.js",
+    "unchanged": true,
+    "sha256": "2c74423a0ddea718f90debd997e25e00cd4172b3abfd8014014e4e511e3c41b1"
+  },
+  {
+    "path": "extension/core/browser-native-sync/group-checkpoint.js",
+    "unchanged": true,
+    "sha256": "243b9a1fc6289be60b114dfca87a80e3c33eaea2bd8be1ce3adcca54fb9dcb38"
+  },
+  {
+    "path": "extension/core/browser-native-sync/source-purge-group.js",
+    "unchanged": true,
+    "sha256": "23e6c4ba88b3f4fe5a2fbd7a596a48d099646a308836006c1333cdb3f62a1a3e"
+  },
+  {
+    "path": "extension/core/browser-native-sync/providers/google-drive.js",
+    "unchanged": true,
+    "sha256": "7463b96cad7b5cba33d7eaf5824aa8aa087bd0e2c156b6802eb28d9c7824c773"
+  },
+  {
+    "path": "extension/core/browser-native-sync/providers/onedrive.js",
+    "unchanged": true,
+    "sha256": "7c8c037e9bf8f039f9447d99d638d5366a269e17a014acd2fa047c4d3e0c2464"
+  }
+]
