@@ -1,0 +1,301 @@
+TAP version 13
+# Subtest: retired document rejects new legacy insertion before admission
+not ok 1 - retired document rejects new legacy insertion before admission
+  ---
+  duration_ms: 3.2235
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:150:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'inserted'
+    - 'failed'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'failed'
+  actual: 'inserted'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:154:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: retired document rejects new receipt insertion before admission
+not ok 2 - retired document rejects new receipt insertion before admission
+  ---
+  duration_ms: 3.891
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:150:40'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'inserted'
+    - 'failed'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'failed'
+  actual: 'inserted'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:154:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retired document synchronous focus reentry blocks legacy native insertion
+not ok 3 - retired document synchronous focus reentry blocks legacy native insertion
+  ---
+  duration_ms: 0.487334
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:157:91'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:164:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retired document synchronous focus reentry blocks receipt native insertion
+not ok 4 - retired document synchronous focus reentry blocks receipt native insertion
+  ---
+  duration_ms: 0.972208
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:157:91'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:164:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retired document synchronous place reentry blocks legacy native insertion
+not ok 5 - retired document synchronous place reentry blocks legacy native insertion
+  ---
+  duration_ms: 0.39475
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:157:91'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:164:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retired document synchronous place reentry blocks receipt native insertion
+not ok 6 - retired document synchronous place reentry blocks receipt native insertion
+  ---
+  duration_ms: 0.882083
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:157:91'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:164:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retired document synchronous final guard reentry blocks legacy native insertion
+not ok 7 - retired document synchronous final guard reentry blocks legacy native insertion
+  ---
+  duration_ms: 0.355583
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:157:91'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:164:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retired document synchronous final guard reentry blocks receipt native insertion
+not ok 8 - retired document synchronous final guard reentry blocks receipt native insertion
+  ---
+  duration_ms: 0.836417
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:157:91'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:164:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retired document pending digest continuation cannot enter native
+not ok 9 - retired document pending digest continuation cannot enter native
+  ---
+  duration_ms: 2.310375
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:168:62'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:174:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retired document pending registration continuation cannot enter native
+not ok 10 - retired document pending registration continuation cannot enter native
+  ---
+  duration_ms: 1.087625
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:168:62'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:174:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retired document pending qualification continuation cannot enter native
+not ok 11 - retired document pending qualification continuation cannot enter native
+  ---
+  duration_ms: 0.784833
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:168:62'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:174:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retired document preserves already issued native inserted outcome and original ACK
+not ok 12 - retired document preserves already issued native inserted outcome and original ACK
+  ---
+  duration_ms: 1.147333
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:177:35'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of null (reading 'outcome')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:181:117)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: retired document preserves already issued native UNKNOWN outcome and original ACK
+ok 13 - retired document preserves already issued native UNKNOWN outcome and original ACK
+  ---
+  duration_ms: 0.956834
+  type: 'test'
+  ...
+# Subtest: retired document pageshow, exact release and constructor reuse cannot revive admission; a new document keeps legacy compatibility
+not ok 14 - retired document pageshow, exact release and constructor reuse cannot revive admission; a new document keeps legacy compatibility
+  ---
+  duration_ms: 0.523791
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:185:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'legacy_insertion_unqualified'
+    - 'document_retired'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'document_retired'
+  actual: 'legacy_insertion_unqualified'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-document-retirement/extension/tests/prompt-composer-selection-hold.test.mjs:188:63)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 1
+# fail 13
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 202.258625

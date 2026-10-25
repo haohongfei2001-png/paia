@@ -1,0 +1,26 @@
+{
+  "base": "93504fbc4166e5093fa0ecada78052593c44f256",
+  "original_hold_test_prefix_unchanged": true,
+  "sources": [
+    {
+      "path": "extension/adapter/chatgpt-composer.js",
+      "before_sha256": "962891579c916995ecabef557604dfd59b9f96c55f578373ee9358f4bb711c4b",
+      "after_sha256": "9d7a23ef76df650671ec07dee338251e93e25dcff3d79a35b2c564e049bce43c"
+    },
+    {
+      "path": "extension/tests/prompt-composer-selection-hold.test.mjs",
+      "before_sha256": "4d6e61a3a84628c79b412f0920bb7fb676162a12319ccb9faf840c15a577144e",
+      "after_sha256": "e870c60e8bebc688640462fd120c10292777312a69cfc66b4ab8645caa5970ee"
+    },
+    {
+      "path": "extension/tests/prompt-original-composer-receipts.test.mjs",
+      "before_sha256": "66a3fc3a648d892a4a8acf1c4277e953bcac3780a9be3b15ffe1789050b7c056",
+      "after_sha256": "66a3fc3a648d892a4a8acf1c4277e953bcac3780a9be3b15ffe1789050b7c056"
+    },
+    {
+      "path": "extension/background/prompt-insertion-receipts.js",
+      "before_sha256": "f2f6ca682b76ce6f39635315f6317284236be067da185984ad5b0adf2741b285",
+      "after_sha256": "f2f6ca682b76ce6f39635315f6317284236be067da185984ad5b0adf2741b285"
+    }
+  ]
+}

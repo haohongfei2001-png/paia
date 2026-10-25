@@ -290,7 +290,7 @@
    const selection=this.document.getSelection();selection.removeAllRanges();selection.addRange(r);return true;
   }
   insert(request){
-   const state=this.#state;if(state.selectionHold)return resolved({status:'failed',reason:'document_selection_held'});
+   const state=this.#state;if(state.documentRetired)return resolved({status:'failed',reason:'document_retired'});if(state.selectionHold)return resolved({status:'failed',reason:'document_selection_held'});
    const token=Object.freeze(Object.create(null)),serial=state.admissionSerial;state.selectionPending.add(token);
    let result;try{result=this.#insertAccepted(request,serial);}catch(error){state.selectionPending.delete(token);notifySelection(state);throw error;}
    const task=resolved(result);observe(task,()=>{state.selectionPending.delete(token);notifySelection(state);},()=>{state.selectionPending.delete(token);notifySelection(state);});return task;
@@ -357,6 +357,7 @@
   }
   async #once(text,url,guard,claim=null,eligible=true){
    const proof=(result,kind)=>proven(result,{kind,claim});
+   if(this.#state.documentRetired)return proof({status:'failed',reason:'document_retired'},'not_entered');
    if(!eligible)return proof({status:'failed',reason:'draft_changed'},'not_entered');
    if(this.disposed)return proof({status:'failed',reason:'composer_unavailable'},'not_entered');
    if(this.busy)return proof({status:'failed',reason:'busy'},'not_entered');
@@ -376,6 +377,9 @@
     node.focus({preventScroll:true});
     if(this.location.href!==url||guard&&!guard()||this.find()!==node||this.composing.has(node)||this.model(node)?.text!==before.text||!this.place(node,before,offset))return proof({status:'failed',reason:'draft_changed'},'not_entered');
     if(this.location.href!==url||guard&&!guard())return proof({status:'failed',reason:'draft_changed'},'not_entered');
+    // A synchronous focus, selection or caller guard can retire this document.
+    // Check after all such callbacks, without an await before native entry.
+    if(this.#state.documentRetired)return proof({status:'failed',reason:'document_retired'},'not_entered');
     attempted=true;
     // Chromium's native editing transaction supplies trusted input and lets
     // ProseMirror's DOM observer reconcile its own editor state. Never set HTML.

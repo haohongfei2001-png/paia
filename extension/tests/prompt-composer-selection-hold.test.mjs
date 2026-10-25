@@ -145,3 +145,53 @@ test('post-birth Promise then replacement cannot forge the original hold task re
  vm.runInContext("Promise.prototype.then=function(){throw Error('replacement must not execute')} ; Reflect.apply=()=>{throw Error('replacement apply must not execute')}",f.context);
  assert.equal(isHeld(await control(f,b)),true);assert.equal(isHeld(await control(f,b,'FENCE')),true);await control(f,b,'RELEASE');
 });
+
+// Document retirement is permanent for this original isolated-world owner.
+for(const lane of ['legacy','receipt'])test('retired document rejects new '+lane+' insertion before admission',async()=>{
+ const f=fixture(),a=f.adapter(),m=lane==='receipt'?await f.admitted():null;
+ f.document.defaultView.emit('pagehide',{});
+ const result=m?await f.insert(a,m):await a.insert(f.request());
+ assert.equal(result.status,'failed');assert.equal(result.reason,'document_retired');assert.equal(f.commands.length,0);
+});
+
+for(const point of ['focus','place','final guard'])for(const lane of ['legacy','receipt'])test('retired document synchronous '+point+' reentry blocks '+lane+' native insertion',async()=>{
+ const f=fixture(),a=f.adapter(),m=lane==='receipt'?await f.admitted():null;let checks=0;
+ const retire=()=>f.document.defaultView.emit('pagehide',{});
+ if(point==='focus'){const original=f.node.focus;f.node.focus=function(...args){const result=Reflect.apply(original,this,args);retire();return result;};}
+ if(point==='place'){const original=f.selection.addRange;f.selection.addRange=function(...args){const result=Reflect.apply(original,this,args);retire();return result;};}
+ const guard=()=>{if(point==='final guard'&&++checks===2)retire();return true;};
+ const result=m?await f.insert(a,m,{guard}):await a.insert(f.request({guard}));
+ assert.equal(f.commands.length,0);assert.equal(result.status,'failed');
+ if(m)assert.equal(result.insertionAck.outcome,'not_inserted');
+});
+
+for(const point of ['digest','registration','qualification'])test('retired document pending '+point+' continuation cannot enter native',async()=>{
+ const f=fixture(),a=f.adapter(),m=await f.admitted();let finish,entered;const ready=new Promise(resolve=>entered=resolve);
+ if(point==='digest'){const original=f.context.crypto;f.context.crypto={subtle:{digest:(...args)=>{entered();return new Promise(resolve=>finish=()=>resolve(original.subtle.digest(...args)));}}};}
+ if(point==='registration')f.setRegistration((message,response)=>{entered();return new Promise(resolve=>finish=()=>resolve(response));});
+ if(point==='qualification')f.qualification(()=>{entered();return new Promise(resolve=>finish=()=>resolve(true));});
+ const operation=f.insert(a,m);await ready;f.document.defaultView.emit('pagehide',{});finish();const result=await operation;
+ assert.equal(f.commands.length,0);assert.notEqual(result.status,'inserted');
+});
+
+for(const trusted of [true,false])test('retired document preserves already issued native '+(trusted?'inserted':'UNKNOWN')+' outcome and original ACK',async()=>{
+ const f=fixture({trusted}),a=f.adapter(),m=await f.admitted();f.acceptAck(false);f.hold();const operation=f.insert(a,m);await f.commandEntered;
+ f.document.defaultView.emit('pagehide',{});await f.release();const result=await operation;await flush();
+ const outcome=trusted?'inserted':'unknown';assert.equal(result.insertionAck.outcome,outcome);assert.equal(f.commands.length,1);
+ assert.equal((await f.dispatch({type:'PAIA_PROMPT_INSERTION_RECEIPT_READ',version:1,envelope:m.insertionReceipt})).outcome,outcome);
+ assert.equal(f.messages.filter(value=>value.type==='PAIA_PROMPT_INSERTION_ACK').at(-1).ack.outcome,outcome);
+});
+
+test('retired document pageshow, exact release and constructor reuse cannot revive admission; a new document keeps legacy compatibility',async()=>{
+ const f=fixture();f.adapter();const b=await f.binding();assert.equal(isHeld(await control(f,b)),true);
+ f.document.defaultView.emit('pagehide',{});assert.equal((await control(f,b,'RELEASE')).released,true);
+ f.document.defaultView.emit('pageshow',{});f.reload();assert.equal((await f.adapter().insert(f.request())).reason,'document_retired');assert.equal(f.commands.length,0);
+ const fresh=fixture();assert.equal((await fresh.adapter().insert(fresh.request())).status,'inserted');assert.equal(fresh.commands.length,1);
+});
+
+test('retired document pending original lane qualifier preserves not-entered ACK',async()=>{
+ const f=fixture(),a=f.adapter(),m=await f.admitted();let finish,entered;const ready=new Promise(resolve=>entered=resolve);
+ const operation=f.insert(a,m,{qualify:()=>{entered();return new Promise(resolve=>finish=resolve);}});await ready;
+ f.document.defaultView.emit('pagehide',{});finish(true);const result=await operation;
+ assert.equal(f.commands.length,0);assert.equal(result.insertionAck.outcome,'not_inserted');assert.equal(result.reason,'document_retired');
+});

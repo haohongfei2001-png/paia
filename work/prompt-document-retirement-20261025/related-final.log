@@ -1,0 +1,670 @@
+TAP version 13
+# Subtest: prospective registered original document holds shared three-lane admission and exact release never replays
+ok 1 - prospective registered original document holds shared three-lane admission and exact release never replays
+  ---
+  duration_ms: 3.54825
+  type: 'test'
+  ...
+# Subtest: exact document binding rejects receiver without closing original admission
+ok 2 - exact document binding rejects receiver without closing original admission
+  ---
+  duration_ms: 0.58475
+  type: 'test'
+  ...
+# Subtest: exact document binding rejects ownerToken without closing original admission
+ok 3 - exact document binding rejects ownerToken without closing original admission
+  ---
+  duration_ms: 0.508958
+  type: 'test'
+  ...
+# Subtest: exact document binding rejects domainDigest without closing original admission
+ok 4 - exact document binding rejects domainDigest without closing original admission
+  ---
+  duration_ms: 0.445583
+  type: 'test'
+  ...
+# Subtest: exact document binding rejects extra without closing original admission
+ok 5 - exact document binding rejects extra without closing original admission
+  ---
+  duration_ms: 0.711833
+  type: 'test'
+  ...
+# Subtest: unregistered, foreign sender and legacy document histories cannot acquire positive proof
+ok 6 - unregistered, foreign sender and legacy document histories cannot acquire positive proof
+  ---
+  duration_ms: 1.499625
+  type: 'test'
+  ...
+# Subtest: accepted receipt pending digest is registered before the first await and cannot enter native after hold
+ok 7 - accepted receipt pending digest is registered before the first await and cannot enter native after hold
+  ---
+  duration_ms: 5.8555
+  type: 'test'
+  ...
+# Subtest: hold during original lane qualification prevents native entry through the final private guard
+ok 8 - hold during original lane qualification prevents native entry through the final private guard
+  ---
+  duration_ms: 1.203333
+  type: 'test'
+  ...
+# Subtest: already entered native operation must complete actual verification and ACK publication before held proof
+ok 9 - already entered native operation must complete actual verification and ACK publication before held proof
+  ---
+  duration_ms: 1.431292
+  type: 'test'
+  ...
+# Subtest: UNKNOWN after native entry stays UNKNOWN and failed hold remains closed until exact release
+ok 10 - UNKNOWN after native entry stays UNKNOWN and failed hold remains closed until exact release
+  ---
+  duration_ms: 1.105417
+  type: 'test'
+  ...
+# Subtest: fixed deadline and original navigation identity never revive old proof
+ok 11 - fixed deadline and original navigation identity never revive old proof
+  ---
+  duration_ms: 0.595
+  type: 'test'
+  ...
+# Subtest: pending timeout retains actual task and late completion cannot resurrect holder
+ok 12 - pending timeout retains actual task and late completion cannot resurrect holder
+  ---
+  duration_ms: 1.055042
+  type: 'test'
+  ...
+# Subtest: pagehide and runtime replacement reject held proof without interpreting disposal as terminal
+ok 13 - pagehide and runtime replacement reject held proof without interpreting disposal as terminal
+  ---
+  duration_ms: 0.728583
+  type: 'test'
+  ...
+# Subtest: old shared constructor remains unsupported rather than being silently replaced by new bundle
+ok 14 - old shared constructor remains unsupported rather than being silently replaced by new bundle
+  ---
+  duration_ms: 0.386041
+  type: 'test'
+  ...
+# Subtest: ACK publication remains tracked until original response without pretending response success is durable coverage
+ok 15 - ACK publication remains tracked until original response without pretending response success is durable coverage
+  ---
+  duration_ms: 1.449
+  type: 'test'
+  ...
+# Subtest: second challenge, malformed fields, wrong nonce and runtime id mutation never release or refresh the first hold
+ok 16 - second challenge, malformed fields, wrong nonce and runtime id mutation never release or refresh the first hold
+  ---
+  duration_ms: 1.033916
+  type: 'test'
+  ...
+# Subtest: post-birth Promise then replacement cannot forge the original hold task result
+ok 17 - post-birth Promise then replacement cannot forge the original hold task result
+  ---
+  duration_ms: 0.38725
+  type: 'test'
+  ...
+# Subtest: retired document rejects new legacy insertion before admission
+ok 18 - retired document rejects new legacy insertion before admission
+  ---
+  duration_ms: 0.211208
+  type: 'test'
+  ...
+# Subtest: retired document rejects new receipt insertion before admission
+ok 19 - retired document rejects new receipt insertion before admission
+  ---
+  duration_ms: 1.125333
+  type: 'test'
+  ...
+# Subtest: retired document synchronous focus reentry blocks legacy native insertion
+ok 20 - retired document synchronous focus reentry blocks legacy native insertion
+  ---
+  duration_ms: 0.370625
+  type: 'test'
+  ...
+# Subtest: retired document synchronous focus reentry blocks receipt native insertion
+ok 21 - retired document synchronous focus reentry blocks receipt native insertion
+  ---
+  duration_ms: 0.833958
+  type: 'test'
+  ...
+# Subtest: retired document synchronous place reentry blocks legacy native insertion
+ok 22 - retired document synchronous place reentry blocks legacy native insertion
+  ---
+  duration_ms: 0.302875
+  type: 'test'
+  ...
+# Subtest: retired document synchronous place reentry blocks receipt native insertion
+ok 23 - retired document synchronous place reentry blocks receipt native insertion
+  ---
+  duration_ms: 0.852667
+  type: 'test'
+  ...
+# Subtest: retired document synchronous final guard reentry blocks legacy native insertion
+ok 24 - retired document synchronous final guard reentry blocks legacy native insertion
+  ---
+  duration_ms: 0.23925
+  type: 'test'
+  ...
+# Subtest: retired document synchronous final guard reentry blocks receipt native insertion
+ok 25 - retired document synchronous final guard reentry blocks receipt native insertion
+  ---
+  duration_ms: 0.689292
+  type: 'test'
+  ...
+# Subtest: retired document pending digest continuation cannot enter native
+ok 26 - retired document pending digest continuation cannot enter native
+  ---
+  duration_ms: 0.762709
+  type: 'test'
+  ...
+# Subtest: retired document pending registration continuation cannot enter native
+ok 27 - retired document pending registration continuation cannot enter native
+  ---
+  duration_ms: 0.719208
+  type: 'test'
+  ...
+# Subtest: retired document pending qualification continuation cannot enter native
+ok 28 - retired document pending qualification continuation cannot enter native
+  ---
+  duration_ms: 0.729083
+  type: 'test'
+  ...
+# Subtest: retired document preserves already issued native inserted outcome and original ACK
+ok 29 - retired document preserves already issued native inserted outcome and original ACK
+  ---
+  duration_ms: 2.246292
+  type: 'test'
+  ...
+# Subtest: retired document preserves already issued native UNKNOWN outcome and original ACK
+ok 30 - retired document preserves already issued native UNKNOWN outcome and original ACK
+  ---
+  duration_ms: 0.87875
+  type: 'test'
+  ...
+# Subtest: retired document pageshow, exact release and constructor reuse cannot revive admission; a new document keeps legacy compatibility
+ok 31 - retired document pageshow, exact release and constructor reuse cannot revive admission; a new document keeps legacy compatibility
+  ---
+  duration_ms: 0.577542
+  type: 'test'
+  ...
+# Subtest: retired document pending original lane qualifier preserves not-entered ACK
+ok 32 - retired document pending original lane qualifier preserves not-entered ACK
+  ---
+  duration_ms: 0.578125
+  type: 'test'
+  ...
+# Subtest: independently re-evaluated original adapter shares one physical inventory across three lanes and disposal
+ok 33 - independently re-evaluated original adapter shares one physical inventory across three lanes and disposal
+  ---
+  duration_ms: 8.06375
+  type: 'test'
+  ...
+# Subtest: different original lanes serialize the native transaction rather than three independent busy flags
+ok 34 - different original lanes serialize the native transaction rather than three independent busy flags
+  ---
+  duration_ms: 0.774167
+  type: 'test'
+  ...
+# Subtest: original native verification still refuses unproved accepted
+ok 35 - original native verification still refuses unproved accepted
+  ---
+  duration_ms: 0.471459
+  type: 'test'
+  ...
+# Subtest: original native verification still refuses unproved trusted input
+ok 36 - original native verification still refuses unproved trusted input
+  ---
+  duration_ms: 0.321166
+  type: 'test'
+  ...
+# Subtest: original native verification still refuses unproved caret
+ok 37 - original native verification still refuses unproved caret
+  ---
+  duration_ms: 0.339625
+  type: 'test'
+  ...
+# Subtest: original native verification still refuses unproved exact readback
+ok 38 - original native verification still refuses unproved exact readback
+  ---
+  duration_ms: 0.302
+  type: 'test'
+  ...
+# Subtest: the original model preserves selected draft, exact Unicode and line breaks without a send command
+ok 39 - the original model preserves selected draft, exact Unicode and line breaks without a send command
+  ---
+  duration_ms: 0.726791
+  type: 'test'
+  ...
+# Subtest: shared IME fence and lane disposal cannot authorize a new native edit
+ok 40 - shared IME fence and lane disposal cannot authorize a new native edit
+  ---
+  duration_ms: 0.3035
+  type: 'test'
+  ...
+# Subtest: original manual attempt returns and publishes an exact body-free native receipt
+ok 41 - original manual attempt returns and publishes an exact body-free native receipt
+  ---
+  duration_ms: 3.100417
+  type: 'test'
+  ...
+# Subtest: original assist attempt returns and publishes an exact body-free native receipt
+ok 42 - original assist attempt returns and publishes an exact body-free native receipt
+  ---
+  duration_ms: 1.197291
+  type: 'test'
+  ...
+# Subtest: original next attempt returns and publishes an exact body-free native receipt
+ok 43 - original next attempt returns and publishes an exact body-free native receipt
+  ---
+  duration_ms: 1.065417
+  type: 'test'
+  ...
+# Subtest: duplicate and read-only receipt retrieval preserve the original attempt after draft changes and independent re-evaluation
+ok 44 - duplicate and read-only receipt retrieval preserve the original attempt after draft changes and independent re-evaluation
+  ---
+  duration_ms: 0.98675
+  type: 'test'
+  ...
+# Subtest: original receiver rejects altered text before any new physical attempt
+ok 45 - original receiver rejects altered text before any new physical attempt
+  ---
+  duration_ms: 0.793334
+  type: 'test'
+  ...
+# Subtest: original receiver rejects altered lane before any new physical attempt
+ok 46 - original receiver rejects altered lane before any new physical attempt
+  ---
+  duration_ms: 0.695834
+  type: 'test'
+  ...
+# Subtest: original receiver rejects altered operationId before any new physical attempt
+ok 47 - original receiver rejects altered operationId before any new physical attempt
+  ---
+  duration_ms: 0.864
+  type: 'test'
+  ...
+# Subtest: original receiver rejects altered epoch before any new physical attempt
+ok 48 - original receiver rejects altered epoch before any new physical attempt
+  ---
+  duration_ms: 1.358125
+  type: 'test'
+  ...
+# Subtest: original receiver rejects altered receiptEpoch before any new physical attempt
+ok 49 - original receiver rejects altered receiptEpoch before any new physical attempt
+  ---
+  duration_ms: 1.665541
+  type: 'test'
+  ...
+# Subtest: original receiver rejects altered receiver before any new physical attempt
+ok 50 - original receiver rejects altered receiver before any new physical attempt
+  ---
+  duration_ms: 1.430291
+  type: 'test'
+  ...
+# Subtest: original receiver rejects altered domainDigest before any new physical attempt
+ok 51 - original receiver rejects altered domainDigest before any new physical attempt
+  ---
+  duration_ms: 1.223375
+  type: 'test'
+  ...
+# Subtest: original receiver rejects altered sourceDigest before any new physical attempt
+ok 52 - original receiver rejects altered sourceDigest before any new physical attempt
+  ---
+  duration_ms: 1.915916
+  type: 'test'
+  ...
+# Subtest: original receiver rejects altered authorizationDigest before any new physical attempt
+ok 53 - original receiver rejects altered authorizationDigest before any new physical attempt
+  ---
+  duration_ms: 0.884125
+  type: 'test'
+  ...
+# Subtest: original receiver rejects altered initiatorDigest before any new physical attempt
+ok 54 - original receiver rejects altered initiatorDigest before any new physical attempt
+  ---
+  duration_ms: 0.732125
+  type: 'test'
+  ...
+# Subtest: original receiver rejects altered extra before any new physical attempt
+ok 55 - original receiver rejects altered extra before any new physical attempt
+  ---
+  duration_ms: 0.713667
+  type: 'test'
+  ...
+# Subtest: retired original authority refuses a valid old envelope without reclassifying current DOM equality
+ok 56 - retired original authority refuses a valid old envelope without reclassifying current DOM equality
+  ---
+  duration_ms: 0.557834
+  type: 'test'
+  ...
+# Subtest: original final lane qualification follows durable admission and refusal proves no physical entry
+ok 57 - original final lane qualification follows durable admission and refusal proves no physical entry
+  ---
+  duration_ms: 0.732208
+  type: 'test'
+  ...
+# Subtest: post-command unproved outcome remains UNKNOWN rather than an inserted/no-write receipt {"accepted":false}
+ok 58 - post-command unproved outcome remains UNKNOWN rather than an inserted/no-write receipt {"accepted":false}
+  ---
+  duration_ms: 0.67775
+  type: 'test'
+  ...
+# Subtest: post-command unproved outcome remains UNKNOWN rather than an inserted/no-write receipt {"trusted":false}
+ok 59 - post-command unproved outcome remains UNKNOWN rather than an inserted/no-write receipt {"trusted":false}
+  ---
+  duration_ms: 0.669084
+  type: 'test'
+  ...
+# Subtest: post-command unproved outcome remains UNKNOWN rather than an inserted/no-write receipt {"caret":false}
+ok 60 - post-command unproved outcome remains UNKNOWN rather than an inserted/no-write receipt {"caret":false}
+  ---
+  duration_ms: 0.640125
+  type: 'test'
+  ...
+# Subtest: post-command unproved outcome remains UNKNOWN rather than an inserted/no-write receipt {"mutate":false}
+ok 61 - post-command unproved outcome remains UNKNOWN rather than an inserted/no-write receipt {"mutate":false}
+  ---
+  duration_ms: 0.578083
+  type: 'test'
+  ...
+# Subtest: public status DTOs cannot mint original receipts or substitute an old privately verified result
+ok 62 - public status DTOs cannot mint original receipts or substitute an old privately verified result
+  ---
+  duration_ms: 0.969333
+  type: 'test'
+  ...
+# Subtest: retirement preserves unacknowledged evidence across lane disposal and refuses old replay after pruning acknowledged records
+ok 63 - retirement preserves unacknowledged evidence across lane disposal and refuses old replay after pruning acknowledged records
+  ---
+  duration_ms: 1.877458
+  type: 'test'
+  ...
+# Subtest: sparse retirement does not invent retirement for lower gaps, and contiguous new epochs have no lifetime 500-attempt cap
+ok 64 - sparse retirement does not invent retirement for lower gaps, and contiguous new epochs have no lifetime 500-attempt cap
+  ---
+  duration_ms: 171.96675
+  type: 'test'
+  ...
+# Subtest: receipt control messages reject page/foreign senders and cannot clear the physical inventory
+ok 65 - receipt control messages reject page/foreign senders and cannot clear the physical inventory
+  ---
+  duration_ms: 0.914
+  type: 'test'
+  ...
+# Subtest: retired receipt cannot downgrade to a legacy physical request after acknowledged cache reclamation
+ok 66 - retired receipt cannot downgrade to a legacy physical request after acknowledged cache reclamation
+  ---
+  duration_ms: 0.802958
+  type: 'test'
+  ...
+# Subtest: durable exact terminal retirement confirmation recovers a lost separate ACK response without deleting UNKNOWN
+ok 67 - durable exact terminal retirement confirmation recovers a lost separate ACK response without deleting UNKNOWN
+  ---
+  duration_ms: 1.5235
+  type: 'test'
+  ...
+# Subtest: v1 pending evidence survives lane disposal, repeated source evaluation and read-only retrieval
+ok 68 - v1 pending evidence survives lane disposal, repeated source evaluation and read-only retrieval
+  ---
+  duration_ms: 1.667625
+  type: 'test'
+  ...
+# Subtest: retirement during a pending original final qualifier rejects native entry but retains actual no-write receipt
+ok 69 - retirement during a pending original final qualifier rejects native entry but retains actual no-write receipt
+  ---
+  duration_ms: 0.673583
+  type: 'test'
+  ...
+# Subtest: bounded legacy evidence refuses capacity without clearing old operations on lane disposal
+ok 70 - bounded legacy evidence refuses capacity without clearing old operations on lane disposal
+  ---
+  duration_ms: 25.275541
+  type: 'test'
+  ...
+# Subtest: bounded unresolved v1 evidence refuses more work without evicting UNKNOWN on retirement
+ok 71 - bounded unresolved v1 evidence refuses more work without evicting UNKNOWN on retirement
+  ---
+  duration_ms: 102.055292
+  type: 'test'
+  ...
+# Subtest: a different original physical library domain does not inherit another domain retirement floor
+ok 72 - a different original physical library domain does not inherit another domain retirement floor
+  ---
+  duration_ms: 0.792542
+  type: 'test'
+  ...
+# Subtest: all three actual content entrypoints forward the signed original message into the one original document boundary
+ok 73 - all three actual content entrypoints forward the signed original message into the one original document boundary
+  ---
+  duration_ms: 3.913417
+  type: 'test'
+  ...
+# Subtest: mutating a returned public DTO cannot rewrite cached native UNKNOWN evidence
+ok 74 - mutating a returned public DTO cannot rewrite cached native UNKNOWN evidence
+  ---
+  duration_ms: 0.838542
+  type: 'test'
+  ...
+# Subtest: a newly opened receiver consumes certified historical retirement floors rather than accumulating false local gaps
+ok 75 - a newly opened receiver consumes certified historical retirement floors rather than accumulating false local gaps
+  ---
+  duration_ms: 43.558792
+  type: 'test'
+  ...
+# Subtest: certified cumulative retirement reclaims previously acknowledged terminal rows but not missing-ACK or UNKNOWN evidence
+ok 76 - certified cumulative retirement reclaims previously acknowledged terminal rows but not missing-ACK or UNKNOWN evidence
+  ---
+  duration_ms: 1.33575
+  type: 'test'
+  ...
+# Subtest: a stale held shared QUALIFY response cannot escape authenticated epoch retirement
+ok 77 - a stale held shared QUALIFY response cannot escape authenticated epoch retirement
+  ---
+  duration_ms: 0.580917
+  type: 'test'
+  ...
+# Subtest: a retained original UNKNOWN gap does not impose a lifetime cap on later contiguous retired epochs
+ok 78 - a retained original UNKNOWN gap does not impose a lifetime cap on later contiguous retired epochs
+  ---
+  duration_ms: 55.699334
+  type: 'test'
+  ...
+# Subtest: re-registering after a missed ACK republishes original cached terminal evidence only, without a DOM recheck or edit
+ok 79 - re-registering after a missed ACK republishes original cached terminal evidence only, without a DOM recheck or edit
+  ---
+  duration_ms: 1.048625
+  type: 'test'
+  ...
+# Subtest: more than sixteen clean restored domains remain usable while an evicted old envelope still requires current original owner admission
+ok 80 - more than sixteen clean restored domains remain usable while an evicted old envelope still requires current original owner admission
+  ---
+  duration_ms: 8.286917
+  type: 'test'
+  ...
+# Subtest: a held shared qualifier cannot cross clean-domain-summary eviction, and its unresolved domain stays retained
+ok 81 - a held shared qualifier cannot cross clean-domain-summary eviction, and its unresolved domain stays retained
+  ---
+  duration_ms: 0.657459
+  type: 'test'
+  ...
+# Subtest: durable retirement does not erase a terminal proof underneath its held ACK continuation
+ok 82 - durable retirement does not erase a terminal proof underneath its held ACK continuation
+  ---
+  duration_ms: 0.811416
+  type: 'test'
+  ...
+# Subtest: genuine retained UNKNOWN domains are never discarded merely to admit a seventeenth domain
+ok 83 - genuine retained UNKNOWN domains are never discarded merely to admit a seventeenth domain
+  ---
+  duration_ms: 3.275292
+  type: 'test'
+  ...
+# Subtest: a changed original owner token reconciles a previously unacknowledged terminal once, without per-probe duplicate ACKs
+ok 84 - a changed original owner token reconciles a previously unacknowledged terminal once, without per-probe duplicate ACKs
+  ---
+  duration_ms: 1.113792
+  type: 'test'
+  ...
+# Subtest: lost-retirement recovery may reclaim only its own native terminal cache and old replay still needs original owner qualification
+ok 85 - lost-retirement recovery may reclaim only its own native terminal cache and old replay still needs original owner qualification
+  ---
+  duration_ms: 0.914042
+  type: 'test'
+  ...
+# Subtest: retired-only ACK replies and forged public DTOs cannot discard private original UNKNOWN evidence
+ok 86 - retired-only ACK replies and forged public DTOs cannot discard private original UNKNOWN evidence
+  ---
+  duration_ms: 0.912958
+  type: 'test'
+  ...
+# Subtest: more than five hundred clean original owner restarts with missed RETIRE notices do not create a receiver insertion lifetime cap
+ok 87 - more than five hundred clean original owner restarts with missed RETIRE notices do not create a receiver insertion lifetime cap
+  ---
+  duration_ms: 207.482458
+  type: 'test'
+  ...
+# Subtest: paired original durable owner and actual manual content recover a lost retirement notice without replay or ledger settlement fabrication
+ok 88 - paired original durable owner and actual manual content recover a lost retirement notice without replay or ledger settlement fabrication
+  ---
+  duration_ms: 120.722125
+  type: 'test'
+  ...
+# Subtest: paired owner cache-only response to a forged absent ACK cannot manufacture private receiver proof or erase original UNKNOWN
+ok 89 - paired owner cache-only response to a forged absent ACK cannot manufacture private receiver proof or erase original UNKNOWN
+  ---
+  duration_ms: 59.597959
+  type: 'test'
+  ...
+# Subtest: expired original operation budget blocks native entry after an otherwise valid final lane qualifier
+ok 90 - expired original operation budget blocks native entry after an otherwise valid final lane qualifier
+  ---
+  duration_ms: 0.754458
+  type: 'test'
+  ...
+# Subtest: shared qualification transit consumes the original remaining budget rather than starting a fresh deadline
+ok 91 - shared qualification transit consumes the original remaining budget rather than starting a fresh deadline
+  ---
+  duration_ms: 0.539208
+  type: 'test'
+  ...
+# Subtest: malformed original remaining budget refuses native entry: 0
+ok 92 - malformed original remaining budget refuses native entry: 0
+  ---
+  duration_ms: 0.551709
+  type: 'test'
+  ...
+# Subtest: malformed original remaining budget refuses native entry: -1
+ok 93 - malformed original remaining budget refuses native entry: -1
+  ---
+  duration_ms: 0.467375
+  type: 'test'
+  ...
+# Subtest: malformed original remaining budget refuses native entry: 30001
+ok 94 - malformed original remaining budget refuses native entry: 30001
+  ---
+  duration_ms: 0.547375
+  type: 'test'
+  ...
+# Subtest: malformed original remaining budget refuses native entry: Infinity
+ok 95 - malformed original remaining budget refuses native entry: Infinity
+  ---
+  duration_ms: 0.530333
+  type: 'test'
+  ...
+# Subtest: malformed original remaining budget refuses native entry: NaN
+ok 96 - malformed original remaining budget refuses native entry: NaN
+  ---
+  duration_ms: 0.466333
+  type: 'test'
+  ...
+# Subtest: one changed owner event reconciles at most sixteen unacknowledged native terminals and leaves the remainder retained
+ok 97 - one changed owner event reconciles at most sixteen unacknowledged native terminals and leaves the remainder retained
+  ---
+  duration_ms: 19.092084
+  type: 'test'
+  ...
+# Subtest: five hundred acknowledged private terminal operations leave no backlog or reconciliation storm before new insertions
+ok 98 - five hundred acknowledged private terminal operations leave no backlog or reconciliation storm before new insertions
+  ---
+  duration_ms: 164.570041
+  type: 'test'
+  ...
+# Subtest: foreign or malformed retirement summary cannot clear other private unacknowledged evidence {"domainDigest":"6666666666666666666666666666666666666666666666666666666666666666","retiredEpochFloor":1,"retiredRanges":[]}
+ok 99 - foreign or malformed retirement summary cannot clear other private unacknowledged evidence {"domainDigest":"6666666666666666666666666666666666666666666666666666666666666666","retiredEpochFloor":1,"retiredRanges":[]}
+  ---
+  duration_ms: 1.25775
+  type: 'test'
+  ...
+# Subtest: foreign or malformed retirement summary cannot clear other private unacknowledged evidence {"domainDigest":"5555555555555555555555555555555555555555555555555555555555555555","retiredEpochFloor":0,"retiredRanges":[{"start":0,"end":1}]}
+ok 100 - foreign or malformed retirement summary cannot clear other private unacknowledged evidence {"domainDigest":"5555555555555555555555555555555555555555555555555555555555555555","retiredEpochFloor":0,"retiredRanges":[{"start":0,"end":1}]}
+  ---
+  duration_ms: 0.883458
+  type: 'test'
+  ...
+# Subtest: a held old-owner QUALIFY cannot cross an authenticated ownerToken replacement
+ok 101 - a held old-owner QUALIFY cannot cross an authenticated ownerToken replacement
+  ---
+  duration_ms: 0.547
+  type: 'test'
+  ...
+# Subtest: retained foreign-domain terminal evidence cannot consume or poison the current-domain recovery batch
+ok 102 - retained foreign-domain terminal evidence cannot consume or poison the current-domain recovery batch
+  ---
+  duration_ms: 8.903833
+  type: 'test'
+  ...
+# Subtest: later genuine recovery events advance another bounded prefix without dual-probe refresh or automatic continuation
+ok 103 - later genuine recovery events advance another bounded prefix without dual-probe refresh or automatic continuation
+  ---
+  duration_ms: 19.436583
+  type: 'test'
+  ...
+# Subtest: original manual producer presentation and use reach the real durable owner and original content boundary once
+ok 104 - original manual producer presentation and use reach the real durable owner and original content boundary once
+  ---
+  duration_ms: 92.5
+  type: 'test'
+  ...
+# Subtest: an actually held final lane callback cannot authorize native entry after the original deadline
+ok 105 - an actually held final lane callback cannot authorize native entry after the original deadline
+  ---
+  duration_ms: 0.698083
+  type: 'test'
+  ...
+# Subtest: a different concurrent original probe challenge cannot borrow the held registration promise
+ok 106 - a different concurrent original probe challenge cannot borrow the held registration promise
+  ---
+  duration_ms: 0.508791
+  type: 'test'
+  ...
+# Subtest: a mismatched registration recovery challenge is refused before reconciliation or physical entry
+ok 107 - a mismatched registration recovery challenge is refused before reconciliation or physical entry
+  ---
+  duration_ms: 0.559667
+  type: 'test'
+  ...
+# Subtest: interleaved A B A challenges do not spend a second recovery batch for the same original event
+ok 108 - interleaved A B A challenges do not spend a second recovery batch for the same original event
+  ---
+  duration_ms: 0.922625
+  type: 'test'
+  ...
+# Subtest: unchallenged or malformed probe messages cannot create a recovery event
+ok 109 - unchallenged or malformed probe messages cannot create a recovery event
+  ---
+  duration_ms: 0.247458
+  type: 'test'
+  ...
+# Subtest: paired original owner action B cannot borrow action A held actual receiver registration event
+ok 110 - paired original owner action B cannot borrow action A held actual receiver registration event
+  ---
+  duration_ms: 30.413625
+  type: 'test'
+  ...
+1..110
+# tests 110
+# suites 0
+# pass 110
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1402.522833
