@@ -1,0 +1,27 @@
+[
+  {
+    "path": "extension/tests/harness/assist-receipt-native-service.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/tests/assist-receipt-native-bridge-contract.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "services/ai-gateway/tests/assist-native-service-bridge.test.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "services/ai-gateway/tests/assist-client-fixture.mjs",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "services/ai-gateway/tests/assist-signed-service-fixture.mjs",
+    "exit": 0,
+    "output": ""
+  }
+]

@@ -1,0 +1,98 @@
+TAP version 13
+# Subtest: pure staged configuration propagates explicit service invalidation and keeps ordinary loss distinct
+ok 1 - pure staged configuration propagates explicit service invalidation and keeps ordinary loss distinct
+  ---
+  duration_ms: 23.793584
+  type: 'test'
+  ...
+# Subtest: read-only worker projection exposes observations, never original owner capabilities or dispatch
+ok 2 - read-only worker projection exposes observations, never original owner capabilities or dispatch
+  ---
+  duration_ms: 1.637583
+  type: 'test'
+  ...
+# Subtest: fresh test stage retains exact original worker prefix and never writes original source
+ok 3 - fresh test stage retains exact original worker prefix and never writes original source
+  ---
+  duration_ms: 8.409875
+  type: 'test'
+  ...
+# Subtest: fixed bridge returns the actual signed fixture profile and original tokenizer, never a receipt ACK
+ok 4 - fixed bridge returns the actual signed fixture profile and original tokenizer, never a receipt ACK
+  ---
+  duration_ms: 77.487
+  type: 'test'
+  ...
+# Subtest: fixed bridge rejects foreign nonce, variant, operation and extra fields before handlers
+ok 5 - fixed bridge rejects foreign nonce, variant, operation and extra fields before handlers
+  ---
+  duration_ms: 1.575667
+  type: 'test'
+  ...
+# Subtest: fixed bridge refuses arbitrary origin, path, method, headers and oversized body
+ok 6 - fixed bridge refuses arbitrary origin, path, method, headers and oversized body
+  ---
+  duration_ms: 2.662167
+  type: 'test'
+  ...
+# Subtest: allowed request reaches actual declaration parser, retaining its failure response
+ok 7 - allowed request reaches actual declaration parser, retaining its failure response
+  ---
+  duration_ms: 9.774583
+  type: 'test'
+  ...
+# Subtest: dispose refuses fresh calls and late completion without dropping the actual pending task
+ok 8 - dispose refuses fresh calls and late completion without dropping the actual pending task
+  ---
+  duration_ms: 1.90225
+  type: 'test'
+  ...
+# Subtest: archive relay ignores all real receipt messages and refuses forged sender/nonce
+ok 9 - archive relay ignores all real receipt messages and refuses forged sender/nonce
+  ---
+  duration_ms: 0.538583
+  type: 'test'
+  ...
+# Subtest: archive relay binds original runtime identity and refuses a late reply after disposal
+ok 10 - archive relay binds original runtime identity and refuses a late reply after disposal
+  ---
+  duration_ms: 0.607584
+  type: 'test'
+  ...
+# Subtest: generated staged configuration uses only fixed bridge and original signed profile inputs
+ok 11 - generated staged configuration uses only fixed bridge and original signed profile inputs
+  ---
+  duration_ms: 3.478834
+  type: 'test'
+  ...
+# Subtest: actual signed afterResponse revocation permanently invalidates the staged configuration and original producer
+not ok 12 - actual signed afterResponse revocation permanently invalidates the staged configuration and original producer
+  ---
+  duration_ms: 182.417042
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/assist-receipt-native-preparation/services/ai-gateway/tests/assist-native-service-bridge.test.mjs:62:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/assist-receipt-native-preparation/services/ai-gateway/tests/assist-native-service-bridge.test.mjs:70:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 11
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 404.24125

@@ -1,0 +1,39 @@
+{
+  "node": "22.23.3",
+  "runs": [
+    {
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "extension/tests/assist-receipt-native-bridge-contract.test.mjs",
+        "services/ai-gateway/tests/assist-native-service-bridge.test.mjs"
+      ],
+      "log": "review-followup.log",
+      "exit": 1,
+      "pass": 11,
+      "fail": 1
+    },
+    {
+      "args": [
+        "--test",
+        "--test-name-pattern=actual signed afterResponse",
+        "services/ai-gateway/tests/assist-native-service-bridge.test.mjs"
+      ],
+      "log": "revoke-diagnostic.log",
+      "exit": 1,
+      "pass": 0,
+      "fail": 1
+    },
+    {
+      "args": [
+        "--test",
+        "--test-name-pattern=actual signed provider response",
+        "services/ai-gateway/tests/assist-native-service-bridge.test.mjs"
+      ],
+      "log": "revoke-hook-final.log",
+      "exit": 0,
+      "pass": 1,
+      "fail": 0
+    }
+  ]
+}

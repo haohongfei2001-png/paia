@@ -1,0 +1,60 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {createAssistNativeService,installAssistNativeServiceRelay,assistNativeConfigurationSource} from './harness/assist-receipt-native-service.mjs';
+const message=(f,operation,value)=>({type:f.descriptor.type,nonce:f.descriptor.nonce,variant:f.descriptor.variant,operation,value});
+const request=(fields={})=>({url:'https://service.invalid/api/declarations',method:'POST',headers:[['content-type','application/json']],body:'{}',...fields});
+test('fixed bridge returns the actual signed fixture profile and original tokenizer, never a receipt ACK',async t=>{
+ const f=await createAssistNativeService(t,{variant:'source'});t.after(()=>f.dispose());
+ assert.deepEqual(await f.handle(message(f,'profile',null)),f.descriptor.manifest);
+ const q={profileId:f.descriptor.manifest.profile.id,tokenizerProfileId:f.descriptor.manifest.tokenizer.profileId,qualificationRef:f.descriptor.manifest.tokenizer.qualificationRef,requestDigest:'a'.repeat(64)};
+ const measured=await f.handle(message(f,'tokenize',q));assert.equal(measured.requestDigest,q.requestDigest);assert.equal(measured.inputTokens,100);assert.equal(f.physical(),0);assert.equal(f.calls.length,0);
+ assert.throws(()=>f.handle(message(f,'PAIA_PROMPT_INSERTION_ACK',{})),/REFUSED/);
+});
+test('fixed bridge rejects foreign nonce, variant, operation and extra fields before handlers',async t=>{
+ const f=await createAssistNativeService(t,{variant:'release'});t.after(()=>f.dispose());
+ for(const value of [{...message(f,'profile',null),nonce:crypto.randomUUID()},{...message(f,'profile',null),variant:'source'},{...message(f,'profile',null),extra:true},message(f,'fetch',null)])assert.throws(()=>f.handle(value),/REFUSED/);
+ assert.equal(f.calls.length,0);assert.equal(f.physical(),0);
+});
+test('fixed bridge refuses arbitrary origin, path, method, headers and oversized body',async t=>{
+ const f=await createAssistNativeService(t,{variant:'source'});t.after(()=>f.dispose());
+ for(const value of [{url:'https://other.invalid/api/declarations'},{url:'https://service.invalid/api/declarations?x=1'},{url:'https://service.invalid/api/unlisted'},{method:'GET'},{headers:[['authorization','synthetic']]},{body:'x'.repeat(262145)}])await assert.rejects(f.handle(message(f,'request',request(value))),/REFUSED/);
+ assert.equal(f.calls.length,0);assert.equal(f.physical(),0);
+});
+test('allowed request reaches actual declaration parser, retaining its failure response',async t=>{
+ const f=await createAssistNativeService(t,{variant:'source'});t.after(()=>f.dispose());
+ const r=await f.handle(message(f,'request',request()));assert.equal(f.calls.length,1);assert.equal(f.calls[0].path,'/api/declarations');assert.ok(r.status>=400);assert.notEqual(JSON.parse(r.body).ok,true);assert.equal(f.physical(),0);
+});
+test('dispose refuses fresh calls and late completion without dropping the actual pending task',async t=>{
+ const f=await createAssistNativeService(t,{variant:'source'}),pending=f.handle(message(f,'profile',null));assert.equal(f.pending(),1);f.dispose();assert.equal(f.pending(),1);
+ await assert.rejects(pending,/REFUSED/);await Promise.resolve();assert.equal(f.pending(),0);assert.throws(()=>f.handle(message(f,'profile',null)),/REFUSED/);
+});
+function relay(){
+ let listener,removed=0,forwards=0,release;
+ const runtime={id:'syntheticextension',sendMessage:async()=>{},getURL:p=>'chrome-extension://syntheticextension/'+p,onMessage:{addListener:f=>listener=f,removeListener:f=>{assert.equal(f,listener);removed++;}}};
+ const descriptor={version:1,type:'PAIA_TEST_ASSIST_SERVICE_V1',nonce:'syntheticnonce',variant:'source'};
+ const scope={chrome:{runtime},Promise,globalThis:null,__bridge:async value=>{forwards++;await new Promise(r=>release=r);return {echo:value.operation};}};scope.globalThis=scope;
+ const context=vm.createContext(scope);const owner=new vm.Script('('+installAssistNativeServiceRelay.toString()+')('+JSON.stringify({descriptor,binding:'__bridge'})+')').runInContext(context);
+ const sender={id:runtime.id,url:runtime.getURL('background/service-worker.js')};
+ return {runtime,descriptor,owner,sender,get listener(){return listener;},forwards:()=>forwards,removed:()=>removed,release:()=>release?.()};
+}
+test('archive relay ignores all real receipt messages and refuses forged sender/nonce',async()=>{
+ const f=relay(),answers=[];
+ assert.equal(f.listener({type:'PAIA_PROMPT_INSERTION_ACK'},f.sender,x=>answers.push(x)),undefined);
+ for(const [m,s]of [[{type:f.descriptor.type,nonce:'wrong',variant:'source'},f.sender],[{...f.descriptor},{...f.sender,tab:{id:1}}],[{...f.descriptor},{...f.sender,url:'chrome-extension://syntheticextension/ui/prompt-surface.html'}],[{...f.descriptor},{...f.sender,id:'other'}]])f.listener(m,s,x=>answers.push(x));
+ assert.equal(f.forwards(),0);assert.equal(answers.length,4);assert.ok(answers.every(x=>x.ok===false));f.owner.dispose();assert.equal(f.removed(),1);
+});
+test('archive relay binds original runtime identity and refuses a late reply after disposal',async()=>{
+ const f=relay(),answers=[];assert.equal(f.listener({...f.descriptor,operation:'profile',value:null},f.sender,x=>answers.push(x)),true);await Promise.resolve();assert.equal(f.forwards(),1);f.owner.dispose();f.release();await new Promise(r=>setImmediate(r));assert.equal(answers[0].ok,false);
+ const g=relay();g.runtime.sendMessage=async()=>{};g.listener({...g.descriptor},g.sender,x=>answers.push(x));assert.equal(g.forwards(),0);assert.equal(answers.at(-1).ok,false);g.owner.dispose();
+});
+test('generated staged configuration uses only fixed bridge and original signed profile inputs',async t=>{
+ const f=await createAssistNativeService(t,{variant:'source'});t.after(()=>f.dispose());
+ const source=assistNativeConfigurationSource(f.descriptor),runtime={id:'syntheticextension',sendMessage:async r=>({ok:true,value:await f.handle(r)})};
+ const scope={chrome:{runtime},structuredClone,Request,Response,Error};scope.globalThis=scope;
+ const config=new vm.Script(source.replace('export function readAssistServiceConfiguration','function readAssistServiceConfiguration')+'\nreadAssistServiceConfiguration()').runInNewContext(scope);
+ assert.deepEqual(JSON.parse(JSON.stringify(await config.readProfile())),f.descriptor.manifest);
+ const response=await config.fetch(new Request('https://service.invalid/api/declarations',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}));assert.ok(response.status>=400);assert.equal(f.calls.length,1);
+ assert.doesNotMatch(source,/globalThis\.fetch|XMLHttpRequest|WebSocket|issueAction|insertionReceipt|\.handle\(/);
+ runtime.sendMessage=async()=>({ok:true,value:{}});await assert.rejects(config.readProfile(),/REFUSED/);
+});
