@@ -2,5 +2,6 @@
   "head": "815584ccca9c037673c3cc04fc7d950a9fcd011b",
   "evidenceHashesVerified": 73,
   "manifests": 4,
-  "precheckFailure": "First verifier assumed all manifest paths directory-relative; CPV1 paths are repo-relative. Stopped before clone/build. Corrected only path interpretation."
+  "precheckFailure": "First verifier assumed all manifest paths directory-relative; CPV1 paths are repo-relative. Stopped before clone/build. Corrected only path interpretation.",
+  "publicationSourceHashesVerified": 4
 }
