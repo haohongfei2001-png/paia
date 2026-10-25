@@ -108,3 +108,20 @@ test('superseded transfer finally cannot unlock a newly authorized Resume flight
 test('generation preparation remains single-flight rather than accepting concurrent Sync stop commands',async t=>{
  const prepared=deferred();const f=fixture(t,async({type})=>type==='PAIA_GENERATION_PREPARE'?prepared.promise:{ok:true,data:state({state:'active',applicationSelection:selectionState('not-prepared')})});await f.open();await f.click('GENERATION_PREPARE');for(const name of ['PAUSE','DISCONNECT']){assert.equal(f.button(name).disabled,true);f.button(name).listeners.get('click')();}assert.equal(f.calls.length,2);prepared.resolve({ok:true,data:selectionState('review-ready')});await tick();assert.equal(f.button('PAUSE').disabled,false);
 });
+
+for(const command of ['PAUSE','DISCONNECT'])test('durable pending enrollment exposes only the original '+command+' stop and keeps UNKNOWN',async t=>{
+ const value=state({state:'settlement-unknown',contextCommands:true,needsContextEnrollment:true,stopAvailable:true,resumeAvailable:false});
+ const f=fixture(t,async()=>({ok:true,data:value}));await f.open();
+ for(const name of ['NOW','RESTORE','CONTINUE','RESUME']){assert.equal(f.button(name).hidden,true);f.button(name).listeners.get('click')();}
+ assert.equal(f.calls.length,1);await f.click(command);assert.deepEqual(f.calls,[{type:'PAIA_SYNC_STATUS'},{type:'PAIA_SYNC_'+command}]);assert.equal(f.content.dataset.syncState,'settlement-unknown');assert.match(f.content.textContent,/结果尚未确定/);
+});
+test('unknown without exact original stop availability remains status-only',async t=>{
+ let stopAvailable;const f=fixture(t,async()=>({ok:true,data:state({state:'settlement-unknown',stopAvailable})}));await f.open();
+ for(const value of [undefined,false,'true',1]){stopAvailable=value;await f.click('STATUS');for(const name of ['PAUSE','DISCONNECT','RESUME','NOW','RESTORE','CONTINUE']){assert.equal(f.button(name).hidden,true);f.button(name).listeners.get('click')();}}
+ assert.ok(f.calls.every(c=>c.type==='PAIA_SYNC_STATUS'));
+});
+test('cold Context requalification gates restore and continuation until a new explicit Resume',async t=>{
+ let value=state({state:'active',needsContextEnrollment:true,task:{kind:'restore',phase:'unknown'}});const f=fixture(t,async({type})=>{if(type==='PAIA_SYNC_RESUME')value={...value,needsContextEnrollment:false};return {ok:true,data:value};});await f.open();
+ for(const name of ['RESTORE','CONTINUE','NOW']){assert.equal(f.button(name).hidden,true);f.button(name).listeners.get('click')();}assert.equal(f.calls.length,1);
+ await f.click('RESUME');assert.equal(f.button('CONTINUE').hidden,false);assert.equal(f.button('RESTORE').hidden,true,'pending original restore still forbids a new task');assert.deepEqual(f.calls.map(c=>c.type),['PAIA_SYNC_STATUS','PAIA_SYNC_RESUME']);
+});

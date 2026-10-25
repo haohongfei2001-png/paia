@@ -28,7 +28,11 @@ export function mountSettingsSync({mountDetail,language=()=>document.documentEle
   if(command==='STATUS')return true;
   if(command.startsWith('GENERATION_')){const value=selected();if(!value||failed||value.busy)return false;const state=value.state;return command==='GENERATION_PREPARE'?state==='not-prepared'&&value.canPrepare:command==='GENERATION_ACTIVATE'?false:command==='GENERATION_CONTINUE'?false:command==='GENERATION_CANCEL'?['prepared','review-ready'].includes(state):false;}
   if(selected()?.busy||['prepared','outcome-unknown','finishing','selected','restart-requested'].includes(selected()?.state))return false;
-  if(!configured()||view.state==='suspended'||view.state==='settlement-unknown')return false;
+  if(!configured()||view.state==='suspended')return false;
+  // Only the original lifecycle can identify a durable pending enrollment
+  // whose restrictive stop remains available. Unknown transfer outcomes alone
+  // never grant another write, retry, or recovery action.
+  if(view.state==='settlement-unknown')return stop(command)&&view.stopAvailable===true;
   // The original worker admits stops before its transfer/consent busy gate.
   // An uncertain transfer must not remove the user's ability to stop it.
   if(command==='PAUSE')return view.state==='active';
@@ -38,8 +42,8 @@ export function mountSettingsSync({mountDetail,language=()=>document.documentEle
   if(view.state!=='active')return false;
   const pending=view.task&&view.task.phase!=='confirmed';
   if(command==='NOW')return view.needsContextEnrollment!==true&&(!pending||['publication','checkpoint'].includes(view.task.kind));
-  if(command==='RESTORE')return !pending;
-  return command==='CONTINUE'&&view.task?.kind==='restore';
+  if(command==='RESTORE')return view.needsContextEnrollment!==true&&!pending;
+  return command==='CONTINUE'&&view.needsContextEnrollment!==true&&view.task?.kind==='restore';
  };
  const render=()=>{
   const limited=configured();content.dataset.syncState=view?.state??syncAvailability().state;

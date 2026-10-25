@@ -1,0 +1,232 @@
+TAP version 13
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 1 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 3.789292
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 2 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 0.690375
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 3 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 0.599708
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 4 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 0.694083
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 5 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 0.53225
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 6 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.349667
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 7 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 0.621042
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 8 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.31125
+  type: 'test'
+  ...
+# Subtest: configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+ok 9 - configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+  ---
+  duration_ms: 0.65875
+  type: 'test'
+  ...
+# Subtest: all selection states keep activation, continued switching and restart unavailable without an original cross-page editor guard
+ok 10 - all selection states keep activation, continued switching and restart unavailable without an original cross-page editor guard
+  ---
+  duration_ms: 0.792083
+  type: 'test'
+  ...
+# Subtest: safe cancellation retains double-click and unknown-response guards without automatic replay
+ok 11 - safe cancellation retains double-click and unknown-response guards without automatic replay
+  ---
+  duration_ms: 0.660875
+  type: 'test'
+  ...
+# Subtest: late cancellation reply after leaving Settings is ignored
+ok 12 - late cancellation reply after leaving Settings is ignored
+  ---
+  duration_ms: 0.307833
+  type: 'test'
+  ...
+# Subtest: malformed selection restart entitlement exposes no selection action
+ok 13 - malformed selection restart entitlement exposes no selection action
+  ---
+  duration_ms: 0.276375
+  type: 'test'
+  ...
+# Subtest: active but unenrolled Context honestly gates NOW until explicit Resume and never dispatches the hidden action
+ok 14 - active but unenrolled Context honestly gates NOW until explicit Resume and never dispatches the hidden action
+  ---
+  duration_ms: 0.32925
+  type: 'test'
+  ...
+# Subtest: mounted PAUSE stays available during held NOW and fences its late ACK
+ok 15 - mounted PAUSE stays available during held NOW and fences its late ACK
+  ---
+  duration_ms: 0.588125
+  type: 'test'
+  ...
+# Subtest: mounted DISCONNECT stays available during held NOW and fences its late ACK
+ok 16 - mounted DISCONNECT stays available during held NOW and fences its late ACK
+  ---
+  duration_ms: 0.28675
+  type: 'test'
+  ...
+# Subtest: mounted PAUSE stays available during held RESTORE and fences its late ACK
+ok 17 - mounted PAUSE stays available during held RESTORE and fences its late ACK
+  ---
+  duration_ms: 0.530416
+  type: 'test'
+  ...
+# Subtest: mounted DISCONNECT stays available during held RESTORE and fences its late ACK
+ok 18 - mounted DISCONNECT stays available during held RESTORE and fences its late ACK
+  ---
+  duration_ms: 0.469167
+  type: 'test'
+  ...
+# Subtest: mounted PAUSE stays available during held STATUS and fences its late ACK
+ok 19 - mounted PAUSE stays available during held STATUS and fences its late ACK
+  ---
+  duration_ms: 0.628916
+  type: 'test'
+  ...
+# Subtest: mounted DISCONNECT stays available during held STATUS and fences its late ACK
+ok 20 - mounted DISCONNECT stays available during held STATUS and fences its late ACK
+  ---
+  duration_ms: 0.319542
+  type: 'test'
+  ...
+# Subtest: reopened busy worker permits only STATUS and PAUSE, not transfer or enrollment
+ok 21 - reopened busy worker permits only STATUS and PAUSE, not transfer or enrollment
+  ---
+  duration_ms: 0.242041
+  type: 'test'
+  ...
+# Subtest: reopened busy worker permits only STATUS and DISCONNECT, not transfer or enrollment
+ok 22 - reopened busy worker permits only STATUS and DISCONNECT, not transfer or enrollment
+  ---
+  duration_ms: 0.375541
+  type: 'test'
+  ...
+# Subtest: late error from superseded transfer cannot overwrite confirmed pause or clear a newer status flight
+ok 23 - late error from superseded transfer cannot overwrite confirmed pause or clear a newer status flight
+  ---
+  duration_ms: 0.8955
+  type: 'test'
+  ...
+# Subtest: late invalid from superseded transfer cannot overwrite confirmed pause or clear a newer status flight
+ok 24 - late invalid from superseded transfer cannot overwrite confirmed pause or clear a newer status flight
+  ---
+  duration_ms: 0.726583
+  type: 'test'
+  ...
+# Subtest: pending stop rejects duplicate and contrary stop clicks; failed stop remains uncertain until status
+ok 25 - pending stop rejects duplicate and contrary stop clicks; failed stop remains uncertain until status
+  ---
+  duration_ms: 0.907375
+  type: 'test'
+  ...
+# Subtest: stop remains available after an uncertain ordinary operation without allowing a replay
+ok 26 - stop remains available after an uncertain ordinary operation without allowing a replay
+  ---
+  duration_ms: 1.381958
+  type: 'test'
+  ...
+# Subtest: selection holds do not become a stop-command concurrency bypass
+ok 27 - selection holds do not become a stop-command concurrency bypass
+  ---
+  duration_ms: 0.845292
+  type: 'test'
+  ...
+# Subtest: close and reopen after a stop fences all earlier responses
+ok 28 - close and reopen after a stop fences all earlier responses
+  ---
+  duration_ms: 0.459416
+  type: 'test'
+  ...
+# Subtest: active enrollment Resume remains stoppable by PAUSE without adopting its late ACK
+ok 29 - active enrollment Resume remains stoppable by PAUSE without adopting its late ACK
+  ---
+  duration_ms: 0.343958
+  type: 'test'
+  ...
+# Subtest: active enrollment Resume remains stoppable by DISCONNECT without adopting its late ACK
+ok 30 - active enrollment Resume remains stoppable by DISCONNECT without adopting its late ACK
+  ---
+  duration_ms: 0.368375
+  type: 'test'
+  ...
+# Subtest: not-started enrollment can be disconnected without broadening active-only pause availability
+ok 31 - not-started enrollment can be disconnected without broadening active-only pause availability
+  ---
+  duration_ms: 0.357875
+  type: 'test'
+  ...
+# Subtest: superseded transfer finally cannot unlock a newly authorized Resume flight
+ok 32 - superseded transfer finally cannot unlock a newly authorized Resume flight
+  ---
+  duration_ms: 0.558458
+  type: 'test'
+  ...
+# Subtest: generation preparation remains single-flight rather than accepting concurrent Sync stop commands
+ok 33 - generation preparation remains single-flight rather than accepting concurrent Sync stop commands
+  ---
+  duration_ms: 0.618291
+  type: 'test'
+  ...
+# Subtest: durable pending enrollment exposes only the original PAUSE stop and keeps UNKNOWN
+ok 34 - durable pending enrollment exposes only the original PAUSE stop and keeps UNKNOWN
+  ---
+  duration_ms: 0.287917
+  type: 'test'
+  ...
+# Subtest: durable pending enrollment exposes only the original DISCONNECT stop and keeps UNKNOWN
+ok 35 - durable pending enrollment exposes only the original DISCONNECT stop and keeps UNKNOWN
+  ---
+  duration_ms: 0.278917
+  type: 'test'
+  ...
+# Subtest: unknown without exact original stop availability remains status-only
+ok 36 - unknown without exact original stop availability remains status-only
+  ---
+  duration_ms: 0.3455
+  type: 'test'
+  ...
+# Subtest: cold Context requalification gates restore and continuation until a new explicit Resume
+ok 37 - cold Context requalification gates restore and continuation until a new explicit Resume
+  ---
+  duration_ms: 0.213875
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 61.4365
