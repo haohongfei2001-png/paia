@@ -235,9 +235,9 @@ test('original Working edit after Source union publishes and cold restores compl
 });
 
 async function firstWorking(t){const f=await restored(t,{added:0});f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});const input=(await f.c.store.snapshot()).library.blocks[0];await inputEdit(f.c.store,input.id,{note:'SYNTHETIC checked Working edit'});return {...f,inputId:input.id};}
-for(const kind of ['source','baseline','history','state','owner','history-map','outbox','filter','event','receipt','extra-event','other-input-edit'])test('first Working union continuation refuses '+kind+' with exact rows and no publication',async t=>{
+for(const kind of ['source','baseline','history','state','owner','history-map','outbox','filter','event','receipt','extra-event','other-inputs-edit'])test('first Working union continuation refuses '+kind+' with exact rows and no publication',async t=>{
  const f=await firstWorking(t);
- if(kind==='other-input-edit')await inputEdit(f.c.store,(await f.c.store.snapshot()).library.blocks.find(row=>row.id!==f.inputId).id,{note:'SYNTHETIC separate Input edit'});
+ if(kind==='other-inputs-edit')for(const input of (await f.c.store.snapshot()).library.blocks.filter(row=>row.id!==f.inputId))await inputEdit(f.c.store,input.id,{note:'SYNTHETIC separate Input edit'});
  else await f.c.core.transaction(true,async tx=>{
   if(kind==='source'){const row=(await tx.all('records'))[0];row.value.originalText+=' SYNTHETIC wrong';await tx.put('records',row);}
   else if(kind==='baseline'||kind==='history'){const row=(await tx.all('revisions')).find(row=>kind==='baseline'?row.reason==='baseline':row.reason!=='baseline');row.after.note+=' SYNTHETIC wrong';await tx.put('revisions',row);}

@@ -40,9 +40,11 @@ export function sourceUnionPublicationGroups(core,plan,original){
   for(let i=0;i<ops.length;i++)if(ops[i].deviceId!==core.deviceId||ops[i].sequence!==++sequence||i<types.length&&ops[i].value.entityType!==types[i])invalid();
  }
  const working=added.filter(group=>group.type==='inputWorkingCommit');
- // One retained Input's complete sequential local Working chain only. Other
- // Inputs and mixed Source/Human/Context tails keep their separate qualification.
- if(working.length&&(working.length!==added.length||new Set(working.map(group=>group.prepared.descriptor.value.inputId)).size!==1))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+ // Retain the original one-Input sequential chain. The additional finite
+ // shape is exactly two retained Inputs with one genuine edit each; mixed
+ // Source/Human/Context tails and wider multi-Input histories remain separate.
+ const inputCount=new Set(working.map(group=>group.prepared.descriptor.value.inputId)).size;
+ if(working.length&&(working.length!==added.length||inputCount!==1&&(inputCount!==2||working.length!==2)))fail('BNS_GROUP_OWNER_UNSUPPORTED');
  return {previous,added,working};
 }
 
@@ -106,20 +108,27 @@ export function requireSourceUnionWorkingFilter(groups,original,row){
  return stableFilter(row);
 }
 async function requireWorkingPhysical(core,t,originalCut,currentCut,groups,canonical){
- const shapes=groups.working.map(group=>describeOriginalWorkingGroup(group.prepared)),first=shapes[0];
- const sourceGroup=groups.previous.find(g=>entities(g).input.id===first.descriptor.inputId);if(!sourceGroup)invalid();
- const original=entities(sourceGroup),before=original.input,editable=new Set(['libraryText','note','editedAt','revision']);
- const fixed=value=>Object.fromEntries(Object.entries(value).filter(([key])=>!editable.has(key)));
- if(before.revision!==0||before.libraryText!==null||before.note)invalid();
+ const shapes=groups.working.map(group=>describeOriginalWorkingGroup(group.prepared)),inputs=new Map();
+ const editable=new Set(['libraryText','note','editedAt','revision']),fixed=value=>Object.fromEntries(Object.entries(value).filter(([key])=>!editable.has(key)));
  const expected=clone(originalCut),metadata=new Map(expected.metadata.map(row=>[row.id,row])),delta=metadata.get('input-delta-sequence')?.row,revision=metadata.get('revision-sequence')?.row,epoch=metadata.get('thought-epoch')?.row??{id:'thought-epoch',value:0};
  metadata.get('thought-epoch').row=epoch;
  if(!delta||!revision||!epoch||!Number.isSafeInteger(epoch.value)||epoch.value<0)invalid();
- const initial=expected.inputStates.find(row=>row.id===before.id),allocation=expected.revisionAllocations.find(row=>row.id===original.baselineRevision.id);
- if(!initial||!allocation)invalid();
- let previousBlock=before,previousState=initial;
- const historyRows=new Map([[allocation.id,{...original.baselineRevision,...allocation}]]),priorOperations=new Map(),events=[];
+ const priorOperations=new Map(),events=[];
+ // Iterate the original global descriptor order. Each Input has its own
+ // original body/history edge, while allocation, delta and event counters are
+ // shared across the complete local tail and never restarted per Input.
  for(const shape of shapes){
   const {block,state,history,keeps,descriptor}=shape,after=block.value;
+  let input=inputs.get(descriptor.inputId);
+  if(!input){
+   const sourceGroup=groups.previous.find(g=>entities(g).input.id===descriptor.inputId);if(!sourceGroup)invalid();
+   const original=entities(sourceGroup),before=original.input;
+   if(before.revision!==0||before.libraryText!==null||before.note)invalid();
+   const initial=expected.inputStates.find(row=>row.id===before.id),allocation=expected.revisionAllocations.find(row=>row.id===original.baselineRevision.id);
+   if(!initial||!allocation)invalid();
+   input={original,before,initial,allocation,previousBlock:before,previousState:initial,historyRows:new Map([[allocation.id,{...original.baselineRevision,...allocation}]])};inputs.set(descriptor.inputId,input);
+  }
+  const {original,before,previousBlock,previousState,historyRows}=input;
   if(!equal(fixed(before),fixed(after))||after.revision!==previousBlock.revision+1||after.libraryText===previousBlock.libraryText&&after.note===previousBlock.note)invalid();
   if(!equal(descriptor.sourceRefs,[{id:original.source.id,sourceKey:original.source.sourceKey,dedupeKey:original.source.dedupeKey,contentHash:original.source.contentHash}])||keeps.length!==1||keeps[0].value.id!==original.source.sourceKey)invalid();
   for(const item of shape.entities){const prior=priorOperations.get(item.operation.entityId);if(!equal(item.operation.parents,prior?[prior.revisionId]:[]))invalid();}
@@ -132,21 +141,23 @@ async function requireWorkingPhysical(core,t,originalCut,currentCut,groups,canon
   historyRows.set(planned.row.id,planned.row);if(planned.sequence)revision.value=planned.sequence.value;
   if(history.length!==historyRows.size||history.some(item=>!equal(item.value,historyRows.get(item.value.id))))invalid();
   const nextState={...previousState,contentRevision:previousState.contentRevision+1,deltaSequence:delta.value+1};if(!equal(state.value,nextState))invalid();
-  delta.value++;epoch.value++;events.push({descriptor,contentRevision:nextState.contentRevision,sequence:epoch.value});
+  delta.value++;epoch.value++;events.push({descriptor,inputId:before.id,contentRevision:nextState.contentRevision,sequence:epoch.value});
   for(const item of shape.entities)priorOperations.set(item.operation.entityId,item.operation);
-  previousBlock=after;previousState=nextState;
+  input.previousBlock=after;input.previousState=nextState;
  }
- expected.inputStates[expected.inputStates.indexOf(initial)]=previousState;
- expected.revisionAllocations=expected.revisionAllocations.filter(row=>row.id!==allocation.id);
- for(const row of historyRows.values())expected.revisionAllocations.push({id:row.id,sequence:row.sequence,listKey:row.listKey,documentList:row.documentList});
- const filter=await t.get('filterInputs',before.id),oldFilter=expected.filterInputs.find(item=>item.id===before.id);expected.filterInputs[expected.filterInputs.indexOf(oldFilter)]=requireSourceUnionWorkingFilter(groups.working,oldFilter,filter);
+ for(const {before,initial,allocation,previousState,historyRows}of inputs.values()){
+  expected.inputStates[expected.inputStates.indexOf(initial)]=previousState;
+  expected.revisionAllocations=expected.revisionAllocations.filter(row=>row.id!==allocation.id);
+  for(const row of historyRows.values())expected.revisionAllocations.push({id:row.id,sequence:row.sequence,listKey:row.listKey,documentList:row.documentList});
+  const edits=groups.working.filter(group=>group.prepared.descriptor.value.inputId===before.id),filter=await t.get('filterInputs',before.id),oldFilter=expected.filterInputs.find(item=>item.id===before.id);expected.filterInputs[expected.filterInputs.indexOf(oldFilter)]=requireSourceUnionWorkingFilter(edits,oldFilter,filter);
+ }
  for(const name of ['inputStates','revisionAllocations','filterInputs'])order(expected[name]);charge(core,expected);if(!equalSourceWorkingPhysicalTree(currentCut,expected))invalid();
  const sourceOnly={previous:groups.previous,added:[],working:[]};await requireSourceUnionPublicationPhysical(core,t,originalCut,originalCut,sourceOnly,canonical);
  const invalidations=await readGroupRows(t,'invalidations'),receipts=await readGroupRows(t,'operationReceipts');charge(core,invalidations);charge(core,receipts);
  if(invalidations.length!==events.length||receipts.length!==events.length)invalid();
- for(const {descriptor,contentRevision,sequence} of events){
+ for(const {descriptor,inputId,contentRevision,sequence} of events){
   const event=invalidations.find(row=>row.sequence===sequence),receipt=receipts.find(row=>row.id===descriptor.id);
-  if(!event||typeof event.id!=='string'||!event.id||typeof event.at!=='string'||!Number.isFinite(Date.parse(event.at))||!equal(event,{id:event.id,eventSchema:2,inputId:before.id,reason:'source_updated',contentRevision,sequence,at:event.at,stateKey:0,state:'pending',cursor:null,dependencyAck:false,organizerAck:false}))invalid();
+  if(!event||typeof event.id!=='string'||!event.id||typeof event.at!=='string'||!Number.isFinite(Date.parse(event.at))||!equal(event,{id:event.id,eventSchema:2,inputId,reason:'source_updated',contentRevision,sequence,at:event.at,stateKey:0,state:'pending',cursor:null,dependencyAck:false,organizerAck:false}))invalid();
   if(!receipt||typeof receipt.createdAt!=='string'||!Number.isFinite(Date.parse(receipt.createdAt))||!(/^[a-f0-9]{64}$/).test(receipt.digest)||!equal(receipt,{id:descriptor.id,namespace:'working-input',schemaVersion:1,ownerId:descriptor.documentId,createdAt:receipt.createdAt,digest:receipt.digest,result:{ok:true}}))invalid();
  }
 }

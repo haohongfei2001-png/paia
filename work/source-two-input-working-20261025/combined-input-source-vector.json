@@ -1,0 +1,5 @@
+{
+  "extension/core/browser-native-sync/source-union-publication-continuation.js": "2c5691fbcf3c04910ccde1346a7eec193e8a7d8ba93a0ac3ef9a0c573f161182",
+  "extension/tests/source-union-two-input-working.test.mjs": "40570403c139ed516962beb207569a07fd7e2fe223db5b51ce8c5f815773014c",
+  "extension/tests/source-union-publication-continuation.test.mjs": "4d1308c0c28df292d09deff6095e68049708530d7ed0acd1051065f998c01102"
+}
