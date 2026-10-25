@@ -29,7 +29,7 @@ import {request,element,statusLabel} from './common.js';
 import {LibraryEntryEditor} from './library-entry-editor.js';
 import {AutosaveSession,RevisionSession,textOf} from './editor-primitives.js';
 import {RecoveryDraftSession} from './recovery-draft.js';
-import {setIconLabel,setIconOnly} from './icons.js';
+import {setIconOnly} from './icons.js';
 const $=id=>document.getElementById(id),op=()=>crypto.randomUUID();
 const button=(label,run)=>{const b=element('button','',label);b.type='button';b.addEventListener('click',()=>void Promise.resolve().then(run).catch(()=>showLocalFailure()));return b;};
 const editable=(tag,field,value,label)=>{const e=element(tag,'',value);e.contentEditable='plaintext-only';e.dataset[field[0]]=field[1];e.setAttribute('aria-label',label);return e;};
@@ -929,7 +929,12 @@ if(explicit&&direction==='next'&&this.topicReader?.terminalNext&&this.topicReade
   else{const entry=new LibraryEntryEditor(body,rows,this.onStatus,()=>{if(this.editor?.entry===entry&&this.id===page.topic.id&&!this.departureFlush)void this.refresh();});entry.importHistory(this.history);this.editor=new DocumentSession(entry,metadata);}
   this.applyLayout();this.renderSectionNav(page);if(this.desktopAppearance&&!this.desktopPresentation)this.enableDesktopPresentation();else this.desktopPresentation?.sync();
  }
- syncReadingControls(){const b=$('topic-order-toggle');if(!b)return;b.disabled=!!this.readingSortBusy||this.topicOpening!==undefined;const asc=this.readingSort==='asc',en=document.documentElement.lang==='en',label=asc?(en?'Oldest first':'最早在前'):(en?'Newest first':'最新在前');b.dataset.readingSort=asc?'desc':'asc';setIconLabel(b,asc?'sort-up':'sort-down',label);b.setAttribute('aria-label',label);}
+ syncReadingControls(){
+  const b=$('topic-order-toggle');if(!b)return;b.disabled=!!this.readingSortBusy||this.topicOpening!==undefined;
+  const asc=this.readingSort==='asc',en=document.documentElement.lang==='en';
+  b.dataset.readingSort=asc?'desc':'asc';b.setAttribute('aria-pressed',String(!asc));
+  setIconOnly(b,asc?'sort-up':'sort-down',asc?(en?'Time order: ascending, oldest first. Switch to descending.':'时间排序：正序，最早在前。点击切换为倒序。'):(en?'Time order: descending, newest first. Switch to ascending.':'时间排序：倒序，最新在前。点击切换为正序。'));
+ }
  async changeReadingSort(sort,{fromStart=false,timeEdge=null}={}){
   if(!this.id||this.view!=='original'||!['asc','desc'].includes(sort)||this.readingSortBusy||this.topicOpening!==undefined)return;
   if(fromStart&&this.topicProviderKey)return;

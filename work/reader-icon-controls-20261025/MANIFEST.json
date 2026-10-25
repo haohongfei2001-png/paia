@@ -1,0 +1,120 @@
+{
+  "baseCommit": "875a58ca89602c4ccb0daf05d3ba5ee2b3a471b0",
+  "status": "LOCAL_FROZEN_FOR_INDEPENDENT_REVIEW",
+  "finalTargetedTests": {
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "log": "work/reader-icon-controls-20261025/logs/06-final-localization-click.tap"
+  },
+  "unrun": [
+    "pre-existing owning test execution",
+    "browser/native tests",
+    "visual rendering",
+    "release build",
+    "CI",
+    "installation"
+  ],
+  "files": [
+    {
+      "path": "extension/docs/consumer-product-v1/UX_CONTRACT.md",
+      "bytes": 16625,
+      "sha256": "de67757914dedce6d8fef90155aa4a71f2e33a209d604ccf6d355dd2f0576543"
+    },
+    {
+      "path": "extension/tests/archive-year-restoration-owner.test.mjs",
+      "bytes": 7385,
+      "sha256": "34d56063f16364d73a3905df34deb217d092be2e8921279e03a594366133e06a"
+    },
+    {
+      "path": "extension/tests/historical-d5-ai-comparison-chrome-e2e.test.mjs",
+      "bytes": 7196,
+      "sha256": "d5e2bb5cf85004771794f88b33f20c6a854b58548f0ab984d1d46a10e7f08afc"
+    },
+    {
+      "path": "extension/tests/iah11-find-return.test.mjs",
+      "bytes": 3029,
+      "sha256": "73acaec825b98409cfa2b39e45d6881b795b2c0ca008f909508a13ebab70358c"
+    },
+    {
+      "path": "extension/tests/iah11-result-presentation-chrome-e2e.test.mjs",
+      "bytes": 51906,
+      "sha256": "f7cf631320e3ac8493ac8922bd79988b447df1aa85f58e301eec311720c48212"
+    },
+    {
+      "path": "extension/tests/reader-icon-controls.test.mjs",
+      "bytes": 15099,
+      "sha256": "83ce1af699e5a4af918be9a87ac7e707ee522068f873f5727d32d6b507317ae3"
+    },
+    {
+      "path": "extension/tests/reader-icon-shell.test.mjs",
+      "bytes": 8416,
+      "sha256": "d2742fe4d6f7b1904893a49fda9bbdeff64137c04595942556f40b9a39b55e40"
+    },
+    {
+      "path": "extension/tests/topic-reading-sort-publication.test.mjs",
+      "bytes": 7498,
+      "sha256": "61d5ee4af6bd65497333e461adc941a76405876857f6d8c824602e117e802615"
+    },
+    {
+      "path": "extension/ui/archive.html",
+      "bytes": 27871,
+      "sha256": "4bead4cd745f439127f2849f211fce7e2934432febded63f95148cfa0bb820e0"
+    },
+    {
+      "path": "extension/ui/archive.js",
+      "bytes": 115181,
+      "sha256": "8f7dcdcb1733f7f36df1ecec20fa16dcbd167d33e7d04f477a39694ac92006e3"
+    },
+    {
+      "path": "extension/ui/thought-reader.css",
+      "bytes": 36781,
+      "sha256": "b95f1d59ece37aa1bed0b3b03f4625a50e04438668030e057f83b125944220d9"
+    },
+    {
+      "path": "extension/ui/topic-workspace.js",
+      "bytes": 256627,
+      "sha256": "c782a53281e3c060677ecdfcfd196c9909cf5e3c5ce2100cf96ea5461adb1b62"
+    },
+    {
+      "path": "work/reader-icon-controls-20261025/REPORT.md",
+      "bytes": 5778,
+      "sha256": "21bb33ee997aff3707c2c455a474c14e8cc061ff7ebe54f86cdaa26de3a02911"
+    },
+    {
+      "path": "work/reader-icon-controls-20261025/logs/01-controls-first.log",
+      "bytes": 2548,
+      "sha256": "3ace21e073e44941dbc97bfc0c6296463e7b872099c99c762cd943b62e5727b0"
+    },
+    {
+      "path": "work/reader-icon-controls-20261025/logs/02-shell-bootstrap-failed.log",
+      "bytes": 1176,
+      "sha256": "4e29040a53d2d06c2927b216f322317174aa55d84a9a9070a6cce96d79054b78"
+    },
+    {
+      "path": "work/reader-icon-controls-20261025/logs/03-shell-corrected.log",
+      "bytes": 361,
+      "sha256": "be7f2e094e7bc7d8054965463302a1b1d729325911318aaac3be30a45caf5434"
+    },
+    {
+      "path": "work/reader-icon-controls-20261025/logs/04-final-targeted.tap",
+      "bytes": 6436,
+      "sha256": "bd69741da5e574b70746032baa971a2c7acbd29c51217044eb23cb42ca147da6"
+    },
+    {
+      "path": "work/reader-icon-controls-20261025/logs/05-source-syntax.log",
+      "bytes": 604,
+      "sha256": "a05e22b1d4fe6b9e89fe954fe028dea3f56cacb15c71c94244ca4653ade2dab3"
+    },
+    {
+      "path": "work/reader-icon-controls-20261025/logs/06-final-localization-click.tap",
+      "bytes": 7004,
+      "sha256": "244499a1e16a2e09d427086bdf4c65441d7d8678daafada2d74e1ab8d5d7b3d4"
+    },
+    {
+      "path": "work/reader-icon-controls-20261025/source-scope.json",
+      "bytes": 2659,
+      "sha256": "cb666fe9a3d9c8ae4ef1d48b9750353db96b8a73a25e5579fc2fd8067dc9fbac"
+    }
+  ]
+}

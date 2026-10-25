@@ -1,5 +1,5 @@
 :root{font:400 14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"Noto Sans CJK SC",sans-serif;color:#292b31;color-scheme:light dark;background:transparent;--line:#dce0e7;--hover:#f3f5f8;--active:#e9edf3;--focus:#657999;--panel:#ffffff;--muted:#6d7480;--thumb:#dce0e7;--action:#536987;--inserted:#eef2f8;--inserted-text:#292b31}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body,button,textarea,input{font:inherit}button,textarea,input{color:inherit}button{min-width:32px;min-height:32px;border:0;background:transparent;border-radius:12px;cursor:pointer}button:hover{background:var(--hover)}button:disabled{cursor:default}button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}[hidden]{display:none!important}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body,button,textarea,input{font:inherit}button,textarea,input{color:inherit}button{min-width:32px;min-height:32px;border:0;background:transparent;border-radius:12px;cursor:pointer}button:hover{background:var(--hover)}button:disabled{cursor:default;opacity:.4}button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}[hidden]{display:none!important}
 #card{height:100%;display:flex;flex-direction:column;overflow:hidden}header{min-height:44px;flex:0 0 auto;padding:11px 5px 10px 16px;font-weight:550}#list{overflow:auto;overscroll-behavior:contain;flex:1 1 auto;min-height:0;padding:1px 7px}
 ::-webkit-scrollbar{width:3px;height:3px}::-webkit-scrollbar-thumb{background:var(--thumb);border-radius:3px}
 /* Keep the approved 18px text axis; the existing reorder hit target stays in the action rail, outside the text hit target. */
@@ -11,14 +11,14 @@
 .tools{padding:5px 10px;display:flex;flex-wrap:wrap;background:var(--panel);border-radius:12px;margin:3px 0}.tools button{padding:6px 10px;min-height:44px}.handle{touch-action:none}
 nav{flex:0 0 auto;min-height:44px;display:flex;flex-wrap:wrap;align-items:center;padding:0 7px;gap:2px;color:var(--muted);border-top:1px solid var(--line)}nav button{min-height:44px;padding:3px 9px;font-size:.86rem}#close{margin-left:auto}#status{flex:none;font-size:.86rem;margin:0;padding:4px 14px;max-height:66px;overflow:auto;color:var(--muted)}#status:empty{display:none}#status button{display:inline;padding:4px 8px}
 #editor{overflow:auto;flex:1 1 auto;min-height:0;padding:10px 14px}#editor.inline-editor{flex:none;margin:3px 0;padding:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:auto}#editor.inline-editor label{margin:0}.editing-row{display:none}.editor-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-textarea{display:block;width:100%;min-height:44px;height:44px;max-height:180px;resize:vertical;background:transparent;border:0;border-radius:10px;padding:9px 13px;line-height:1.5714285714}textarea:focus-visible{outline:0}label{display:block;overflow-wrap:anywhere;margin:8px 0}label:has(input[type=checkbox]){display:flex;align-items:center;min-height:44px;gap:8px}input[type=checkbox]{min-width:24px;min-height:24px}.empty{padding:16px}
+textarea{display:block;width:100%;min-height:44px;height:44px;max-height:180px;resize:vertical;background:transparent;border:0;border-radius:10px;padding:9px 13px;line-height:1.5714285714}textarea:focus-visible{outline:0}label{display:block;overflow-wrap:anywhere;margin:8px 0}label:has(input[type=checkbox]){display:flex;align-items:center;min-height:44px;gap:8px}input[type=checkbox]{min-width:24px;min-height:24px}.empty{padding:25px 20px;color:var(--muted);font-size:13px;line-height:1.8;text-align:center}
 .actions{display:flex;justify-content:flex-end;flex-wrap:wrap;padding:0 4px 3px}.actions button{padding:4px 10px;font-size:.86rem;min-height:44px;color:var(--muted)}.actions button:first-child{color:var(--action)}
 :is(#check-text,#prompt-assist){flex:1 1 auto;min-height:0;overflow:auto;padding:8px 12px;background:var(--panel)}:is(#check-text,#prompt-assist) p{margin:0 0 6px;color:var(--muted);font-size:.86rem}.check-body{white-space:pre-wrap;overflow-wrap:anywhere;max-height:150px;overflow:auto;user-select:text;margin:0;padding:8px;border-radius:8px;line-height:1.5714285714}:is(#check-text,#prompt-assist) .actions{padding-top:6px}
 :root[data-paia-theme=light]{color-scheme:light}:root[data-paia-theme=dark]{color-scheme:dark;color:#e9ebf0;--line:#454850;--hover:#363940;--active:#41454e;--focus:#a4b8d8;--panel:#2b2c30;--muted:#a5aab4;--thumb:#454850;--action:#b6c6df;--inserted:#384354;--inserted-text:#e9ebf0}
 @media(prefers-color-scheme:dark){:root:not([data-paia-theme]){color-scheme:dark;color:#e9ebf0;--line:#454850;--hover:#363940;--active:#41454e;--focus:#a4b8d8;--panel:#2b2c30;--muted:#a5aab4;--thumb:#454850;--action:#b6c6df;--inserted:#384354;--inserted-text:#e9ebf0}}
 @media(pointer:coarse){.row{padding-left:4px}.more,.copy-shortcut,.edit-shortcut{flex-basis:44px;min-width:44px;width:44px;min-height:44px;opacity:1;pointer-events:auto}.grip{flex-basis:44px;width:44px;min-width:44px;opacity:1;pointer-events:auto}nav button,.actions button,.tools button{min-width:44px;min-height:44px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media(forced-colors:active){:root{--line:CanvasText;--panel:Canvas;--hover:Highlight;--muted:CanvasText;--focus:Highlight;--active:Highlight;--action:LinkText;--inserted:Canvas;--inserted-text:CanvasText}button{forced-color-adjust:auto}.row,header,nav{border-color:CanvasText}.more,.edit-shortcut,.copy-shortcut,.grip{opacity:1;pointer-events:auto}}
+@media(forced-colors:active){:root,:root[data-paia-theme],:root:not([data-paia-theme]){--line:CanvasText;--panel:Canvas;--hover:Canvas;--muted:CanvasText;--focus:Highlight;--active:Canvas;--action:LinkText;--inserted:Canvas;--inserted-text:CanvasText}button{forced-color-adjust:auto}.row,header,nav{border-color:CanvasText}.more,.edit-shortcut,.copy-shortcut,.grip{opacity:1;pointer-events:auto}}
 
 /* Do not hit an action while its cross-origin frame is being repositioned. */
 :root[data-layout-pending] button{pointer-events:none}
@@ -42,7 +42,8 @@ nav{padding:0 9px 0 13px;border-top:0;position:relative}nav:before{content:'';po
 #card{position:relative;padding:1px;background:transparent}
 header{height:48px;min-height:48px;flex:0 0 48px;padding:2px 55px 0 15px;position:relative;gap:0}
 header::before{content:"";position:absolute;top:0;left:15px;right:15px;height:1px;background:var(--row-rule);pointer-events:none}
-header span{padding-left:0;font-weight:500}header button{width:40px;min-width:40px;height:40px;min-height:40px}
+header span{padding-left:0;font-weight:500;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}header button{width:40px;min-width:40px;height:40px;min-height:40px}
+header #search-query{height:40px;min-height:40px;padding:8px 4px;font-size:13px}#search-query::placeholder{color:var(--muted)}
 :root[data-mode=search] header{padding-left:5px;padding-right:55px}
 #surface-more{width:40px;min-width:40px;margin-left:0}
 #list{margin:7px 0;padding:0 12px;min-height:0}
@@ -55,10 +56,13 @@ header span{padding-left:0;font-weight:500}header button{width:40px;min-width:40
 #status:not(:empty){position:relative;margin:0 6px 4px;padding:6px 9px;background:var(--panel);border-radius:8px;box-shadow:0 2px 9px #17243b12}
 #status[data-quiet=true]{position:absolute;left:6px;right:6px;bottom:52px;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
 .row[data-inserted=true],#capsule-use[data-inserted=true]{background:var(--inserted);color:var(--inserted-text)}
-.row[data-inserted=true] .text{padding-right:20px}.row[data-inserted=true]:after,#capsule-use[data-inserted=true]:after{content:"✓";display:block;position:absolute;right:12px;top:50%;transform:translateY(-50%);width:auto;height:auto;background:none;color:var(--inserted-text)}
+.row[data-inserted=true] .text{padding-right:20px}.row[data-inserted=true]:after,#capsule-use[data-inserted=true]:after{content:"✓";display:block;position:absolute;left:auto;bottom:auto;right:12px;top:50%;transform:translateY(-50%);width:auto;height:auto;background:none;color:var(--inserted-text)}
+/* The row's separator and inserted feedback share a pseudo-element. Reset its
+   old insets above, then use the adopted R3 mark's exact right-edge role. */
+.row[data-inserted=true]:after{right:13px;font-size:14px;color:var(--focus)}
 #capsule-use[data-inserted=true] #capsule-text{padding-right:20px}
 .expression-count{display:block;padding:2px 12px;color:var(--muted);font-size:12px}.expression-count[data-over-limit=true]{color:#a83b38}
-@media(pointer:coarse){.more{opacity:1;min-width:44px;width:44px;flex-basis:44px}header button,#surface-more{width:44px;min-width:44px;height:44px;min-height:44px}}
+@media(pointer:coarse){.more{opacity:1;min-width:44px;width:44px;flex-basis:44px}header button,#surface-more{width:44px;min-width:44px;height:44px;min-height:44px}header #search-query{height:44px;min-height:44px}}
 #capsule{display:none;position:absolute;right:0;bottom:0;height:48px;width:272px;border-radius:24px;overflow:hidden;background:transparent}
 #capsule-use{position:absolute;right:48px;top:0;display:flex;align-items:center;width:224px;min-width:0;height:48px;padding:0 12px 0 16px;text-align:left;border-radius:24px 0 0 24px}
 #capsule-text{display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;flex:1;min-width:0}

@@ -2,6 +2,42 @@
 
 **PAIA-YEAR-HARMONY-1.0 / OWNER_DIRECTED / PLAN_UPDATED / 2026-10-16.** Current targets: **TL-PT1-UI-1.7 / CTX4-UI-1.7 / IAH-1.8**. Settings retains SET2-UI-1.4, its six groups and 22 operations. Current STATUS and the original domain plans remain the execution system. [Exact reference manifest](YEAR_HARMONY_REFERENCES_2026-10-16.md) identifies the revised existing prototypes; the new drawings are implementation references for the request, not separately approved final pixels or production acceptance.
 
+## My Inputs capsule amendment — 2026-10-25
+
+The owner explicitly reselected the compact Topic capsule layout shown in the
+verified original `PAIA-AI-Context-Cards-v2/screens/08-Inputs-20.png` (SHA256
+`ad6e30d0f759b043c18837d65ea09dc1c50ff7a1c91101ebddb8925faf1c1c78`).
+For **My Inputs only**, this supersedes later full-width Topic-row presentation:
+use a wrapping, content-sized capsule field, approximately44px targets,12px gaps,
+filled/outlined capsules and filled/hollow state dots. Preserve the current
+semantic palette, real Topic IDs/names/order, complete bounded traversal,
+All/Selected filter, selection persistence and all permission protections.
+The capsule name remains a local-view action; its separate dot control retains
+the existing access-choice action. Opening a Topic must never grant access.
+Paused/retained choices remain truthful and both actions retain accessible names,
+keyboard navigation and focus. Long names wrap; no Topic is clipped or omitted.
+Do not restore old app search, sample Topics, a global blue palette, automatic
+permissions, or obsolete Home/other-detail layouts. This is the selected visual
+authority, not a claim that browser pixel acceptance has passed.
+
+## Reader-control amendment — 2026-10-25
+
+The latest owner instruction supersedes earlier **visible** Back/origin and
+ascending/descending captions in Archive and Thought readers: retain the
+existing Back and up/down icon language, with no explanatory text or added
+hover tooltip. Keep accurate accessible destination/order names and state,
+current click/keyboard behavior, recorded origin/history, focus, selection,
+editor/IME guards and sort persistence. Primary navigation and AI Organize
+labels remain. This is not permission to remove true unknown-date/source or
+error information.
+
+The inherited PRE_YEAR §4 left-anchored Back/secondary-navigation requirement
+still applies to Thought readers. Preserve independently bounded prose, actual
+saved width and intentional right-side whitespace. The narrow local correction
+is not a full pixel restoration: the original target view is not available for
+comparison, and real-browser/visual acceptance remains unverified. Other
+YEAR-HARMONY contracts, body content, data and all seven plans are unchanged.
+
 ## 0. Complete preservation and finite scope
 
 The immediately preceding shared UX is preserved byte-for-byte in [PRE_YEAR](UX_CONTRACT_PRE_YEAR_2026-10-16.md), blob `e492d29226fc7fda0a58a85355bfe898be6f1004`. **All nonconflicting sections 0–6 and their incorporated product, identity, data, editing, provenance, permission, recovery, accessibility and verification contracts remain normative.** Read the full original detail for the affected owner. Only annual reading progression, compact date spacing, Context search retirement and the specified four-card composition replace earlier clauses.

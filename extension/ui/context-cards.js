@@ -157,7 +157,15 @@ export class ContextCardsPage {
  maintenanceText(){const value=this.snapshot?.maintenance;if(!value?.available)return copy('人工修改始终保留；自动补充目前不可用。','Your edits are protected. Automatic updates are unavailable.');if(value.running)return copy('人工修改始终保留；正在检查自动补充。','Your edits are protected. Automatic updates are being checked.');if(value.remainingWork===true)return copy('人工修改始终保留；还有内容等待自动补充。','Your edits are protected. Some automatic updates are pending.');return value.remainingWork===false?copy('人工修改始终保留；本次检查已处理完毕。','Your edits are protected. This check is complete.'):copy('人工修改始终保留；自动补充已准备，待处理状态尚未检查。','Your edits are protected. Automatic updates are ready; pending work has not been checked.');}
  inputCount(){const value=this.snapshot.topicChoices;return !value?copy('0 个主题开放','0 topics open'):!value.available?copy('主题选择暂不可用','Topic choices unavailable'):`${value.selectedCount} ${copy('个主题已选择','topics selected')}`;}
  inputDescription(){const value=this.snapshot.topicChoices;return value&&!value.available?copy('暂时无法读取主题选择，已有设置仍保留。','Topic choices cannot be read right now. Existing settings are retained.'):value?.available&&value.selectedCount?(this.snapshot.connections>0?copy('已连接的 AI 仍须遵守总权限和主题选择。','Connected AI still follows Global access and Topic choices.'):copy('主题选择已保留，当前没有在线连接。','Topic choices are retained; no connection is online.')):copy('还没有开放的主题','No open topics yet');}
- paintInputSummary(node){const value=this.snapshot.topicChoices;if(value?.available&&value.selectedNames?.length){node.replaceChildren(element('span','',value.selectedNames.join(' · ')));if(value.remainingSelectedCount)node.append(element('span','more-topics',` +${value.remainingSelectedCount}`));}else node.textContent=this.inputDescription();}
+ paintInputSummary(node){
+  const value=this.snapshot.topicChoices;
+  // Home is a directory, not a count or connection-summary surface. The
+  // original entry remains available when no qualified names can be shown.
+  node.hidden=false;
+  if(value?.available&&value.selectedNames?.length)node.replaceChildren(element('span','',value.selectedNames.join(' · ')));
+  else if(value&&!value.available)node.textContent=this.inputDescription();
+  else{node.replaceChildren();node.hidden=true;}
+ }
  homeEntryText(key){return key==='inputs'?copy('选择主题','Choose topics'):this.snapshot.counts[key]===0?copy('添加内容','Add content'):copy('查看内容','View content');}
  paintHomeEntries(){
   for(const node of this.host.querySelectorAll('.context-entry-label'))node.textContent=this.homeEntryText(node.dataset.card);
@@ -174,9 +182,19 @@ export class ContextCardsPage {
   const entry=button('',()=>void this.onNavigate(key),'context-directory-link'),text=element('span','context-entry-label',this.homeEntryText(key));text.dataset.card=key;entry.append(text,createIcon('chevron-right'));directory.append(entry);content.append(directory);
   const footer=element('div','card-footer');footer.append(this.access(key));card.append(content,footer);return card;
  }
- paintAccess(){for(const b of this.host.querySelectorAll('.context-access')){const key=b.dataset.key,value=this.snapshot.access[key],paused=key!=='global'&&value.enabled&&!this.snapshot.access.global.enabled;b.dataset.on=String(value.enabled);b.dataset.paused=String(paused);b.setAttribute('aria-pressed',String(value.enabled));b.setAttribute('aria-label',(key==='global'?copy('AI 访问','AI access'):label(key))+': '+(value.enabled?copy('已开放','Enabled'):copy('仅自己','Only me')));b.title=this.snapshot.connections>0?copy('只控制已连接 AI 的读取范围，不改变独立的自动处理授权。','Controls connected AI reading scope, not independent automatic processing permission.'):copy('仅保存开放设置；当前没有在线的外部 AI 连接。','Saves access preferences only. No external AI connection is online.');const track=element('span','context-switch');track.setAttribute('aria-hidden','true');b.replaceChildren(element('span','',key==='global'?copy('AI 访问 · ','AI access · ')+(value.enabled?copy('开','On'):copy('关','Off')):value.enabled?(paused?copy('已开放','Enabled'):copy('AI 可读','AI readable')):copy('仅自己','Only me')),track);b.disabled=this.busy;}
-  if(this.gateCaption&&detailDescriptions[this.card])this.gateCaption.textContent=this.busy?copy('正在核对设置…','Checking preferences…'):!this.snapshot.access[this.card].enabled?(this.card==='inputs'?copy('本地阅读不改变访问选择','Local reading does not change access choices'):copy('内容仍可自由编辑','Content remains editable')):!this.snapshot.access.global.enabled?copy('总权限已暂停，选择已保留','Global access is paused; choices are retained'):copy('访问设置 · 本地预览可核对','Access preferences · Inspect the local preview');
-  if(this.globalNote&&this.card!=='connections'){this.globalNote.hidden=!!this.inputs||this.snapshot.access.global.enabled;this.globalNote.textContent=Object.values(this.snapshot.access).some(x=>x.enabled)?copy('AI 访问已暂停，开放设置已保留。','AI access is paused. Your choices are retained.'):copy('AI 访问尚未开启。','AI access is off.');}}
+ paintAccess(){
+  const hasConnection=this.snapshot.connections>0,connected=hasConnection&&this.snapshot.capabilities?.external===true;
+  for(const b of this.host.querySelectorAll('.context-access')){
+   const key=b.dataset.key,value=this.snapshot.access[key],paused=key!=='global'&&value.enabled&&(!this.snapshot.access.global.enabled||!connected);
+   const state=key==='global'?(value.enabled?copy('开','On'):copy('关','Off')):value.enabled?(paused?copy('选择已保留','Choice retained'):copy('AI 可读','AI readable')):copy('仅自己','Only me');
+   b.dataset.on=String(value.enabled);b.dataset.paused=String(paused);b.setAttribute('aria-pressed',String(value.enabled));b.setAttribute('aria-label',(key==='global'?copy('AI 访问','AI access'):label(key))+': '+state);
+   b.title=connected?copy('只控制已连接 AI 的读取范围，不改变独立的自动处理授权。','Controls connected AI reading scope, not independent automatic processing permission.'):copy('仅保存开放设置；外部 AI 读取目前不可用。','Saves access preferences only. External AI reading is unavailable.');
+   const track=element('span','context-switch');track.setAttribute('aria-hidden','true');b.replaceChildren(element('span','',key==='global'?copy('AI 访问 · ','AI access · ')+state:state),track);b.disabled=this.busy;
+  }
+  if(this.gateCaption&&detailDescriptions[this.card])this.gateCaption.textContent=this.busy?copy('正在核对设置…','Checking preferences…'):!this.snapshot.access[this.card].enabled?(this.card==='inputs'?copy('本地阅读不改变访问选择','Local reading does not change access choices'):copy('内容仍可自由编辑','Content remains editable')):!this.snapshot.access.global.enabled?copy('总权限已暂停，选择已保留','Global access is paused; choices are retained'):!hasConnection?copy('尚未连接 AI，选择已保留','No AI connection; choices are retained'):!connected?copy('AI 读取不可用，选择已保留','AI reading is unavailable; choices are retained'):copy('访问设置 · 本地预览可核对','Access preferences · Inspect the local preview');
+  if(this.globalNote&&this.card!=='connections'){this.globalNote.hidden=!!this.inputs||this.snapshot.access.global.enabled;this.globalNote.textContent=Object.values(this.snapshot.access).some(x=>x.enabled)?copy('AI 访问已暂停，开放设置已保留。','AI access is paused. Your choices are retained.'):copy('AI 访问尚未开启。','AI access is off.');}
+ }
+
  async openScopePreview(){
   if(this.scopePreview||this.previewOpening||!this.active)return false;
   const generation=this.openGeneration;this.previewOpening=true;

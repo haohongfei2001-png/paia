@@ -94,10 +94,10 @@ html[data-paia-theme=dark] .topic-action-dialog::backdrop {background:rgba(0,0,0
 /* D6.2 Thought root. Same scoped search, source chooser and action owners. */
 body[data-paia-space="thoughts"] .workspace{position:relative;padding:0 0 64px}
 body[data-paia-space="thoughts"] #page-breadcrumb{display:none}
-body[data-paia-space="thoughts"] .workspace-header{position:relative;top:auto;min-height:0;padding:24px 44px 0;margin:0;border:0;gap:8px;align-items:center}
+body[data-paia-space="thoughts"] .workspace-header{position:relative;inset:auto;width:auto;justify-content:flex-start;min-height:0;padding:24px 44px 0;margin:0;border:0;gap:8px;align-items:center}
 #thought-root-header{min-width:0;flex:1}
 #thought-topic-header{display:flex;justify-content:flex-end;min-width:0;flex:1 1 100%}
-#thought-root-header[hidden],#thought-topic-header[hidden],#thought-root-source[hidden]{display:none}
+#thought-root-header[hidden],#thought-topic-header[hidden],#thought-topic-header:empty,#thought-root-source[hidden]{display:none}
 body[data-paia-space="thoughts"] .workspace-header :is(#back,#revision-history){min-width:32px;min-height:32px;max-width:100%;padding:4px 0;font-size:12px;line-height:2;white-space:normal;overflow-wrap:anywhere;color:var(--muted)}
 body[data-paia-space="thoughts"] #save-status{min-width:0;max-width:100%;margin:0;white-space:normal;overflow-wrap:anywhere}
 #thought-panel{width:100%;max-width:none;padding:24px 44px 80px;margin:0;color:var(--text)}
@@ -130,7 +130,6 @@ body[data-paia-space="thoughts"] #thought-empty button:hover:not(:disabled){back
 @media(max-width:767px),(pointer:coarse){body[data-paia-space="thoughts"] #thought-empty button{min-width:44px;min-height:44px}}
 body[data-paia-space="thoughts"] #workspace-error{padding:16px 44px}
 @media(min-width:1024px){
- body[data-paia-space="thoughts"]:not([data-desktop-appearance-preview]) .workspace-header{position:absolute;right:44px;top:24px;width:250px;padding:0;justify-content:space-between}
  body[data-paia-space="thoughts"] #thought-topic-header{order:-1}
  body[data-paia-space="thoughts"] #thought-root-heading,body[data-paia-space="thoughts"] #thought-document #topic-heading{max-width:min(936px,calc(100% - 294px))}
  body[data-paia-space="thoughts"] .workspace:has(#save-status:not(:empty)) .workspace-header{position:relative;inset:auto;width:auto;padding:16px 44px;justify-content:flex-start}

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TopicController} from '../ui/topic-workspace.js';
+import {PresentationNode} from './harness/presentation-dom.mjs';
 
 // Keep the real order action and original editor flush. Only the pending
 // publication, transport and browser controls are supplied by this fixture.
@@ -43,7 +44,7 @@ test('chronology refuses a still-pending open before flushing or changing saved 
 function gate(){let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};}
 async function withOpening(run){
  const names=['document','chrome','scrollTo'],previous=new Map(names.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
- const node=()=>({dataset:{},disabled:false,classList:{add(){},toggle(){}},setAttribute(){},replaceChildren(){},append(){}}),button=node(),elements=new Map(['ai-presentation-toggle','thought-list'].map(id=>[id,node()]));elements.set('topic-order-toggle',button);
+ const node=()=>Object.assign(new PresentationNode(),{disabled:false}),button=node(),elements=new Map(['ai-presentation-toggle','thought-list'].map(id=>[id,node()]));elements.set('topic-order-toggle',button);
  globalThis.document={documentElement:{lang:'en'},getElementById:id=>elements.get(id)||null,createElement:node,createElementNS:node};
  const calls=[];globalThis.chrome={runtime:{sendMessage:async message=>{calls.push(message.type);return {ok:true,data:null};}}};globalThis.scrollTo=()=>{};
  const leave=gate(),refresh=gate(),restore=gate(),refreshStarted=gate(),restoreStarted=gate();

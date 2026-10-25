@@ -162,8 +162,18 @@ function archiveBackLabel(){
  }
  return (view==='thoughts'?tc('‹ 返回思想库'):documentId?'返回聊天窗口':view==='legacy'?'返回设置':'返回输入档案').replace(/^‹\s*/,'');
 }
-function paintArchiveBack(){setIconLabel($('back'),'back',archiveBackLabel(),{labelClass:'archive-back-label'});}
-document.addEventListener('paia:preferences-applied',()=>{paintArchiveBack();refreshArchiveTimes();});
+function paintArchiveBack(){
+ const back=$('back'),label=archiveBackLabel();back.setAttribute('aria-label',label);
+ if(['library','archive','thoughts'].includes(view))setIconOnly(back,'back',label);
+ else{back.classList.remove('paia-icon-only');setIconLabel(back,'back',label,{labelClass:'archive-back-label'});}
+}
+function paintInputTimeOrder(){
+ if(!state)return;
+ const inputOrder=state.readingSort==='desc'?'desc':'asc',inputToggle=$('input-time-toggle');
+ inputToggle.dataset.currentSort=inputOrder;inputToggle.setAttribute('aria-pressed',String(inputOrder==='desc'));
+ setIconOnly(inputToggle,inputOrder==='desc'?'sort-down':'sort-up',inputOrder==='desc'?readerCopy('输入时间顺序：倒序，最新在前。点击切换为正序。','Input time order: descending, newest first. Switch to ascending.'):readerCopy('输入时间顺序：正序，最早在前。点击切换为倒序。','Input time order: ascending, oldest first. Switch to descending.'));
+}
+document.addEventListener('paia:preferences-applied',()=>{paintArchiveBack();paintInputTimeOrder();refreshArchiveTimes();});
 function returnArchiveOrigin(){const saved=archiveOrigins.get(archiveOriginKey);return navigate(validArchiveOrigin(saved)?saved.view:'library',null,null,{returnOriginKey:archiveOriginKey,replaceHistory:true});}
 const startupNavigation=new Promise(resolve=>{releaseStartupNavigation=resolve;});
 async function navigate(next,id=null,contextId=null,options={}){if(!options.keepAppearancePreview&&!closeDesktopAppearancePreview())return false;let intent=null;navigationInFlight++;try{if(!options.restore)await startupNavigation;
@@ -384,7 +394,7 @@ function paintDocumentRange(){
 function renderDocument(){$('reader-window-guard').hidden=true;$('document-page').inert=false;const doc=state.conversations.find(d=>d.id===documentId);if(!doc){documentId=null;render();return;}
  $('document-title').textContent=doc.userTitle||doc.originalConversationTitle||'独立整理文档';$('document-title').removeAttribute('contenteditable');$('document-title').setAttribute('aria-label','文档标题');const editable=view==='library';if(editable)$('document-title').setAttribute('contenteditable','plaintext-only');
  paintDocumentRange(doc);const body=$('document-body');body.replaceChildren();appendDocumentPage(state);
- $('input-time-order').hidden=view!=='library';const inputOrder=state.readingSort==='desc'?'desc':'asc',inputToggle=$('input-time-toggle');inputToggle.dataset.currentSort=inputOrder;inputToggle.setAttribute('aria-pressed',String(inputOrder==='desc'));setIconLabel(inputToggle,inputOrder==='desc'?'sort-down':'sort-up',inputOrder==='desc'?readerCopy('倒序 · 最新在前','Descending · newest first'):readerCopy('正序 · 最早在前','Ascending · oldest first'));inputToggle.setAttribute('aria-label',inputOrder==='desc'?readerCopy('输入时间顺序：倒序，最新在前。点击切换为正序。','Input time order: descending, newest first. Switch to ascending.'):readerCopy('输入时间顺序：正序，最早在前。点击切换为倒序。','Input time order: ascending, oldest first. Switch to descending.'));
+ $('input-time-order').hidden=view!=='library';paintInputTimeOrder();
  $('document-page').classList.remove('standard');if(editable){editor=new DocumentEditor($('document-page'),state,doc,status,counts,()=>{notify('已恢复上次未完成的修改。');void refresh();},ids=>reader.invalidateInputs(ids));const history=partHistory||documentHistories.get(doc.id);if(history)editor.importHistory(history);partHistory=null;documentHistories.delete(doc.id);readerStream={documentId,sort:state.readingSort,snapshot:state.readingSnapshot,includeFiltered:showFilteredCurrent,cursors:[pageCursor],years:[yearRequest(state.yearReading)],year:state.yearReading,first:0,last:0,highWater:0,endCursor:state.nextCursor,loading:false,openedYears:annualRestore?.generation===state.yearReading?.generation&&annualRestore.sort===state.readingSort?annualRestore.openedYears.slice():[state.yearReading?.year].filter(year=>year!==null&&year!==undefined)};annualRestore=null;reader.mount();void presentReaderYearEnd(readerStream).catch(()=>notify(readerCopy('年份暂时无法读取，请重试。','Could not read years. Try again.')));requestAnimationFrame(()=>{if(readerStream?.documentId===documentId&&$('document-body').getBoundingClientRect().bottom<innerHeight+700)void loadReaderPage('forward');});}else status(view==='archive'?'原文只读':'已移除 · 可恢复显示');
 }
 function settings(){presentSettingsStatus(state);$('legacy-entry').hidden=!state.stats.hidden&&!state.stats.trash;if($('capture-foundation-health'))$('capture-foundation-health').textContent=captureHealthText(state.diagnostics);}
