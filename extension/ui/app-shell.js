@@ -4,6 +4,7 @@ import {installReaderNavigation} from './reader-navigation.js';
 import {installSettingsPreferences,presentSettingsPreferences,captureSettingsView,restoreSettingsView} from './settings-preferences.js';
 import {installUniversalSearch} from './universal-search.js';
 import {installRevisit} from './revisit.js';
+import {presentTopicSectionNavigation} from './topic-workspace-presentation.js';
 
 const NAV_LABELS={library:['档案','Archive'],thoughts:['思想库','Thought Library'],memory:['用于 AI','For AI'],settings:['设置','Settings']};
 const NAV_ICONS={library:'archive',thoughts:'thoughts',memory:'context',settings:'settings'};
@@ -76,8 +77,10 @@ export class AppShellController {
   // column empty; search results still use the normal collection owner.
   move(get('archive-root-header'),active?get('archive-reader-navigator-slot'):get('archive-root-main'),active?(get('archive-root-tools')?.parentElement===get('archive-reader-navigator-slot')?get('archive-root-tools'):get('archive-reader-search-slot')):get('archive-root-tools'));
   move(get('archive-root-tools'),active?get('archive-reader-navigator-slot'):get('archive-root-main'),active?get('archive-reader-search-slot'):get('archive-root-navigator-slot'));
-  move(get('archive-root-overflow'),get(active?'archive-root-header-actions':'archive-root-tools'));
+  // Reader has no discovery search row; keep its source and contextual menu together.
+  move(get('archive-root-overflow'),get(active&&!reader?'archive-root-header-actions':'archive-root-tools'));
   move(get('archive-source-scope-label'),get('archive-root-tools'));
+  presentTopicSectionNavigation({narrow:!desktop,active:!!options?.consented&&route.view==='thoughts'&&!!route.topicId});
   for(const {node,parent,next}of this.archiveNavHomes)move(node,compact?get('archive-compact-nav-items'):parent,compact?undefined:next||null);
   move(get('archive-compact-reader-actions'),get('archive-compact-nav-items'),null);get('archive-compact-reader-actions').hidden=!(reader&&compact);
   this.archiveCompactMenu.hidden=!compact;

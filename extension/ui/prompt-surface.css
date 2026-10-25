@@ -30,7 +30,7 @@ header{display:flex;align-items:center;gap:6px;height:44px;padding-top:0;padding
 .representative-members label{min-height:44px;display:flex;align-items:flex-start;gap:8px;padding:6px 0;white-space:pre-wrap}.representative-members input{flex:none;min-width:24px;min-height:24px}
 
 /* The adopted narrow header and single product link keep infrequent controls in More. */
-header{padding:0 5px 0 8px;gap:3px;color:var(--muted);font-weight:450}header span{font-size:12px;padding-left:8px}header #close{margin-left:0;font-size:19px}header #leave-search{font-size:23px}header #search-bar{flex:1;min-width:0;padding:0}header #search-query{border:0;padding:6px 3px;min-width:0}header button{min-width:32px;width:32px;padding:0}#open-search{display:flex;align-items:center;justify-content:center}#open-search .paia-icon{display:block;width:16px;height:16px}#search-bar:focus-within{border-radius:10px;outline:1px solid var(--focus)}
+header{padding:0 5px 0 8px;gap:3px;color:var(--muted);font-weight:450}header span{font-size:12px;padding-left:8px}header #close{margin-left:0;font-size:19px}header #leave-search{font-size:23px}header #search-bar{flex:1;min-width:0;padding:0}header #search-query{border:0;padding:6px 3px;min-width:0}header button{min-width:32px;width:32px;padding:0}#open-search{display:flex;align-items:center;justify-content:center}#open-search .paia-icon{display:block;width:16px;height:16px}
 nav{padding:0 9px 0 13px;border-top:0;position:relative}nav:before{content:'';position:absolute;top:0;left:17px;right:17px;height:1px;background:var(--line);pointer-events:none}#surface-tools #open-paia{color:var(--action);padding-left:3px}#surface-more{margin-left:auto;font-size:20px;min-width:44px}#surface-tools{flex:none;max-height:176px;overflow:auto;padding:4px 9px;display:flex;flex-wrap:wrap;gap:3px;border-top:1px solid var(--line);background:var(--panel)}#surface-tools button{min-height:44px;padding:4px 9px;color:var(--muted)}
 @media(pointer:coarse){header button{min-width:44px;width:44px;min-height:44px}}
 
@@ -53,7 +53,9 @@ header #search-query{height:40px;min-height:40px;padding:8px 4px;font-size:13px}
 .more{opacity:0;flex-basis:36px;min-width:36px;width:36px;border-radius:9px}
 #surface-tools{position:relative;inset:auto;flex:1 1 auto;min-height:0;z-index:4;max-height:none;align-content:flex-start;background:var(--panel);overflow:auto}
 #surface-tools button{flex:0 0 auto}
-#status:not(:empty){position:relative;margin:0 6px 4px;padding:6px 9px;background:var(--panel);border-radius:8px;box-shadow:0 2px 9px #17243b12}
+/* R3's plain persistent notice stays in the original measured flow. The 12px
+   normal type role remains proportional to the existing 14px root for zoom. */
+#status:not(:empty){position:relative;margin:0;padding:5px 15px;max-height:72px;font-size:calc(12rem / 14);line-height:1.6;background:transparent;border-radius:0;box-shadow:none}
 #status[data-quiet=true]{position:absolute;left:6px;right:6px;bottom:52px;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
 .row[data-inserted=true],#capsule-use[data-inserted=true]{background:var(--inserted);color:var(--inserted-text)}
 .row[data-inserted=true] .text{padding-right:20px}.row[data-inserted=true]:after,#capsule-use[data-inserted=true]:after{content:"✓";display:block;position:absolute;left:auto;bottom:auto;right:12px;top:50%;transform:translateY(-50%);width:auto;height:auto;background:none;color:var(--inserted-text)}
