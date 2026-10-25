@@ -1,0 +1,368 @@
+{
+  "head": "a7b70bc488fd8ce56ca8b420ac1eef80aefe6534",
+  "node": "v22.23.3",
+  "count": 60,
+  "failed": 0,
+  "results": [
+    {
+      "path": "extension/adapter/chatgpt-composer.js",
+      "sha256": "9d7a23ef76df650671ec07dee338251e93e25dcff3d79a35b2c564e049bce43c",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/background/application-editor-guard.js",
+      "sha256": "5e58c3383d234580c82a485a7275eae656c1e6c399453313b05ad39dced6810a",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/background/application-local-tools-coordination.js",
+      "sha256": "a731ccf5975ada6529d4f5153c061904a775f7810b16aa1820fad4bd343a1cf1",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/background/application-selection-commands.js",
+      "sha256": "2b3832cf41564b3430c0ca354a2f152ad63307557e3a96b697f14d172aa553fd",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/background/application-transport-coordination.js",
+      "sha256": "afad5d4ba2e9a1a2a5c02614271183cc9193a1785a00f10205323c8d43f954dc",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/background/application-worker-coordination.js",
+      "sha256": "075960e0b33461099044bcddabad1e135fd7fb1e2d230f37449a587a992abd9d",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/background/capture-recovery.js",
+      "sha256": "146c2836081d963dbf0c5e646cc9bcb5383b592830f72ae1b1ea81e452f88b12",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/background/import-handler.js",
+      "sha256": "fa84692fcfe8085b66ca7e93b97b7ce508a3e48f0f982eaf64bc7a3f7f05b39a",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/background/prompt-assist.js",
+      "sha256": "400939bf93f2529eca34790c352bee3fdbcf89c770f147296205dde01fa0bea6",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/background/prompt-insertion-receipts.js",
+      "sha256": "f2f6ca682b76ce6f39635315f6317284236be067da185984ad5b0adf2741b285",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/background/service-worker.js",
+      "sha256": "bdf8b0e75db22febb734854aaa8b27e1f92e341d9ea84f880e819c175acf5a04",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/background/sync-local-lifecycle.js",
+      "sha256": "9fcfb100728968625c1256d371aed073694bee990d43185b1fda33540c04a9c2",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/backup-service.js",
+      "sha256": "1f383e6b21c70988b21174667071e257108ddebb086b1bfa85d95db3170e7150",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/browser-native-sync/application-generation-selection.js",
+      "sha256": "6cf4c571e5a9da59a2c044eaf322f8e0255448144fdbf9f2a93a964620b173e0",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/browser-native-sync/checkpoint-publication.js",
+      "sha256": "0430a69dc7c6293f11b136f1132eeeaf5b42e254beb72feffc97e856e23deea7",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/browser-native-sync/context-desired-journal-owner.js",
+      "sha256": "e49ee8fc0ea05c2040b34210d210f52765b16b62ca787ce7fdbcc7c294a6150c",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/browser-native-sync/context-mutation-journal-owner.js",
+      "sha256": "bd4e816a5ee056ef9cc38cd7650d647741665929ccdbacf26eb57424e4c7d0ae",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint.js",
+      "sha256": "243b9a1fc6289be60b114dfca87a80e3c33eaea2bd8be1ce3adcca54fb9dcb38",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/browser-native-sync/recovery-session.js",
+      "sha256": "eec66feff1a6783d031524b000d2ada34827ee404a9f36b9c10c8ca3ec145c71",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-union-publication-continuation.js",
+      "sha256": "0914bf39f3b10db362dc528c06ba57b3dc365535b1a7528fdcb72289e4ed3634",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/idb-repository.js",
+      "sha256": "671ab44f3cca6f63117a0735517c40b1f89347fb4ed2e226b6f47b5fb2abc6ca",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/import/ledger.js",
+      "sha256": "ffda43c4b9f38870b3db197ea00127908ed1d9d8eaecfc01b3c343ce572e295a",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/indexed-store.js",
+      "sha256": "b8ee5cef8a5833f4ff1cab857743af711a8788bb697d2804f145a4be460eeb97",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/integrity-checker.js",
+      "sha256": "cef9c6de5c65fe5c305a6bc2542d6cc2e8cfef6a8a10a45dd15226f54b5b0d51",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/local-tool-selection-hold.js",
+      "sha256": "648744cbe2a90552cba5834537d571014ca6f046274f569800b37984b4041695",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/organizer/application-selection-owner.js",
+      "sha256": "a63a20af9e8d589c2be0a1c3404e5f30445e8b9e2be32f01b83e8cb949db2651",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/organizer/bounded-workflow.js",
+      "sha256": "96d99fbf868105944e366d401b2fbc5e36e3f4895b2266eb28c8ce1839e1d783",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/organizer/configured-organize-runner.js",
+      "sha256": "a36ae8b86cbc34c9fac79dd1e1c15848a8f6159434d6f6c912aa32186341c8d6",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/core/organizer/original-simple.js",
+      "sha256": "ce83f0971a672ae2bf809df4d69bc715bf435b325e8f4dd87ddf11bf4324c2db",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-editor-guard.test.mjs",
+      "sha256": "c1415ec1ed9d7e8616d57a321d8d58a550c94b4bde17596022741e10b78b48de",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-existing-selection-requalification.test.mjs",
+      "sha256": "cb14ce74c87d3e4e9841940e029564516d8dc8e34aa716fa7919edabcbfb55d4",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-local-tools-coordination.test.mjs",
+      "sha256": "3bbb32cf1c80e8f9662e9ab45396b98f813b1f1dcd217be3511bbec5a90c8900",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-selection-consumer.test.mjs",
+      "sha256": "735d25a699d5073fa90c605206bdf2d7cd5076099356c740dedc8dc1a5e26fda",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-selection-dispatch-lifetime.test.mjs",
+      "sha256": "d525ce1119393814057be9eab8cb662d9dbf634d8d00fd7e51f62aa572f953e0",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-selection-review-restriction.test.mjs",
+      "sha256": "cf08c5d23c47faba6f197411f776f3c0ca6df7543b190873a24f25a961d5e0a0",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-selection-warm-reverse.test.mjs",
+      "sha256": "525ae7d79799174f57409335e0f7c468d295100052b186b5807b6dbb0d27626a",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-transport-coordination.test.mjs",
+      "sha256": "5831824adc0f9e544531dab4878ea7480056836ee824b8150b16498cdfc2c49d",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-worker-activity-control.test.mjs",
+      "sha256": "e9de84a7992a0d2a3c412337946e1bb34311541de05fc4547a8a194e2744e71c",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-worker-admission.test.mjs",
+      "sha256": "ca104acbceb605de094d1c07f1c3158ca3359b92158244dff32c072d9271c8cd",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-worker-coordination.test.mjs",
+      "sha256": "591bf77740f3ffbab6f7926c7f9bdbb02e29577dc6b9e69c5c31a72e291e8a1c",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-worker-organize-hold.test.mjs",
+      "sha256": "e82da3c9384fbc2b986c5e302f974daea90b9f9ff43bdf3f3fb67b2f930af636",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/application-worker-sources.test.mjs",
+      "sha256": "655d2037d9b77da88e2044eff836dfdf8a789baf3d5235ab878b4d531bc77b87",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/capture-recovery-package-guard.test.mjs",
+      "sha256": "a2ae56408df84fb95e03848c5beadb1c2e2e51dd4b73034503a9b464c41103da",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/capture-recovery.test.mjs",
+      "sha256": "e7cee9c7315a20f0d38b56642fd6c1cf6b17c748150f612e95d56d66a979891a",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/harness/selection-admission-worker.mjs",
+      "sha256": "379dd38dd016fb6fac634b1d6eb3e1dd6aae3ce55a474f15719d3ee87bc8628c",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/local-tools-selection-hold.test.mjs",
+      "sha256": "2aab1a19c87e1e5ea703c158120bcb1fd2504f0b7fa402bda25a5d7941a5f0cc",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/organize-application-selection-hold.test.mjs",
+      "sha256": "738e031a0d3f98bf8a4c8ccb28a0ee6b761536289842e7bc35f886af10022476",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/prompt-composer-selection-hold.test.mjs",
+      "sha256": "e870c60e8bebc688640462fd120c10292777312a69cfc66b4ab8645caa5970ee",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/prompt-insertion-known-document-hold.test.mjs",
+      "sha256": "023620bd2ec0bc27e8e2c7b9c1d1fa0169eed98af93a655b69d4ec8633d52987",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/prompt-insertion-receipt-hold.test.mjs",
+      "sha256": "178d76005aff6fbbd0570eb82c68c1ed1ea9c28fa631f5a2465317b5254f708c",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/prompt-known-document-roundtrip.test.mjs",
+      "sha256": "777b5fc49c80ba9472d61deb91d05e0389aeeae969dc9fe243f4ef00e09d39a6",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/settings-sync.test.mjs",
+      "sha256": "183905265ae8afc0030256124f202fab1ff2a294915698219476a7a2c8207e55",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/source-union-publication-continuation.test.mjs",
+      "sha256": "c4372734f8eb2065e37e858ab5067a0ba80ceee9804d767a0adc039d72020bcb",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/sync-cold-control-enrollment.test.mjs",
+      "sha256": "8526fde1716a413be430eb0543d4de2a73822bffe67a2905a6b5f155e8cf7e9d",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/sync-context-enrollment-settlement.test.mjs",
+      "sha256": "c71261e11adc6d3c4538c4ff244757dc3e9d43cdd477f33b7060982e1c5fcc74",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/sync-context-terminal-enrollment.test.mjs",
+      "sha256": "cce476a9941de23560b3671f1b6994dcd2ffe417141f59396322f08f9023b94a",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/sync-local-lifecycle.test.mjs",
+      "sha256": "ba0cb0b72d615dfdbbdc8ac2ee5d585d06ba14a8123e10df480951b643c81c62",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/tests/sync-worker-context-consumer.test.mjs",
+      "sha256": "2fa9e710dc41cc1fe8124df85f2ba6173861afeadd1556a223ecb01ac1aad8a4",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/ui/application-editor-guard.js",
+      "sha256": "a694b410e757ae7c75706377a3b59c87b1ce934dc1f03bc732533d0ff9d1df55",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "path": "extension/ui/settings-sync.js",
+      "sha256": "8fca51f263f1f44cebd47fbd84bdcb01113bbfda7a84db82d879932baa63574b",
+      "exit": 0,
+      "output": ""
+    }
+  ]
+}
