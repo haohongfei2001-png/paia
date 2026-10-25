@@ -1,0 +1,10 @@
+{
+  "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+  "node": "v22.23.3",
+  "base": "ccb8db8e6d24e015af0bbb09aa43c28c3b8c215c",
+  "dependencyPatch": "../selection-core-lifetime.patch",
+  "dependencyPatchSHA256": "83207ae38ef62bf2758846e1d7e5c6c29e9401065a20a670ed256943f171f090",
+  "verification": "local synthetic fake IndexedDB and original owners; no native browser, cloud, real provider, network or deployment",
+  "restrictionDependencyPatch": "../selection-core-review-restriction.patch",
+  "restrictionDependencyPatchSHA256": "a7a3cdfc904920b2363bc3ba1adf4540e4ee4419877e8e1030fcafda4ff463f3"
+}

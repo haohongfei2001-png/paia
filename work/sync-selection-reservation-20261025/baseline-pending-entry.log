@@ -1,0 +1,54 @@
+TAP version 13
+# Subtest: selection reservation refuses accepted reconcile until its original SDK operation settles
+not ok 1 - selection reservation refuses accepted reconcile until its original SDK operation settles
+  ---
+  duration_ms: 38.095709
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/sync-selection-reservation/extension/tests/sync-local-lifecycle.test.mjs:350:46'
+  failureType: 'testCodeFailure'
+  error: |-
+    accepted original read/save excludes a new selection reservation
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/sync-selection-reservation/extension/tests/sync-local-lifecycle.test.mjs:357:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: selection reservation refuses accepted PAUSE until its original SDK operation settles
+not ok 2 - selection reservation refuses accepted PAUSE until its original SDK operation settles
+  ---
+  duration_ms: 24.610416
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/sync-selection-reservation/extension/tests/sync-local-lifecycle.test.mjs:350:46'
+  failureType: 'testCodeFailure'
+  error: |-
+    accepted original read/save excludes a new selection reservation
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/sync-selection-reservation/extension/tests/sync-local-lifecycle.test.mjs:357:27)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 273.083833

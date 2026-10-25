@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: Sync reservation restricts all original reviewed-owner entry points without granting activation
+ok 1 - Sync reservation restricts all original reviewed-owner entry points without granting activation
+  ---
+  duration_ms: 593.001833
+  type: 'test'
+  ...
+# Subtest: original core in-flight or already-attempted activation cannot acquire a lifecycle reservation
+ok 2 - original core in-flight or already-attempted activation cannot acquire a lifecycle reservation
+  ---
+  duration_ms: 493.208666
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1272.68575

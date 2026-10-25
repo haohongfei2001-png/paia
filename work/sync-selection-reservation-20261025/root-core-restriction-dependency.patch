@@ -1,0 +1,85 @@
+diff --git a/extension/core/browser-native-sync/application-generation-selection.js b/extension/core/browser-native-sync/application-generation-selection.js
+index 6eb57b2..458a947 100644
+--- a/extension/core/browser-native-sync/application-generation-selection.js
++++ b/extension/core/browser-native-sync/application-generation-selection.js
+@@ -11,7 +11,7 @@ import {controlPublicationDigest as digest,controlPublicationRow,readControlPubl
+ 
+ export const APPLICATION_SELECTION_MARKER='application-generation-selection:v1';
+ export const APPLICATION_SELECTION_REGISTRY='paia-canonical-generation-registry-v1';
+-const originalSelectionApply=Reflect.apply,selectionReviews=new WeakMap();
++const originalSelectionApply=Reflect.apply,selectionReviews=new WeakMap(),selectionRestrictions=new WeakMap(),restrictionTokens=new WeakMap();
+ const authorities=new WeakMap(),cuts=new WeakMap(),copy=value=>structuredClone(value);
+ const fail=(code='GENERATION_SELECTION_CHANGED')=>{throw new ArchiveError(code);};
+ const exact=(v,keys)=>v&&Object.getPrototypeOf(v)===Object.prototype&&Reflect.ownKeys(v).length===keys.length&&keys.every(k=>Object.hasOwn(Object.getOwnPropertyDescriptors(v)[k]??{},'value'));
+@@ -44,15 +44,36 @@ export function readOriginalApplicationSelectionReview(owner,store,core,local){
+  const read=selectionReviews.get(owner);if(!read)fail('GENERATION_SELECTION_CAPABILITY');return read(store,core,local);
+ }
+ 
++// Restriction only: this original owner cannot activate, continue, inspect a
++// settling receipt or cancel while held. No callback can provide readiness.
++export function holdOriginalApplicationSelectionReview(owner,store,core,local){
++ readOriginalApplicationSelectionReview(owner,store,core,local);const r=selectionRestrictions.get(owner);if(!r)fail('GENERATION_SELECTION_CAPABILITY');return r.hold();
++}
++export function requireOriginalApplicationSelectionReviewHold(token,owner){
++ const r=restrictionTokens.get(token);if(!r||r.owner!==owner)fail('GENERATION_SELECTION_CAPABILITY');return r.current();
++}
++export function releaseOriginalApplicationSelectionReviewHold(token,owner){
++ const r=restrictionTokens.get(token);if(!r||r.owner!==owner)fail('GENERATION_SELECTION_CAPABILITY');return r.release();
++}
++
+ // Explicit existing-library selection. It only selects an already published,
+ // retired-copy candidate proven to contain the exact complete current cut.
+ // It never creates a candidate, imports an unknown family or deletes a library.
+ export class OriginalApplicationGenerationSelection{
+- #source;#core;#local;#localGet;#localSet;#factory;#authority;#prepared=null;#busy=false;#lifetime=0;
++ #source;#core;#local;#localGet;#localSet;#factory;#authority;#prepared=null;#busy=false;#lifetime=0;#restriction=null;
+  constructor(store,core,local,aiFilterAuthority=null){requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(core);if(store.repository!==core.repository||store.repository.name!==DATABASE_NAME||store.local!==local)fail('GENERATION_SELECTION_CAPABILITY');this.#source=store;this.#core=core;this.#local=local;this.#factory=store.repository.factory;this.#authority=aiFilterAuthority;this.#localGet=local.get;this.#localSet=local.set;
+   selectionReviews.set(this,(s,c,l)=>{const p=cuts.get(this.#prepared);if(s!==this.#source||c!==this.#core||l!==this.#local||!p||p.owner!==this||this.#source.repository!==p.sourceRepository||this.#source.repository.db!==p.sourceDatabase||this.#core.repository!==p.sourceRepository||this.#local.get!==this.#localGet||this.#local.set!==this.#localSet)fail('GENERATION_SELECTION_NOT_PREPARED');return Object.freeze({operationId:p.record.operationId});});
++  selectionRestrictions.set(this,{hold:()=>{
++   if(this.#busy||this.#restriction)fail('GENERATION_SELECTION_BUSY');
++   const prepared=this.#prepared,p=cuts.get(prepared),lifetime=this.#lifetime;
++   if(!p||p.owner!==this||p.attempted)fail('GENERATION_SELECTION_NOT_PREPARED');
++   const token=Object.freeze(Object.create(null));let released=false,invalid=false;
++   const current=()=>{try{if(invalid||released||this.#restriction!==token||this.#busy||this.#prepared!==prepared||this.#lifetime!==lifetime||cuts.get(prepared)!==p||p.attempted)fail('GENERATION_SELECTION_NOT_PREPARED');selectionReviews.get(this)(this.#source,this.#core,this.#local);return true;}catch(error){invalid=true;throw error;}};
++   this.#restriction=token;restrictionTokens.set(token,{owner:this,current,release:()=>{current();released=true;this.#restriction=null;return true;}});return token;
++  }});
+  }
+  async prepare(){
++  if(this.#restriction)fail('GENERATION_SELECTION_BUSY');
+   if(this.#busy)fail('GENERATION_SELECTION_BUSY');this.#busy=true;const lifetime=++this.#lifetime;this.#discardPrepared(this.#prepared);
+   try{
+    if(await point(this.#source.repository,APPLICATION_SELECTION_MARKER))fail('GENERATION_SELECTION_PENDING');
+@@ -88,6 +109,7 @@ export class OriginalApplicationGenerationSelection{
+  // or a new prepare. The first profile permits tail/observation renewal only:
+  // even otherwise meaningful metadata writes require a fresh explicit review.
+  async requalify(){
++  if(this.#restriction)fail('GENERATION_SELECTION_BUSY');
+   if(arguments.length)fail('GENERATION_SELECTION_CAPABILITY');
+   const prepared=this.#prepared,p=cuts.get(prepared),lifetime=this.#lifetime;
+   if(this.#busy||!p||p.owner!==this)fail('GENERATION_SELECTION_NOT_PREPARED');this.#busy=true;
+@@ -119,10 +141,11 @@ export class OriginalApplicationGenerationSelection{
+  }
+  #discardPrepared(prepared){const p=cuts.get(prepared);p?.candidate.repository.db?.close();p?.registry.db?.close();cuts.delete(prepared);if(this.#prepared===prepared)this.#prepared=null;}
+  async activate(){
++  if(this.#restriction)fail('GENERATION_SELECTION_BUSY');
+   const prepared=this.#prepared,p=cuts.get(prepared),lifetime=this.#lifetime;if(this.#busy||!p||p.owner!==this)fail('GENERATION_SELECTION_NOT_PREPARED');
+   const check=()=>{if(this.#prepared!==prepared||this.#lifetime!==lifetime||cuts.get(prepared)!==p)fail('GENERATION_SELECTION_NOT_PREPARED');if(this.#local.get!==this.#localGet||this.#local.set!==this.#localSet)fail('GENERATION_SELECTION_CAPABILITY');};
+   check();this.#busy=true;
+-  const guarded={check,marker:check,sdk:check,get:this.#localGet,set:this.#localSet};
++  const guarded={check,marker:()=>{check();p.attempted=true;},sdk:check,get:this.#localGet,set:this.#localSet};
+   const attempt=async(repository,fn,stores)=>{check();guarded?.marker();return write(repository,async t=>{check();const value=await fn(t);check();return value;},undefined,stores);};
+   try{
+    await requireOriginalApplicationInheritanceCut(p.sourceProof);await requireOriginalApplicationInheritanceCut(p.targetProof);check();
+@@ -134,9 +157,9 @@ export class OriginalApplicationGenerationSelection{
+    return await finishSelection(this.#source.repository,p.candidate.repository,p.registry,this.#local,p.record,false,guarded);
+   }finally{this.#busy=false;}
+  }
+- async status(){return inspectOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}
+- async continue(){return continueOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}
+- async cancel(){return cancelOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}
++ async status(){if(this.#restriction)fail('GENERATION_SELECTION_BUSY');return inspectOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}
++ async continue(){if(this.#restriction)fail('GENERATION_SELECTION_BUSY');return continueOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}
++ async cancel(){if(this.#restriction)fail('GENERATION_SELECTION_BUSY');return cancelOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}
+  async rollback(){fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');}
+  close(){this.#lifetime++;this.#discardPrepared(this.#prepared);}
+ }

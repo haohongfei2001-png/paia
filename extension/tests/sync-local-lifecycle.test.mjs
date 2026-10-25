@@ -55,15 +55,15 @@ async function configured(t,options={}){
  const work=join(ROOT,'work','sync-lifecycle-test-fixtures');await mkdir(work,{recursive:true});const path=await mkdtemp(join(work,'fixture-')),key='sync_fixture_'+crypto.randomUUID();
  await mkdir(join(path,'background'));await symlink(join(ROOT,'extension','core'),join(path,'core'),'dir');
  await writeFile(join(path,'package.json'),' {"type":"module"} ');
- await writeFile(join(path,'background','sync-local-lifecycle.js'),await readFile(new URL('../background/sync-local-lifecycle.js',import.meta.url)));
+ let lifecycleSource=await readFile(new URL('../background/sync-local-lifecycle.js',import.meta.url),'utf8');if(options.selectionWindowMs!==undefined){assert.ok(lifecycleSource.includes('selectionNow()+30000'));lifecycleSource=lifecycleSource.replace('selectionNow()+30000','selectionNow()+'+options.selectionWindowMs);}await writeFile(join(path,'background','sync-local-lifecycle.js'),lifecycleSource);
  await writeFile(join(path,'background','sync-lifecycle-configuration.js'),`export function readSyncLifecycleConfiguration(){return globalThis[${JSON.stringify(key)}];}\n`);
  const cloud=options.cloud??fakeDrive(),storage=options.storage??local(),factory=options.factory??new IDBFactory();let active=true,identity=structuredClone(options.binding??binding);
- const conf={provider:options.provider??'google-drive',datasetId:'SYNTHETIC_google_data',deviceId:options.deviceId??'SYNTHETIC_device_A',binding:identity,request:r=>cloud.request(r),isCurrent:()=>active};globalThis[key]=conf;
- const {createConfiguredSyncLifecycle:create}=await import(pathToFileURL(join(path,'background/sync-local-lifecycle.js')));
+ const conf={provider:options.provider??'google-drive',datasetId:options.datasetId??'SYNTHETIC_google_data',deviceId:options.deviceId??'SYNTHETIC_device_A',binding:identity,request:r=>cloud.request(r),isCurrent:()=>active};globalThis[key]=conf;
+ const module=await import(pathToFileURL(join(path,'background/sync-local-lifecycle.js'))),{createConfiguredSyncLifecycle:create}=module;
  const stores=[],owners=[];
- async function open(){const store=new LibraryFoundationStore(storage,{indexedDB:factory});stores.push(store);if(options.consented!==false&&!(await store.status()).consented)await store.consent(true);await store.finishFoundation();const owner=await create(store,api(storage));owners.push(owner);return {store,owner,core:store.sourceBootstrapJournal.core};}
+ async function open(){const store=options.store??new LibraryFoundationStore(storage,{indexedDB:factory});stores.push(store);if(options.consented!==false&&!(await store.status()).consented)await store.consent(true);await store.finishFoundation();const owner=await create(store,api(storage));owners.push(owner);return {store,owner,core:store.sourceBootstrapJournal.core};}
  t.after(async()=>{owners.forEach(x=>x.suspend());stores.forEach(x=>x.repository.db?.close());delete globalThis[key];await rm(path,{recursive:true,force:true});});
- return {cloud,storage,factory,conf,create,open,setCurrent:v=>active=v,setGeneration:g=>{conf.binding={...conf.binding,generation:g};},setSubject:s=>{conf.binding={...conf.binding,subject:s};}};
+ return {cloud,storage,factory,conf,create,module,open,setCurrent:v=>active=v,setGeneration:g=>{conf.binding={...conf.binding,generation:g};},setSubject:s=>{conf.binding={...conf.binding,subject:s};}};
 }
 async function source(x){await x.store.capture(capture((await x.store.status()).epoch));return (await x.store.snapshot()).records;}
 async function cold(f,x){x.owner.suspend();x.store.repository.db?.close();x.store.repository.db=null;return f.open();}
@@ -345,4 +345,84 @@ for(const stop of ['PAUSE','DISCONNECT'])test(`mounted Settings ${stop} stops he
  f.conf.request=async r=>{const result=await cloud.request(r);if(r.url.includes('alt=media')&&!held){held=true;enter();await gate;}return result;};
  const operation=ui.start('RESTORE');await entered;const original=await row(f),requests=cloud.requests.length;assert.equal((await ui.start(stop)).ok,true);await ui.settle();assert.equal((await row(f)).task.id,original.task.id);assert.equal(cloud.requests.length,requests);
  release();assert.equal((await operation).ok,false);await new Promise(r=>setImmediate(r));assert.match(ui.detail.dialog.textContent,stop==='PAUSE'?/Transfers are paused/:/This device is disconnected/);assert.deepEqual((await x.store.snapshot()).records,baseline.records);assert.equal(cloud.requests.length,requests);assert.equal((await row(f)).task.id,original.task.id);assert.equal(ui.calls.length,3);
+});
+
+for(const operation of ['reconcile','PAUSE','DISCONNECT'])test(`selection reservation refuses accepted ${operation} until its original SDK operation settles`,async t=>{
+ const storage=local(),read=storage.get.bind(storage),write=storage.set.bind(storage);let armed=false,enter,release;
+ const entered=new Promise(r=>enter=r),gate=new Promise(r=>release=r);
+ storage.get=async key=>{const value=await read(key);if(armed&&operation==='reconcile'&&key===ROW){armed=false;enter();await gate;}return value;};
+ storage.set=async values=>{if(armed&&operation!=='reconcile'&&Object.hasOwn(values,ROW)){armed=false;enter();await gate;}return write(values);};
+ const f=await configured(t,{storage}),x=await f.open();await command(x.owner,'RESUME');armed=true;
+ const pending=operation==='reconcile'?x.owner.reconcile():command(x.owner,operation);
+ await entered;try{assert.equal(x.owner.applicationSelectionAvailable(),false,'accepted original read/save excludes a new selection reservation');}finally{release();await pending;}
+});
+
+async function reviewedSelection(t,options={}){
+ const {existingSelectionFixture}=await import('./harness/existing-application-selection.mjs'),f=await existingSelectionFixture(t,{sourceLocal:options.storage??local()});
+ // Attach the real configured lifecycle to the fixture's already-proven source;
+ // only the fixture's three old journals are replaced by its original factory.
+ f.a.sourceBootstrapJournal=null;f.a.filterIntentJournal=null;f.a.inputWorkingJournal=null;
+ const configuredFixture=await configured(t,{...options,storage:f.a.local,store:f.a,factory:f.factory,datasetId:f.coreA.datasetId,deviceId:f.coreA.deviceId}),x=await configuredFixture.open(),owner=x.owner.applicationSelectionOwner();
+ t.after(()=>owner.close());const review=await owner.prepare();return {...configuredFixture,...x,selection:owner,review};
+}
+test('original reviewed lifecycle reservation is opaque, idle-only and safe release reads original row',async t=>{
+ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection),{requireOriginalSyncSelectionReservation:requireToken,isOriginalSyncSelectionOwner:isOwner}=f.module;
+ assert.equal(isOwner(f.selection),true);assert.equal(isOwner({...f.selection}),false);assert.deepEqual(Reflect.ownKeys(token),[]);assert.equal(Object.isFrozen(token),true);assert.equal(requireToken(token,f.selection),true);
+ assert.throws(()=>requireToken({...token},f.selection));assert.throws(()=>requireToken(token,{}));assert.throws(()=>f.owner.reserveApplicationSelection(f.selection));assert.throws(()=>f.owner.reserveApplicationSelection());
+ await assert.rejects(f.owner.releaseApplicationSelection({},true));assert.equal(requireToken(token,f.selection),true);
+ assert.equal(await f.owner.releaseApplicationSelection(token),true);assert.equal(f.owner.applicationSelectionAvailable(),true);assert.throws(()=>requireToken(token,f.selection));await assert.rejects(f.owner.releaseApplicationSelection(token));
+ const next=f.owner.reserveApplicationSelection(f.selection),stale=f.owner.releaseApplicationSelection(token);assert.equal(requireToken(next,f.selection),true);await assert.rejects(stale);assert.equal(requireToken(next,f.selection),true);assert.equal(await f.owner.releaseApplicationSelection(next),true);assert.equal(f.cloud.requests.length,0);
+});
+for(const stop of ['PAUSE','DISCONNECT'])test(`held original selection still accepts genuine ${stop} and permanently loses old authority`,async t=>{
+ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);await command(f.owner,stop);assert.equal((await row(f)).mode,stop==='PAUSE'?'paused':'disconnected');
+ assert.throws(()=>f.module.requireOriginalSyncSelectionReservation(token,f.selection));assert.equal(await f.owner.releaseApplicationSelection(token),false);assert.equal((await f.owner.snapshot()).state,'suspended');assert.equal(f.owner.applicationSelectionAvailable(),false);assert.equal(f.cloud.requests.length,0);
+});
+for(const change of ['host','config','sdk','database','close'])test(`original reservation permanently rejects ${change} identity loss`,async t=>{
+ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);let undo=()=>{};
+ if(change==='host'){f.setCurrent(false);undo=()=>f.setCurrent(true);}if(change==='config'){const old=f.conf.request;f.conf.request=async()=>{};undo=()=>f.conf.request=old;}
+ if(change==='sdk'){const old=f.storage.set;f.storage.set=async()=>{};undo=()=>f.storage.set=old;}
+ if(change==='database'){const old=f.store.repository.db;f.store.repository.db=null;undo=()=>f.store.repository.db=old;}
+ if(change==='close')f.selection.close();if(change==='prepare')await f.selection.prepare();
+ assert.throws(()=>f.module.requireOriginalSyncSelectionReservation(token,f.selection));undo();assert.throws(()=>f.module.requireOriginalSyncSelectionReservation(token,f.selection));assert.equal(await f.owner.releaseApplicationSelection(token),false);assert.equal(f.owner.applicationSelectionAvailable(),false);
+});
+for(const phase of ['marker','sdk'])test(`original ${phase} attempt cannot be released by caller classification`,async t=>{
+ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);f.module.markOriginalSyncSelectionAttempt(token,f.selection,'marker');if(phase==='sdk')f.module.markOriginalSyncSelectionAttempt(token,f.selection,'sdk');
+ await assert.rejects(f.owner.releaseApplicationSelection(token,true));assert.equal(await f.owner.releaseApplicationSelection(token),false);assert.equal((await f.owner.snapshot()).state,'suspended');
+});
+test('held selection refuses new lifecycle work without invoking it',async t=>{
+ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection),before=await row(f);
+ for(const action of [()=>f.owner.reconcile(),()=>f.owner.resumeAfterSuspend(),()=>f.owner.attachPreferences(),()=>f.owner.attachPromptService({}),()=>f.owner.attachContextService({}),()=>command(f.owner,'RESUME'),()=>command(f.owner,'RESTORE')])await assert.rejects(action(),{code:'BNS_SYNC_PAUSED'});
+ const status=command(f.owner,'STATUS');assert.equal(f.module.requireOriginalSyncSelectionReservation(token,f.selection),true);assert.equal((await status).state,'not-started');assert.deepEqual(await row(f),before);assert.equal(f.module.requireOriginalSyncSelectionReservation(token,f.selection),true);assert.equal(await f.owner.releaseApplicationSelection(token),true);assert.equal(f.cloud.requests.length,0);
+});
+test('release observes durable lifecycle-row replacement and stays closed',async t=>{
+ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);await f.storage.set({[ROW]:{version:1,bindingId:'a'.repeat(64),generation:'b'.repeat(64),revision:1,mode:'paused',task:null,error:null}});
+ assert.equal(await f.owner.releaseApplicationSelection(token),false);assert.equal(f.owner.applicationSelectionAvailable(),false);assert.equal((await row(f)).bindingId,'a'.repeat(64));
+});
+test('release expiry preserves held admission and late original read cannot reopen it',async t=>{
+ const storage=local(),original=storage.get.bind(storage);let armed=false,enter,release;const entered=new Promise(r=>enter=r),gate=new Promise(r=>release=r);
+ storage.get=async key=>{const result=await original(key);if(armed&&key===ROW){armed=false;enter();await gate;}return result;};
+ const f=await reviewedSelection(t,{storage,selectionWindowMs:25}),token=f.owner.reserveApplicationSelection(f.selection);armed=true;const pending=f.owner.releaseApplicationSelection(token);await entered;
+ assert.equal(await pending,false);assert.equal(f.owner.applicationSelectionAvailable(),false);assert.equal((await f.owner.snapshot()).state,'suspended');release();await new Promise(r=>setImmediate(r));
+ assert.equal(f.owner.applicationSelectionAvailable(),false);await assert.rejects(f.owner.releaseApplicationSelection(token));assert.equal(f.cloud.requests.length,0);
+});
+
+test('one rejected accepted read cannot retire another original lifecycle invocation',async t=>{
+ const storage=local(),original=storage.get.bind(storage);let armed=false,count=0,enterA,enterB,releaseA,releaseB;const a=new Promise(r=>enterA=r),b=new Promise(r=>enterB=r),ga=new Promise(r=>releaseA=r),gb=new Promise(r=>releaseB=r);
+ storage.get=async key=>{const result=await original(key);if(armed&&key===ROW){if(++count===1){enterA();await ga;throw Error('SYNTHETIC original read failed');}if(count===2){enterB();await gb;}}return result;};
+ const f=await configured(t,{storage}),x=await f.open();await command(x.owner,'RESUME');armed=true;const first=x.owner.reconcile();first.catch(()=>{});await a;const second=x.owner.reconcile();await b;
+ releaseA();await assert.rejects(first,/SYNTHETIC/);assert.equal(x.owner.applicationSelectionAvailable(),false);releaseB();await second;assert.equal(x.owner.applicationSelectionAvailable(),true);assert.equal(f.cloud.requests.length,0);
+});
+test('invalid or backwards phase claims can only destroy original reservation authority',async t=>{
+ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);assert.throws(()=>f.module.markOriginalSyncSelectionAttempt(token,f.selection,'sdk'));assert.throws(()=>f.module.requireOriginalSyncSelectionReservation(token,f.selection));assert.equal(await f.owner.releaseApplicationSelection(token),false);
+});
+
+test('Sync reservation restricts all original reviewed-owner entry points without granting activation',async t=>{
+ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);
+ for(const method of ['prepare','requalify','activate','continue','status','cancel'])await assert.rejects(f.selection[method](),{code:'GENERATION_SELECTION_BUSY'});
+ assert.equal(f.module.requireOriginalSyncSelectionReservation(token,f.selection),true);assert.equal(await f.owner.releaseApplicationSelection(token),true);assert.equal((await f.selection.requalify()).operationId,f.review.operationId);assert.equal(f.cloud.requests.length,0);
+});
+
+test('original core in-flight or already-attempted activation cannot acquire a lifecycle reservation',async t=>{
+ const f=await reviewedSelection(t),pending=f.selection.activate();assert.throws(()=>f.owner.reserveApplicationSelection(f.selection),{code:'GENERATION_SELECTION_BUSY'});
+ assert.equal((await pending).state,'selected');assert.throws(()=>f.owner.reserveApplicationSelection(f.selection),{code:'GENERATION_SELECTION_NOT_PREPARED'});assert.equal(f.cloud.requests.length,0);
 });

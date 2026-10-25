@@ -1,0 +1,106 @@
+TAP version 13
+# Subtest: selection reservation refuses accepted reconcile until its original SDK operation settles
+ok 1 - selection reservation refuses accepted reconcile until its original SDK operation settles
+  ---
+  duration_ms: 51.337958
+  type: 'test'
+  ...
+# Subtest: selection reservation refuses accepted PAUSE until its original SDK operation settles
+ok 2 - selection reservation refuses accepted PAUSE until its original SDK operation settles
+  ---
+  duration_ms: 20.055541
+  type: 'test'
+  ...
+# Subtest: original reviewed lifecycle reservation is opaque, idle-only and safe release reads original row
+ok 3 - original reviewed lifecycle reservation is opaque, idle-only and safe release reads original row
+  ---
+  duration_ms: 534.238
+  type: 'test'
+  ...
+# Subtest: held original selection still accepts genuine PAUSE and permanently loses old authority
+ok 4 - held original selection still accepts genuine PAUSE and permanently loses old authority
+  ---
+  duration_ms: 475.3525
+  type: 'test'
+  ...
+# Subtest: held original selection still accepts genuine DISCONNECT and permanently loses old authority
+ok 5 - held original selection still accepts genuine DISCONNECT and permanently loses old authority
+  ---
+  duration_ms: 476.90975
+  type: 'test'
+  ...
+# Subtest: original reservation permanently rejects host identity loss
+ok 6 - original reservation permanently rejects host identity loss
+  ---
+  duration_ms: 460.089625
+  type: 'test'
+  ...
+# Subtest: original reservation permanently rejects config identity loss
+ok 7 - original reservation permanently rejects config identity loss
+  ---
+  duration_ms: 454.850917
+  type: 'test'
+  ...
+# Subtest: original reservation permanently rejects sdk identity loss
+ok 8 - original reservation permanently rejects sdk identity loss
+  ---
+  duration_ms: 458.206084
+  type: 'test'
+  ...
+# Subtest: original reservation permanently rejects database identity loss
+ok 9 - original reservation permanently rejects database identity loss
+  ---
+  duration_ms: 450.895209
+  type: 'test'
+  ...
+# Subtest: original reservation permanently rejects close identity loss
+ok 10 - original reservation permanently rejects close identity loss
+  ---
+  duration_ms: 480.759625
+  type: 'test'
+  ...
+# Subtest: original reservation permanently rejects prepare identity loss
+ok 11 - original reservation permanently rejects prepare identity loss
+  ---
+  duration_ms: 502.856541
+  type: 'test'
+  ...
+# Subtest: original marker attempt cannot be released by caller classification
+ok 12 - original marker attempt cannot be released by caller classification
+  ---
+  duration_ms: 457.036458
+  type: 'test'
+  ...
+# Subtest: original sdk attempt cannot be released by caller classification
+ok 13 - original sdk attempt cannot be released by caller classification
+  ---
+  duration_ms: 492.005583
+  type: 'test'
+  ...
+# Subtest: held selection refuses new lifecycle work without invoking it
+ok 14 - held selection refuses new lifecycle work without invoking it
+  ---
+  duration_ms: 464.218375
+  type: 'test'
+  ...
+# Subtest: release observes durable lifecycle-row replacement and stays closed
+ok 15 - release observes durable lifecycle-row replacement and stays closed
+  ---
+  duration_ms: 468.606708
+  type: 'test'
+  ...
+# Subtest: release expiry preserves held admission and late original read cannot reopen it
+ok 16 - release expiry preserves held admission and late original read cannot reopen it
+  ---
+  duration_ms: 504.628667
+  type: 'test'
+  ...
+1..16
+# tests 16
+# suites 0
+# pass 16
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6965.148584

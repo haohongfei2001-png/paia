@@ -1,0 +1,17 @@
+{
+  "extension/background/sync-local-lifecycle.js": {
+    "sha256": "068ad9fcb4f18a663eba99b203e025a1810efa2cb06a7594c8c7eac567d4123f",
+    "blob": "417ce7dd415e25abb1ad28e39b125f295ed55214",
+    "ownership": "this candidate"
+  },
+  "extension/tests/sync-local-lifecycle.test.mjs": {
+    "sha256": "ba0cb0b72d615dfdbbdc8ac2ee5d585d06ba14a8123e10df480951b643c81c62",
+    "blob": "fdd6246911da10a40c74ff4e37bc8437855d067b",
+    "ownership": "this candidate"
+  },
+  "extension/core/browser-native-sync/application-generation-selection.js": {
+    "sha256": "996deaa8f93bd6e7511e75b02a65e2e46085b9f736e3f3716953035d5c995caf",
+    "blob": "458a94752cf575eb4c7783803f9504d6188f18e8",
+    "ownership": "root uncommitted dependency"
+  }
+}

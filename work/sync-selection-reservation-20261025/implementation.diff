@@ -1,0 +1,210 @@
+diff --git a/extension/background/sync-local-lifecycle.js b/extension/background/sync-local-lifecycle.js
+index b167b7b..417ce7d 100644
+--- a/extension/background/sync-local-lifecycle.js
++++ b/extension/background/sync-local-lifecycle.js
+@@ -6 +6 @@ import {readOriginalContextEnrollmentObservation} from '../core/browser-native-s
+-import {OriginalApplicationGenerationSelection} from '../core/browser-native-sync/application-generation-selection.js';
++import {OriginalApplicationGenerationSelection,readOriginalApplicationSelectionReview,holdOriginalApplicationSelectionReview,requireOriginalApplicationSelectionReviewHold,releaseOriginalApplicationSelectionReviewHold} from '../core/browser-native-sync/application-generation-selection.js';
+@@ -34,0 +35,12 @@ const owners=new WeakMap();
++const selectionOwners=new WeakMap(),selectionReservations=new WeakMap();
++const selectionNow=performance.now.bind(performance);
++// These fixed exports inspect original private instances only. They never
++// register caller callbacks, accept DTO authority, or grant a global hold.
++export function isOriginalSyncSelectionOwner(owner){return selectionOwners.has(owner);}
++export function requireOriginalSyncSelectionReservation(token,owner){const r=selectionReservations.get(token);if(!r||r.owner!==owner)fail('BNS_SYNC_SELECTION_INVALID');r.check();return true;}
++export function markOriginalSyncSelectionAttempt(token,owner,phase){
++ requireOriginalSyncSelectionReservation(token,owner);const r=selectionReservations.get(token);
++ if(phase==='marker'&&r.phase!=='sdk')r.phase='marker';
++ else if(phase==='sdk'&&r.phase==='marker')r.phase='sdk';
++ else{r.invalid=true;fail('BNS_SYNC_SELECTION_INVALID');}
++}
+@@ -88,2 +100,4 @@ class SyncLifecycle {
+- #taskFailure=null;#store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#continuationSaving=false;#busy=false;#suspended=false;#selectionHeld=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;#contextService=null;#contextJournal=null;#contextSettled=false;#contextFailure=null;#local;#localGet;#localSet;
+- constructor(store,api,config,binding,bindingId,generation,core){this.#store=store;this.#api=api;this.#local=api.storage.local;this.#localGet=this.#local.get;this.#localSet=this.#local.set;this.#config=config;this.#binding=binding;this.#bindingId=bindingId;this.#generation=generation;this.#core=core;this.#journal=new PreparedPublicationJournal(core,{checkpoint:()=>this.#allowed()});}
++ #taskFailure=null;#store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#continuationSaving=false;#busy=false;#suspended=false;#selectionHeld=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;#contextService=null;#contextJournal=null;#contextSettled=false;#contextFailure=null;#local;#localGet;#localSet;#entries=new Set();#selection=null;#selectionIdentity;
++ constructor(store,api,config,binding,bindingId,generation,core){this.#store=store;this.#api=api;this.#local=api.storage.local;this.#localGet=this.#local.get;this.#localSet=this.#local.set;
++  const repository=store.repository,database=repository.db,storage=api.storage,request=config.request,isCurrent=config.isCurrent,provider=config.provider,datasetId=config.datasetId,deviceId=config.deviceId;
++  this.#selectionIdentity=()=>owners.get(this.#local)===this&&store.repository===repository&&repository.db===database&&core.repository===repository&&core.datasetId===datasetId&&core.deviceId===deviceId&&api.storage===storage&&storage.local===this.#local&&store.local===this.#local&&this.#local.get===this.#localGet&&this.#local.set===this.#localSet&&config.request===request&&config.isCurrent===isCurrent&&config.provider===provider&&config.datasetId===datasetId&&config.deviceId===deviceId&&equal(config.binding,this.#binding)&&this.#hostCurrent();this.#config=config;this.#binding=binding;this.#bindingId=bindingId;this.#generation=generation;this.#core=core;this.#journal=new PreparedPublicationJournal(core,{checkpoint:()=>this.#allowed()});}
+@@ -92 +106 @@ class SyncLifecycle {
+- #invalidate(){if(this.#continuationSaving)this.#uncertain=true;++this.#serial;this.#transport?.close();this.#transport=null;this.#restore?.pause();this.#checkpoint?.pause();}
++ #invalidate(){if(this.#selection)this.#selection.invalid=true;if(this.#continuationSaving)this.#uncertain=true;++this.#serial;this.#transport?.close();this.#transport=null;this.#restore?.pause();this.#checkpoint?.pause();}
+@@ -117 +131 @@ class SyncLifecycle {
+- async attachPreferences(){
++ async #attachPreferences(){
+@@ -131 +145 @@ class SyncLifecycle {
+- async attachPromptService(service){
++ async #attachPromptService(service){
+@@ -146 +160 @@ class SyncLifecycle {
+- async attachContextService(service){
++ async #attachContextService(service){
+@@ -170,4 +184,53 @@ class SyncLifecycle {
+- applicationSelectionAvailable(){return !this.#busy&&!this.#uncertain&&!this.#suspended&&!this.#selectionHeld&&(!this.#row?.task||this.#row.task.phase==='confirmed');}
+- reserveApplicationSelection(){if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');this.#busy=true;this.#selectionHeld=true;this.#invalidate();let released=false;return safeBeforeDispatch=>{if(!released){released=true;this.#busy=false;if(safeBeforeDispatch===true)this.#selectionHeld=false;else this.suspend();}};}
+- applicationSelectionOwner(){if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');return new OriginalApplicationGenerationSelection(this.#store,this.#core,this.#api.storage.local);}
+- async snapshot(){
++ // Admission is recorded before calling the original async body. Timeouts and
++ // suspend do not remove a still-running original promise from this set.
++ #entry(kind,body){
++  if(this.#selectionHeld&&!['view','stop','release','release-read'].includes(kind))return new OriginalSettlementPromise((_,reject)=>reject(new ArchiveError('BNS_SYNC_PAUSED')));
++  const entry={kind};this.#entries.add(entry);let task;
++  try{task=body(entry);}catch(error){this.#entries.delete(entry);return new OriginalSettlementPromise((_,reject)=>reject(error));}
++  return new OriginalSettlementPromise((resolve,reject)=>{settlementApply(originalSettlementThen,task,[value=>{this.#entries.delete(entry);resolve(value);},error=>{this.#entries.delete(entry);reject(error);}]);});
++ }
++ applicationSelectionAvailable(){return !this.#entries.size&&!this.#busy&&!this.#blocked&&!this.#uncertain&&!this.#suspended&&!this.#selectionHeld&&this.#selectionIdentity()&&(!this.#contextService||this.#contextSettled)&&(!this.#row||this.#row.bindingId===this.#bindingId&&this.#row.generation===this.#generation&&!['disconnected','account-changed'].includes(this.#row.mode))&&(!this.#row?.task||this.#row.task.phase==='confirmed');}
++ reserveApplicationSelection(owner){
++  if(arguments.length!==1||selectionOwners.get(owner)!==this)fail('BNS_SYNC_SELECTION_INVALID');
++  if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');
++  const review=readOriginalApplicationSelectionReview(owner,this.#store,this.#core,this.#local),before=clone(this.#row),reviewHold=holdOriginalApplicationSelectionReview(owner,this.#store,this.#core,this.#local);
++  this.#invalidate();this.#busy=true;this.#selectionHeld=true;
++  const r={owner,reviewHold,operationId:review.operationId,serial:this.#serial,before,deadline:selectionNow()+30000,phase:'reserved',invalid:false,released:false,releasing:false};
++  r.check=(entry=null)=>{
++   try{
++    if(r.invalid||r.released||r.releasing&&!entry||this.#selection!==r||!this.#selectionHeld||!this.#busy||this.#serial!==r.serial||this.#blocked||this.#uncertain||this.#suspended||selectionNow()>=r.deadline||!this.#selectionIdentity()||!equal(this.#row,r.before)||[...this.#entries].some(active=>active!==entry&&active.kind!=='view')||entry&&!this.#entries.has(entry))fail('BNS_SYNC_SELECTION_INVALID');
++    if(readOriginalApplicationSelectionReview(owner,this.#store,this.#core,this.#local).operationId!==r.operationId)fail('BNS_SYNC_SELECTION_INVALID');requireOriginalApplicationSelectionReviewHold(reviewHold,owner);
++   }catch(error){r.invalid=true;throw error;}
++  };
++  const token=Object.freeze(Object.create(null));selectionReservations.set(token,r);this.#selection=r;return token;
++ }
++ releaseApplicationSelection(token){
++  const r=selectionReservations.get(token);
++  if(arguments.length!==1||!r||this.#selection!==r||r.released||r.releasing)return new OriginalSettlementPromise((_,reject)=>reject(new ArchiveError('BNS_SYNC_SELECTION_INVALID')));
++  return this.#entry('release',entry=>this.#releaseSelection(token,entry));
++ }
++ async #releaseSelection(token,entry){
++  const r=selectionReservations.get(token);if(!r||this.#selection!==r||r.released||r.releasing)fail('BNS_SYNC_SELECTION_INVALID');
++  r.releasing=true;let timer;
++  try{
++   r.check(entry);if(r.phase!=='reserved')fail('BNS_SYNC_SELECTION_INVALID');
++   const read=this.#entry('release-read',async()=>{const raw=await settlementApply(this.#localGet,this.#local,[ROW]);return raw[ROW]===undefined?null:clone(checked(raw[ROW]));});
++   const timeout=new OriginalSettlementPromise((_,reject)=>{timer=setTimeout(()=>reject(new ArchiveError('BNS_SYNC_SELECTION_EXPIRED')),Math.max(0,r.deadline-selectionNow()));});
++   const actual=await settlementRace([read,timeout]);r.check(entry);if(!equal(actual,r.before))fail('BNS_SYNC_STATE_CHANGED');
++   releaseOriginalApplicationSelectionReviewHold(r.reviewHold,r.owner);r.released=true;this.#selection=null;this.#selectionHeld=false;this.#busy=false;return true;
++  }catch(error){r.invalid=true;r.released=true;this.suspend();return false;}
++  finally{clearTimeout(timer);}
++ }
++ applicationSelectionOwner(){if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');const owner=new OriginalApplicationGenerationSelection(this.#store,this.#core,this.#local);selectionOwners.set(owner,this);return owner;}
++ attachPreferences(){return this.#entry('attach',()=>this.#attachPreferences());}
++ attachPromptService(service){return this.#entry('attach',()=>this.#attachPromptService(service));}
++ attachContextService(service){return this.#entry('attach',()=>this.#attachContextService(service));}
++ snapshot(){return this.#entry('view',async()=>this.#selectionHeld?this.#view():this.#snapshot());}
++ reconcile(){return this.#entry('reconcile',()=>this.#reconcile());}
++ resumeAfterSuspend(){return this.#entry('resume',()=>this.#resumeAfterSuspend());}
++ handle(request,sender){
++  try{trusted(request,sender,this.#api);}catch(error){return new OriginalSettlementPromise((_,reject)=>reject(error));}
++  const kind=request.type==='PAIA_SYNC_STATUS'?'view':['PAIA_SYNC_PAUSE','PAIA_SYNC_DISCONNECT'].includes(request.type)?'stop':'handle';
++  return this.#entry(kind,()=>this.#handle(request,sender));
++ }
++ async #snapshot(){
+@@ -182 +245 @@ class SyncLifecycle {
+- async reconcile(){
++ async #reconcile(){
+@@ -199,2 +262,2 @@ class SyncLifecycle {
+- suspend(){if(this.#suspended)return;this.#suspended=true;this.#invalidate();if(owners.get(this.#api.storage.local)===this)owners.delete(this.#api.storage.local);}
+- async resumeAfterSuspend(){if(this.#selectionHeld)return this.snapshot();if(!this.#suspended)return this.snapshot();if(owners.has(this.#api.storage.local))fail('BNS_SYNC_OWNER_BUSY');this.#suspended=false;owners.set(this.#api.storage.local,this);return this.reconcile();}
++ suspend(){if(this.#suspended)return;this.#suspended=true;this.#invalidate();if(owners.get(this.#local)===this)owners.delete(this.#local);}
++ async #resumeAfterSuspend(){if(this.#selectionHeld)return this.snapshot();if(!this.#suspended)return this.snapshot();if(owners.has(this.#api.storage.local))fail('BNS_SYNC_OWNER_BUSY');this.#suspended=false;owners.set(this.#api.storage.local,this);return this.reconcile();}
+@@ -340 +403 @@ class SyncLifecycle {
+- async handle(request,sender){
++ async #handle(request,sender){
+@@ -342 +405 @@ class SyncLifecycle {
+-  if(this.#selectionHeld){if(request.type==='PAIA_SYNC_STATUS')return this.snapshot();fail('BNS_SYNC_PAUSED');}
++  if(this.#selectionHeld&&request.type==='PAIA_SYNC_STATUS')return this.#view();
+diff --git a/extension/tests/sync-local-lifecycle.test.mjs b/extension/tests/sync-local-lifecycle.test.mjs
+index 43389bd..fdd6246 100644
+--- a/extension/tests/sync-local-lifecycle.test.mjs
++++ b/extension/tests/sync-local-lifecycle.test.mjs
+@@ -58 +58 @@ async function configured(t,options={}){
+- await writeFile(join(path,'background','sync-local-lifecycle.js'),await readFile(new URL('../background/sync-local-lifecycle.js',import.meta.url)));
++ let lifecycleSource=await readFile(new URL('../background/sync-local-lifecycle.js',import.meta.url),'utf8');if(options.selectionWindowMs!==undefined){assert.ok(lifecycleSource.includes('selectionNow()+30000'));lifecycleSource=lifecycleSource.replace('selectionNow()+30000','selectionNow()+'+options.selectionWindowMs);}await writeFile(join(path,'background','sync-local-lifecycle.js'),lifecycleSource);
+@@ -61,2 +61,2 @@ async function configured(t,options={}){
+- const conf={provider:options.provider??'google-drive',datasetId:'SYNTHETIC_google_data',deviceId:options.deviceId??'SYNTHETIC_device_A',binding:identity,request:r=>cloud.request(r),isCurrent:()=>active};globalThis[key]=conf;
+- const {createConfiguredSyncLifecycle:create}=await import(pathToFileURL(join(path,'background/sync-local-lifecycle.js')));
++ const conf={provider:options.provider??'google-drive',datasetId:options.datasetId??'SYNTHETIC_google_data',deviceId:options.deviceId??'SYNTHETIC_device_A',binding:identity,request:r=>cloud.request(r),isCurrent:()=>active};globalThis[key]=conf;
++ const module=await import(pathToFileURL(join(path,'background/sync-local-lifecycle.js'))),{createConfiguredSyncLifecycle:create}=module;
+@@ -64 +64 @@ async function configured(t,options={}){
+- async function open(){const store=new LibraryFoundationStore(storage,{indexedDB:factory});stores.push(store);if(options.consented!==false&&!(await store.status()).consented)await store.consent(true);await store.finishFoundation();const owner=await create(store,api(storage));owners.push(owner);return {store,owner,core:store.sourceBootstrapJournal.core};}
++ async function open(){const store=options.store??new LibraryFoundationStore(storage,{indexedDB:factory});stores.push(store);if(options.consented!==false&&!(await store.status()).consented)await store.consent(true);await store.finishFoundation();const owner=await create(store,api(storage));owners.push(owner);return {store,owner,core:store.sourceBootstrapJournal.core};}
+@@ -66 +66 @@ async function configured(t,options={}){
+- return {cloud,storage,factory,conf,create,open,setCurrent:v=>active=v,setGeneration:g=>{conf.binding={...conf.binding,generation:g};},setSubject:s=>{conf.binding={...conf.binding,subject:s};}};
++ return {cloud,storage,factory,conf,create,module,open,setCurrent:v=>active=v,setGeneration:g=>{conf.binding={...conf.binding,generation:g};},setSubject:s=>{conf.binding={...conf.binding,subject:s};}};
+@@ -348,0 +349,80 @@ for(const stop of ['PAUSE','DISCONNECT'])test(`mounted Settings ${stop} stops he
++
++for(const operation of ['reconcile','PAUSE','DISCONNECT'])test(`selection reservation refuses accepted ${operation} until its original SDK operation settles`,async t=>{
++ const storage=local(),read=storage.get.bind(storage),write=storage.set.bind(storage);let armed=false,enter,release;
++ const entered=new Promise(r=>enter=r),gate=new Promise(r=>release=r);
++ storage.get=async key=>{const value=await read(key);if(armed&&operation==='reconcile'&&key===ROW){armed=false;enter();await gate;}return value;};
++ storage.set=async values=>{if(armed&&operation!=='reconcile'&&Object.hasOwn(values,ROW)){armed=false;enter();await gate;}return write(values);};
++ const f=await configured(t,{storage}),x=await f.open();await command(x.owner,'RESUME');armed=true;
++ const pending=operation==='reconcile'?x.owner.reconcile():command(x.owner,operation);
++ await entered;try{assert.equal(x.owner.applicationSelectionAvailable(),false,'accepted original read/save excludes a new selection reservation');}finally{release();await pending;}
++});
++
++async function reviewedSelection(t,options={}){
++ const {existingSelectionFixture}=await import('./harness/existing-application-selection.mjs'),f=await existingSelectionFixture(t,{sourceLocal:options.storage??local()});
++ // Attach the real configured lifecycle to the fixture's already-proven source;
++ // only the fixture's three old journals are replaced by its original factory.
++ f.a.sourceBootstrapJournal=null;f.a.filterIntentJournal=null;f.a.inputWorkingJournal=null;
++ const configuredFixture=await configured(t,{...options,storage:f.a.local,store:f.a,factory:f.factory,datasetId:f.coreA.datasetId,deviceId:f.coreA.deviceId}),x=await configuredFixture.open(),owner=x.owner.applicationSelectionOwner();
++ t.after(()=>owner.close());const review=await owner.prepare();return {...configuredFixture,...x,selection:owner,review};
++}
++test('original reviewed lifecycle reservation is opaque, idle-only and safe release reads original row',async t=>{
++ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection),{requireOriginalSyncSelectionReservation:requireToken,isOriginalSyncSelectionOwner:isOwner}=f.module;
++ assert.equal(isOwner(f.selection),true);assert.equal(isOwner({...f.selection}),false);assert.deepEqual(Reflect.ownKeys(token),[]);assert.equal(Object.isFrozen(token),true);assert.equal(requireToken(token,f.selection),true);
++ assert.throws(()=>requireToken({...token},f.selection));assert.throws(()=>requireToken(token,{}));assert.throws(()=>f.owner.reserveApplicationSelection(f.selection));assert.throws(()=>f.owner.reserveApplicationSelection());
++ await assert.rejects(f.owner.releaseApplicationSelection({},true));assert.equal(requireToken(token,f.selection),true);
++ assert.equal(await f.owner.releaseApplicationSelection(token),true);assert.equal(f.owner.applicationSelectionAvailable(),true);assert.throws(()=>requireToken(token,f.selection));await assert.rejects(f.owner.releaseApplicationSelection(token));
++ const next=f.owner.reserveApplicationSelection(f.selection),stale=f.owner.releaseApplicationSelection(token);assert.equal(requireToken(next,f.selection),true);await assert.rejects(stale);assert.equal(requireToken(next,f.selection),true);assert.equal(await f.owner.releaseApplicationSelection(next),true);assert.equal(f.cloud.requests.length,0);
++});
++for(const stop of ['PAUSE','DISCONNECT'])test(`held original selection still accepts genuine ${stop} and permanently loses old authority`,async t=>{
++ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);await command(f.owner,stop);assert.equal((await row(f)).mode,stop==='PAUSE'?'paused':'disconnected');
++ assert.throws(()=>f.module.requireOriginalSyncSelectionReservation(token,f.selection));assert.equal(await f.owner.releaseApplicationSelection(token),false);assert.equal((await f.owner.snapshot()).state,'suspended');assert.equal(f.owner.applicationSelectionAvailable(),false);assert.equal(f.cloud.requests.length,0);
++});
++for(const change of ['host','config','sdk','database','close'])test(`original reservation permanently rejects ${change} identity loss`,async t=>{
++ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);let undo=()=>{};
++ if(change==='host'){f.setCurrent(false);undo=()=>f.setCurrent(true);}if(change==='config'){const old=f.conf.request;f.conf.request=async()=>{};undo=()=>f.conf.request=old;}
++ if(change==='sdk'){const old=f.storage.set;f.storage.set=async()=>{};undo=()=>f.storage.set=old;}
++ if(change==='database'){const old=f.store.repository.db;f.store.repository.db=null;undo=()=>f.store.repository.db=old;}
++ if(change==='close')f.selection.close();if(change==='prepare')await f.selection.prepare();
++ assert.throws(()=>f.module.requireOriginalSyncSelectionReservation(token,f.selection));undo();assert.throws(()=>f.module.requireOriginalSyncSelectionReservation(token,f.selection));assert.equal(await f.owner.releaseApplicationSelection(token),false);assert.equal(f.owner.applicationSelectionAvailable(),false);
++});
++for(const phase of ['marker','sdk'])test(`original ${phase} attempt cannot be released by caller classification`,async t=>{
++ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);f.module.markOriginalSyncSelectionAttempt(token,f.selection,'marker');if(phase==='sdk')f.module.markOriginalSyncSelectionAttempt(token,f.selection,'sdk');
++ await assert.rejects(f.owner.releaseApplicationSelection(token,true));assert.equal(await f.owner.releaseApplicationSelection(token),false);assert.equal((await f.owner.snapshot()).state,'suspended');
++});
++test('held selection refuses new lifecycle work without invoking it',async t=>{
++ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection),before=await row(f);
++ for(const action of [()=>f.owner.reconcile(),()=>f.owner.resumeAfterSuspend(),()=>f.owner.attachPreferences(),()=>f.owner.attachPromptService({}),()=>f.owner.attachContextService({}),()=>command(f.owner,'RESUME'),()=>command(f.owner,'RESTORE')])await assert.rejects(action(),{code:'BNS_SYNC_PAUSED'});
++ const status=command(f.owner,'STATUS');assert.equal(f.module.requireOriginalSyncSelectionReservation(token,f.selection),true);assert.equal((await status).state,'not-started');assert.deepEqual(await row(f),before);assert.equal(f.module.requireOriginalSyncSelectionReservation(token,f.selection),true);assert.equal(await f.owner.releaseApplicationSelection(token),true);assert.equal(f.cloud.requests.length,0);
++});
++test('release observes durable lifecycle-row replacement and stays closed',async t=>{
++ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);await f.storage.set({[ROW]:{version:1,bindingId:'a'.repeat(64),generation:'b'.repeat(64),revision:1,mode:'paused',task:null,error:null}});
++ assert.equal(await f.owner.releaseApplicationSelection(token),false);assert.equal(f.owner.applicationSelectionAvailable(),false);assert.equal((await row(f)).bindingId,'a'.repeat(64));
++});
++test('release expiry preserves held admission and late original read cannot reopen it',async t=>{
++ const storage=local(),original=storage.get.bind(storage);let armed=false,enter,release;const entered=new Promise(r=>enter=r),gate=new Promise(r=>release=r);
++ storage.get=async key=>{const result=await original(key);if(armed&&key===ROW){armed=false;enter();await gate;}return result;};
++ const f=await reviewedSelection(t,{storage,selectionWindowMs:25}),token=f.owner.reserveApplicationSelection(f.selection);armed=true;const pending=f.owner.releaseApplicationSelection(token);await entered;
++ assert.equal(await pending,false);assert.equal(f.owner.applicationSelectionAvailable(),false);assert.equal((await f.owner.snapshot()).state,'suspended');release();await new Promise(r=>setImmediate(r));
++ assert.equal(f.owner.applicationSelectionAvailable(),false);await assert.rejects(f.owner.releaseApplicationSelection(token));assert.equal(f.cloud.requests.length,0);
++});
++
++test('one rejected accepted read cannot retire another original lifecycle invocation',async t=>{
++ const storage=local(),original=storage.get.bind(storage);let armed=false,count=0,enterA,enterB,releaseA,releaseB;const a=new Promise(r=>enterA=r),b=new Promise(r=>enterB=r),ga=new Promise(r=>releaseA=r),gb=new Promise(r=>releaseB=r);
++ storage.get=async key=>{const result=await original(key);if(armed&&key===ROW){if(++count===1){enterA();await ga;throw Error('SYNTHETIC original read failed');}if(count===2){enterB();await gb;}}return result;};
++ const f=await configured(t,{storage}),x=await f.open();await command(x.owner,'RESUME');armed=true;const first=x.owner.reconcile();first.catch(()=>{});await a;const second=x.owner.reconcile();await b;
++ releaseA();await assert.rejects(first,/SYNTHETIC/);assert.equal(x.owner.applicationSelectionAvailable(),false);releaseB();await second;assert.equal(x.owner.applicationSelectionAvailable(),true);assert.equal(f.cloud.requests.length,0);
++});
++test('invalid or backwards phase claims can only destroy original reservation authority',async t=>{
++ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);assert.throws(()=>f.module.markOriginalSyncSelectionAttempt(token,f.selection,'sdk'));assert.throws(()=>f.module.requireOriginalSyncSelectionReservation(token,f.selection));assert.equal(await f.owner.releaseApplicationSelection(token),false);
++});
++
++test('Sync reservation restricts all original reviewed-owner entry points without granting activation',async t=>{
++ const f=await reviewedSelection(t),token=f.owner.reserveApplicationSelection(f.selection);
++ for(const method of ['prepare','requalify','activate','continue','status','cancel'])await assert.rejects(f.selection[method](),{code:'GENERATION_SELECTION_BUSY'});
++ assert.equal(f.module.requireOriginalSyncSelectionReservation(token,f.selection),true);assert.equal(await f.owner.releaseApplicationSelection(token),true);assert.equal((await f.selection.requalify()).operationId,f.review.operationId);assert.equal(f.cloud.requests.length,0);
++});
++
++test('original core in-flight or already-attempted activation cannot acquire a lifecycle reservation',async t=>{
++ const f=await reviewedSelection(t),pending=f.selection.activate();assert.throws(()=>f.owner.reserveApplicationSelection(f.selection),{code:'GENERATION_SELECTION_BUSY'});
++ assert.equal((await pending).state,'selected');assert.throws(()=>f.owner.reserveApplicationSelection(f.selection),{code:'GENERATION_SELECTION_NOT_PREPARED'});assert.equal(f.cloud.requests.length,0);
++});

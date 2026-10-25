@@ -3,7 +3,7 @@ import {createOriginalRecoveryWork,currentOriginalRecoveryWork,chargeOriginalRec
 import {ContextCardsService,readContextCards} from '../core/context-cards.js';
 import {ContextMutationSyncJournal} from '../core/browser-native-sync/context-mutation-journal.js';
 import {readOriginalContextEnrollmentObservation} from '../core/browser-native-sync/context-mutation-journal-owner.js';
-import {OriginalApplicationGenerationSelection} from '../core/browser-native-sync/application-generation-selection.js';
+import {OriginalApplicationGenerationSelection,readOriginalApplicationSelectionReview,holdOriginalApplicationSelectionReview,requireOriginalApplicationSelectionReviewHold,releaseOriginalApplicationSelectionReviewHold} from '../core/browser-native-sync/application-generation-selection.js';
 import {ConsumerPreferenceSyncJournal} from '../core/browser-native-sync/consumer-preference-journal.js';
 import {CONSUMER_PREFERENCE_KEYS} from '../core/browser-native-sync/consumer-preference-codec.js';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
@@ -32,6 +32,18 @@ const states=new Set(['active','paused','disconnected','account-changed']);
 const safeError=error=>typeof error?.code==='string'&&/^(BNS_|STORAGE_|CONTROL_|BACKUP_)[A-Z_]+$/.test(error.code)?error.code:'BNS_SYNC_OUTCOME_UNKNOWN';
 export const syncLifecycleError=error=>typeof error?.code==='string'&&/^(BNS_|STORAGE_|CONTROL_|BACKUP_)[A-Z_]+$/.test(error.code)?error.code:safeErrorCode(error);
 const owners=new WeakMap();
+const selectionOwners=new WeakMap(),selectionReservations=new WeakMap();
+const selectionNow=performance.now.bind(performance);
+// These fixed exports inspect original private instances only. They never
+// register caller callbacks, accept DTO authority, or grant a global hold.
+export function isOriginalSyncSelectionOwner(owner){return selectionOwners.has(owner);}
+export function requireOriginalSyncSelectionReservation(token,owner){const r=selectionReservations.get(token);if(!r||r.owner!==owner)fail('BNS_SYNC_SELECTION_INVALID');r.check();return true;}
+export function markOriginalSyncSelectionAttempt(token,owner,phase){
+ requireOriginalSyncSelectionReservation(token,owner);const r=selectionReservations.get(token);
+ if(phase==='marker'&&r.phase!=='sdk')r.phase='marker';
+ else if(phase==='sdk'&&r.phase==='marker')r.phase='sdk';
+ else{r.invalid=true;fail('BNS_SYNC_SELECTION_INVALID');}
+}
 const originalCore=BrowserNativeSyncCore;
 const OriginalSettlementPromise=Promise,originalSettlementThen=Promise.prototype.then,settlementApply=Reflect.apply;
 // Observe only settlement of the original promises. A public race/finally or
@@ -85,11 +97,13 @@ function checked(row){
 }
 
 class SyncLifecycle {
- #taskFailure=null;#store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#continuationSaving=false;#busy=false;#suspended=false;#selectionHeld=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;#contextService=null;#contextJournal=null;#contextSettled=false;#contextFailure=null;#local;#localGet;#localSet;
- constructor(store,api,config,binding,bindingId,generation,core){this.#store=store;this.#api=api;this.#local=api.storage.local;this.#localGet=this.#local.get;this.#localSet=this.#local.set;this.#config=config;this.#binding=binding;this.#bindingId=bindingId;this.#generation=generation;this.#core=core;this.#journal=new PreparedPublicationJournal(core,{checkpoint:()=>this.#allowed()});}
+ #taskFailure=null;#store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#continuationSaving=false;#busy=false;#suspended=false;#selectionHeld=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;#contextService=null;#contextJournal=null;#contextSettled=false;#contextFailure=null;#local;#localGet;#localSet;#entries=new Set();#selection=null;#selectionIdentity;
+ constructor(store,api,config,binding,bindingId,generation,core){this.#store=store;this.#api=api;this.#local=api.storage.local;this.#localGet=this.#local.get;this.#localSet=this.#local.set;
+  const repository=store.repository,database=repository.db,storage=api.storage,request=config.request,isCurrent=config.isCurrent,provider=config.provider,datasetId=config.datasetId,deviceId=config.deviceId;
+  this.#selectionIdentity=()=>owners.get(this.#local)===this&&store.repository===repository&&repository.db===database&&core.repository===repository&&core.datasetId===datasetId&&core.deviceId===deviceId&&api.storage===storage&&storage.local===this.#local&&store.local===this.#local&&this.#local.get===this.#localGet&&this.#local.set===this.#localSet&&config.request===request&&config.isCurrent===isCurrent&&config.provider===provider&&config.datasetId===datasetId&&config.deviceId===deviceId&&equal(config.binding,this.#binding)&&this.#hostCurrent();this.#config=config;this.#binding=binding;this.#bindingId=bindingId;this.#generation=generation;this.#core=core;this.#journal=new PreparedPublicationJournal(core,{checkpoint:()=>this.#allowed()});}
  #hostCurrent(){try{return this.#config.isCurrent(this.#binding)===true;}catch{return false;}}
  #allowed(){if(this.#suspended||this.#blocked||this.#uncertain||!this.#row||this.#row.mode!=='active'||this.#row.bindingId!==this.#bindingId||this.#row.generation!==this.#generation||!this.#hostCurrent())fail('BNS_SYNC_PAUSED');if(this.#contextService&&!this.#contextSettled)fail('BNS_CONTEXT_BOOTSTRAP_REQUIRED');}
- #invalidate(){if(this.#continuationSaving)this.#uncertain=true;++this.#serial;this.#transport?.close();this.#transport=null;this.#restore?.pause();this.#checkpoint?.pause();}
+ #invalidate(){if(this.#selection)this.#selection.invalid=true;if(this.#continuationSaving)this.#uncertain=true;++this.#serial;this.#transport?.close();this.#transport=null;this.#restore?.pause();this.#checkpoint?.pause();}
  async #read(work=null,settlement=null){
   if(settlement)settlement.check();if(work)chargeOriginalRecoveryWork(this.#store.repository,work,bytes(ROW).length,1);
   const value=(await (settlement?settlementApply(this.#localGet,this.#local,[ROW]):this.#api.storage.local.get(ROW)))?.[ROW];
@@ -114,7 +128,7 @@ class SyncLifecycle {
  }
  #stopAvailable(){return this.#uncertain&&!this.#suspended&&this.#hostCurrent()&&this.#row?.bindingId===this.#bindingId&&this.#row?.generation===this.#generation&&this.#row?.enrollmentSettlement?.phase==='pending';}
  #view(){const recoveryError=this.#taskFailure?.revision===this.#row?.revision?this.#taskFailure?.error:null;return Object.freeze({version:1,scope:this.#promptService?'source-working-prompt':'source-working-only',wholeArchiveComplete:false,contextCommands:!!this.#contextService,needsContextEnrollment:!!this.#contextService&&(!this.#contextSettled||this.#contextService.syncJournal!==this.#contextJournal),purgeProtection:'original-journal-fail-closed',portablePreferences:this.#store.consumerPreferenceJournal===this.#preferenceJournal,needsPreferenceEnrollment:this.#store.consumerPreferenceJournal!==this.#preferenceJournal,needsPromptEnrollment:!!this.#promptService&&this.#promptService.syncJournal!==this.#promptJournal,stopAvailable:this.#stopAvailable(),resumeAvailable:!this.#suspended&&!this.#uncertain&&!this.#busy&&this.#hostCurrent()&&(!this.#row||this.#row.bindingId===this.#bindingId&&(this.#row.mode!=='disconnected'||this.#row.generation!==this.#generation)),unsupportedOwners:this.#promptService?['human-library',this.#contextService?'automatic-context':'context','topic','nonportable-settings','edited-source-purge']:['human-library','prompt','context','topic','nonportable-settings','edited-source-purge'],state:this.#suspended?'suspended':this.#uncertain?'settlement-unknown':this.#row?.mode??'not-started',busy:this.#busy,task:this.#row?.task?{kind:this.#row.task.kind,phase:recoveryError&&this.#row.task.phase!=='confirmed'?'unknown':this.#row.task.phase}:null,error:this.#contextFailure??recoveryError??this.#row?.error??null,productionActivation:false});}
- async attachPreferences(){
+ async #attachPreferences(){
   this.#preferenceJournal=new ConsumerPreferenceSyncJournal(this.#core);
   // Existing original intents/terminal receipts are recovered by the original
   // owner. An un-enrolled device keeps its ordinary Settings behavior until
@@ -128,7 +142,7 @@ class SyncLifecycle {
   await this.#preferenceJournal.recover(this.#store);
   await this.#preferenceJournal.bootstrap(this.#store);
  }
- async attachPromptService(service){
+ async #attachPromptService(service){
   if(this.#promptService||!(service instanceof PromptReuseService)||service.s!==this.#store||service.syncJournal!==null)fail('BNS_SYNC_OWNER_BUSY');
   this.#promptService=service;this.#promptJournal=new PromptSyncJournal(this.#core,{correctionBindings:true});
   // A cold original owner is reattached without a write. Unmanaged local work
@@ -143,7 +157,7 @@ class SyncLifecycle {
   const preferences=await this.#store.repository.transaction(false,readPromptPreferences,['meta']),head=await this.#core.read('head','promptPreferences',PROMPT_REUSE_ROW),binding=await this.#core.read('head','promptBinding',PROMPT_REUSE_ROW);
   if(!binding&&(head||preferences.pins.length||preferences.overrides.length||preferences.splits.length))await journal.bootstrap(service);
  }
- async attachContextService(service){
+ async #attachContextService(service){
   if(this.#contextService||!(service instanceof ContextCardsService)||service.s!==this.#store||service.syncJournal!==null)fail('BNS_SYNC_OWNER_BUSY');
   this.#contextService=service;this.#contextJournal=new ContextMutationSyncJournal(this.#core,{store:this.#store});
   // A previous process cannot witness the terminal observation of an SDK
@@ -167,10 +181,59 @@ class SyncLifecycle {
   for(const key of ['info','rules','now','inputs'])if(row.access[key].revision>0&&!await this.#core.read('head','contextDesired',key))await journal.bootstrapAccess(key);
 
  }
- applicationSelectionAvailable(){return !this.#busy&&!this.#uncertain&&!this.#suspended&&!this.#selectionHeld&&(!this.#row?.task||this.#row.task.phase==='confirmed');}
- reserveApplicationSelection(){if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');this.#busy=true;this.#selectionHeld=true;this.#invalidate();let released=false;return safeBeforeDispatch=>{if(!released){released=true;this.#busy=false;if(safeBeforeDispatch===true)this.#selectionHeld=false;else this.suspend();}};}
- applicationSelectionOwner(){if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');return new OriginalApplicationGenerationSelection(this.#store,this.#core,this.#api.storage.local);}
- async snapshot(){
+ // Admission is recorded before calling the original async body. Timeouts and
+ // suspend do not remove a still-running original promise from this set.
+ #entry(kind,body){
+  if(this.#selectionHeld&&!['view','stop','release','release-read'].includes(kind))return new OriginalSettlementPromise((_,reject)=>reject(new ArchiveError('BNS_SYNC_PAUSED')));
+  const entry={kind};this.#entries.add(entry);let task;
+  try{task=body(entry);}catch(error){this.#entries.delete(entry);return new OriginalSettlementPromise((_,reject)=>reject(error));}
+  return new OriginalSettlementPromise((resolve,reject)=>{settlementApply(originalSettlementThen,task,[value=>{this.#entries.delete(entry);resolve(value);},error=>{this.#entries.delete(entry);reject(error);}]);});
+ }
+ applicationSelectionAvailable(){return !this.#entries.size&&!this.#busy&&!this.#blocked&&!this.#uncertain&&!this.#suspended&&!this.#selectionHeld&&this.#selectionIdentity()&&(!this.#contextService||this.#contextSettled)&&(!this.#row||this.#row.bindingId===this.#bindingId&&this.#row.generation===this.#generation&&!['disconnected','account-changed'].includes(this.#row.mode))&&(!this.#row?.task||this.#row.task.phase==='confirmed');}
+ reserveApplicationSelection(owner){
+  if(arguments.length!==1||selectionOwners.get(owner)!==this)fail('BNS_SYNC_SELECTION_INVALID');
+  if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');
+  const review=readOriginalApplicationSelectionReview(owner,this.#store,this.#core,this.#local),before=clone(this.#row),reviewHold=holdOriginalApplicationSelectionReview(owner,this.#store,this.#core,this.#local);
+  this.#invalidate();this.#busy=true;this.#selectionHeld=true;
+  const r={owner,reviewHold,operationId:review.operationId,serial:this.#serial,before,deadline:selectionNow()+30000,phase:'reserved',invalid:false,released:false,releasing:false};
+  r.check=(entry=null)=>{
+   try{
+    if(r.invalid||r.released||r.releasing&&!entry||this.#selection!==r||!this.#selectionHeld||!this.#busy||this.#serial!==r.serial||this.#blocked||this.#uncertain||this.#suspended||selectionNow()>=r.deadline||!this.#selectionIdentity()||!equal(this.#row,r.before)||[...this.#entries].some(active=>active!==entry&&active.kind!=='view')||entry&&!this.#entries.has(entry))fail('BNS_SYNC_SELECTION_INVALID');
+    if(readOriginalApplicationSelectionReview(owner,this.#store,this.#core,this.#local).operationId!==r.operationId)fail('BNS_SYNC_SELECTION_INVALID');requireOriginalApplicationSelectionReviewHold(reviewHold,owner);
+   }catch(error){r.invalid=true;throw error;}
+  };
+  const token=Object.freeze(Object.create(null));selectionReservations.set(token,r);this.#selection=r;return token;
+ }
+ releaseApplicationSelection(token){
+  const r=selectionReservations.get(token);
+  if(arguments.length!==1||!r||this.#selection!==r||r.released||r.releasing)return new OriginalSettlementPromise((_,reject)=>reject(new ArchiveError('BNS_SYNC_SELECTION_INVALID')));
+  return this.#entry('release',entry=>this.#releaseSelection(token,entry));
+ }
+ async #releaseSelection(token,entry){
+  const r=selectionReservations.get(token);if(!r||this.#selection!==r||r.released||r.releasing)fail('BNS_SYNC_SELECTION_INVALID');
+  r.releasing=true;let timer;
+  try{
+   r.check(entry);if(r.phase!=='reserved')fail('BNS_SYNC_SELECTION_INVALID');
+   const read=this.#entry('release-read',async()=>{const raw=await settlementApply(this.#localGet,this.#local,[ROW]);return raw[ROW]===undefined?null:clone(checked(raw[ROW]));});
+   const timeout=new OriginalSettlementPromise((_,reject)=>{timer=setTimeout(()=>reject(new ArchiveError('BNS_SYNC_SELECTION_EXPIRED')),Math.max(0,r.deadline-selectionNow()));});
+   const actual=await settlementRace([read,timeout]);r.check(entry);if(!equal(actual,r.before))fail('BNS_SYNC_STATE_CHANGED');
+   releaseOriginalApplicationSelectionReviewHold(r.reviewHold,r.owner);r.released=true;this.#selection=null;this.#selectionHeld=false;this.#busy=false;return true;
+  }catch(error){r.invalid=true;r.released=true;this.suspend();return false;}
+  finally{clearTimeout(timer);}
+ }
+ applicationSelectionOwner(){if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');const owner=new OriginalApplicationGenerationSelection(this.#store,this.#core,this.#local);selectionOwners.set(owner,this);return owner;}
+ attachPreferences(){return this.#entry('attach',()=>this.#attachPreferences());}
+ attachPromptService(service){return this.#entry('attach',()=>this.#attachPromptService(service));}
+ attachContextService(service){return this.#entry('attach',()=>this.#attachContextService(service));}
+ snapshot(){return this.#entry('view',async()=>this.#selectionHeld?this.#view():this.#snapshot());}
+ reconcile(){return this.#entry('reconcile',()=>this.#reconcile());}
+ resumeAfterSuspend(){return this.#entry('resume',()=>this.#resumeAfterSuspend());}
+ handle(request,sender){
+  try{trusted(request,sender,this.#api);}catch(error){return new OriginalSettlementPromise((_,reject)=>reject(error));}
+  const kind=request.type==='PAIA_SYNC_STATUS'?'view':['PAIA_SYNC_PAUSE','PAIA_SYNC_DISCONNECT'].includes(request.type)?'stop':'handle';
+  return this.#entry(kind,()=>this.#handle(request,sender));
+ }
+ async #snapshot(){
   // Status can withdraw a settled observation, never enroll, repair a receipt,
   // or turn an unknown SDK outcome into a successful settlement.
   if(this.#contextSettled&&!this.#busy&&!this.#suspended&&!this.#uncertain){
@@ -179,7 +242,7 @@ class SyncLifecycle {
   }
   return this.#view();
  }
- async reconcile(){
+ async #reconcile(){
   if(this.#busy)fail('BNS_SYNC_BUSY');if(this.#suspended)fail('BNS_SYNC_PAUSED');this.#row=await this.#read();
   if(!this.#row)return this.#view();
   if(this.#row.enrollmentSettlement?.phase==='pending'){this.#uncertain=true;this.#blocked=true;this.#contextFailure='BNS_SYNC_OUTCOME_UNKNOWN';return this.#view();}
@@ -196,8 +259,8 @@ class SyncLifecycle {
   }
   return this.#view();
  }
- suspend(){if(this.#suspended)return;this.#suspended=true;this.#invalidate();if(owners.get(this.#api.storage.local)===this)owners.delete(this.#api.storage.local);}
- async resumeAfterSuspend(){if(this.#selectionHeld)return this.snapshot();if(!this.#suspended)return this.snapshot();if(owners.has(this.#api.storage.local))fail('BNS_SYNC_OWNER_BUSY');this.#suspended=false;owners.set(this.#api.storage.local,this);return this.reconcile();}
+ suspend(){if(this.#suspended)return;this.#suspended=true;this.#invalidate();if(owners.get(this.#local)===this)owners.delete(this.#local);}
+ async #resumeAfterSuspend(){if(this.#selectionHeld)return this.snapshot();if(!this.#suspended)return this.snapshot();if(owners.has(this.#api.storage.local))fail('BNS_SYNC_OWNER_BUSY');this.#suspended=false;owners.set(this.#api.storage.local,this);return this.reconcile();}
  async #stop(mode){
   const check=()=>{if(!this.#stopAvailable())fail('BNS_SYNC_OUTCOME_UNKNOWN');if(this.#api.storage.local!==this.#local||this.#store.local!==this.#local||this.#local.get!==this.#localGet||this.#local.set!==this.#localSet)fail('BNS_SYNC_STATE_CHANGED');};
   const pendingStop=this.#uncertain?{check,dispatched:check,confirmed:check}:null;if(pendingStop)check();
@@ -337,9 +400,9 @@ class SyncLifecycle {
    this.#invalidate();if(!boundedRecovery&&this.#row?.task&&!this.#uncertain&&!this.#suspended)await this.#save(row=>({...row,task:row.task.phase==='confirmed'?row.task:{...row.task,phase:'unknown'},error:safeError(error)}));throw error;
   }finally{this.#transport?.close();this.#transport=null;this.#restore=null;this.#busy=false;}
  }
- async handle(request,sender){
+ async #handle(request,sender){
   trusted(request,sender,this.#api);
-  if(this.#selectionHeld){if(request.type==='PAIA_SYNC_STATUS')return this.snapshot();fail('BNS_SYNC_PAUSED');}
+  if(this.#selectionHeld&&request.type==='PAIA_SYNC_STATUS')return this.#view();
   if(request.type==='PAIA_SYNC_STATUS'){if(!this.#hostCurrent()&&this.#row){this.#blocked=true;this.#invalidate();await this.#save(row=>({...row,mode:row.mode==='disconnected'?'disconnected':'account-changed',error:'BNS_PROVIDER_BINDING_CHANGED'}));}return this.snapshot();}
   if(request.type==='PAIA_SYNC_PAUSE')return this.#stop('paused');
   if(request.type==='PAIA_SYNC_DISCONNECT')return this.#stop('disconnected');
