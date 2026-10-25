@@ -1,0 +1,1639 @@
+TAP version 13
+# Subtest: actual Settings keeps original complete-cut preparation read-only while cross-page editor protection is unavailable
+ok 1 - actual Settings keeps original complete-cut preparation read-only while cross-page editor protection is unavailable
+  ---
+  duration_ms: 1430.123667
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CONTINUE without initializing a second writer
+ok 2 - failed ready retains actual Settings pending CONTINUE without initializing a second writer
+  ---
+  duration_ms: 1035.36975
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CANCEL without initializing a second writer
+ok 3 - failed ready retains actual Settings pending CANCEL without initializing a second writer
+  ---
+  duration_ms: 917.278083
+  type: 'test'
+  ...
+# Subtest: fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+ok 4 - fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+  ---
+  duration_ms: 711.6045
+  type: 'test'
+  ...
+# Subtest: default fixed source remains unavailable without selection controls or mutations
+ok 5 - default fixed source remains unavailable without selection controls or mutations
+  ---
+  duration_ms: 73.24675
+  type: 'test'
+  ...
+# Subtest: unknown SDK outcome remains reachable before ready, never resends or exposes restart
+ok 6 - unknown SDK outcome remains reachable before ready, never resends or exposes restart
+  ---
+  duration_ms: 680.583292
+  type: 'test'
+  ...
+# Subtest: selection cannot activate while a real original checkpoint request is in flight
+ok 7 - selection cannot activate while a real original checkpoint request is in flight
+  ---
+  duration_ms: 920.535167
+  type: 'test'
+  ...
+# Subtest: without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+ok 8 - without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+  ---
+  duration_ms: 1410.165625
+  type: 'test'
+  ...
+# Subtest: a prepared interrupted operation cannot bypass the editor gate through continue before ready
+ok 9 - a prepared interrupted operation cannot bypass the editor gate through continue before ready
+  ---
+  duration_ms: 1111.007542
+  type: 'test'
+  ...
+# Subtest: even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+ok 10 - even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+  ---
+  duration_ms: 975.513583
+  type: 'test'
+  ...
+# Subtest: actual worker page hold covers early Prompt, Import, Sync, settings and capture ingress
+ok 11 - actual worker page hold covers early Prompt, Import, Sync, settings and capture ingress
+  ---
+  duration_ms: 275.827041
+  type: 'test'
+  ...
+# Subtest: original page save remains admitted before its FROZEN acknowledgement and denied afterward
+ok 12 - original page save remains admitted before its FROZEN acknowledgement and denied afterward
+  ---
+  duration_ms: 194.807292
+  type: 'test'
+  ...
+# Subtest: actual post-response host notification remains in the worker drain until physical settlement
+ok 13 - actual post-response host notification remains in the worker drain until physical settlement
+  ---
+  duration_ms: 189.833
+  type: 'test'
+  ...
+# Subtest: original delayed Import notification remains tracked through coalesced replacement
+ok 14 - original delayed Import notification remains tracked through coalesced replacement
+  ---
+  duration_ms: 123.897083
+  type: 'test'
+  ...
+# Subtest: fixed admission exceptions preserve restrictions but never grant a prefix bypass
+ok 15 - fixed admission exceptions preserve restrictions but never grant a prefix bypass
+  ---
+  duration_ms: 0.712042
+  type: 'test'
+  ...
+# Subtest: worker activity observes original nested tails and subsequent local drains without issuing a receipt
+ok 16 - worker activity observes original nested tails and subsequent local drains without issuing a receipt
+  ---
+  duration_ms: 0.607417
+  type: 'test'
+  ...
+# Subtest: actual local maintenance successor remains in worker drain after its first wake settles
+ok 17 - actual local maintenance successor remains in worker drain after its first wake settles
+  ---
+  duration_ms: 131.013167
+  type: 'test'
+  ...
+# Subtest: actual Import notification timer drains only after its original publication settles
+ok 18 - actual Import notification timer drains only after its original publication settles
+  ---
+  duration_ms: 623.748792
+  type: 'test'
+  ...
+# Subtest: actual default unopened Store is initialized before original owners bind their lifetime identity
+ok 19 - actual default unopened Store is initialized before original owners bind their lifetime identity
+  ---
+  duration_ms: 144.698792
+  type: 'test'
+  ...
+# Subtest: synthetic worker tab lookup remains unavailable and emits no receiver message
+ok 20 - synthetic worker tab lookup remains unavailable and emits no receiver message
+  ---
+  duration_ms: 113.411708
+  type: 'test'
+  ...
+# Subtest: original local owners hold intake and release only requested work once
+ok 21 - original local owners hold intake and release only requested work once
+  ---
+  duration_ms: 1.669583
+  type: 'test'
+  ...
+# Subtest: all intake gates close before an existing drain settles, requested wake is retained
+ok 22 - all intake gates close before an existing drain settles, requested wake is retained
+  ---
+  duration_ms: 0.299917
+  type: 'test'
+  ...
+# Subtest: idle release does not invent work
+ok 23 - idle release does not invent work
+  ---
+  duration_ms: 0.23575
+  type: 'test'
+  ...
+# Subtest: failed original maintenance prevents proof and never becomes an automatic retry
+ok 24 - failed original maintenance prevents proof and never becomes an automatic retry
+  ---
+  duration_ms: 0.21425
+  type: 'test'
+  ...
+# Subtest: library retry during hold cannot clear the original failure marker
+ok 25 - library retry during hold cannot clear the original failure marker
+  ---
+  duration_ms: 0.144833
+  type: 'test'
+  ...
+# Subtest: forged tokens and foreign repository identity fail without release
+ok 26 - forged tokens and foreign repository identity fail without release
+  ---
+  duration_ms: 0.107167
+  type: 'test'
+  ...
+# Subtest: closing during drain releases late holds and cannot publish a usable receipt
+ok 27 - closing during drain releases late holds and cannot publish a usable receipt
+  ---
+  duration_ms: 0.318167
+  type: 'test'
+  ...
+# Subtest: default-null remote lane hold does not access store; copied factory cannot qualify
+ok 28 - default-null remote lane hold does not access store; copied factory cannot qualify
+  ---
+  duration_ms: 0.240625
+  type: 'test'
+  ...
+# Subtest: copied local runner cannot qualify the private prototype guard
+ok 29 - copied local runner cannot qualify the private prototype guard
+  ---
+  duration_ms: 0.833083
+  type: 'test'
+  ...
+# Subtest: all genuine source tokens compose without becoming global selection authority
+ok 30 - all genuine source tokens compose without becoming global selection authority
+  ---
+  duration_ms: 128.67
+  type: 'test'
+  ...
+# Subtest: local maintenance receipt never substitutes for all original sources
+ok 31 - local maintenance receipt never substitutes for all original sources
+  ---
+  duration_ms: 64.005792
+  type: 'test'
+  ...
+# Subtest: original null Assist session can join live holds without claiming provider settlement
+ok 32 - original null Assist session can join live holds without claiming provider settlement
+  ---
+  duration_ms: 72.918959
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses forged session replacement before-coordinator
+ok 33 - constructor null Assist refuses forged session replacement before-coordinator
+  ---
+  duration_ms: 77.01925
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses forged session replacement after-hold
+ok 34 - constructor null Assist refuses forged session replacement after-hold
+  ---
+  duration_ms: 70.710334
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses genuine session replacement before-coordinator
+ok 35 - constructor null Assist refuses genuine session replacement before-coordinator
+  ---
+  duration_ms: 67.521333
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses genuine session replacement after-hold
+ok 36 - constructor null Assist refuses genuine session replacement after-hold
+  ---
+  duration_ms: 68.737125
+  type: 'test'
+  ...
+# Subtest: configured Assist cannot replace its original session with null to evade its owner
+ok 37 - configured Assist cannot replace its original session with null to evade its owner
+  ---
+  duration_ms: 52.571833
+  type: 'test'
+  ...
+# Subtest: null Assist live hold still rejects changed recovery-restore-epoch fence and releases sources
+ok 38 - null Assist live hold still rejects changed recovery-restore-epoch fence and releases sources
+  ---
+  duration_ms: 56.085292
+  type: 'test'
+  ...
+# Subtest: null Assist live hold still rejects changed gate fence and releases sources
+ok 39 - null Assist live hold still rejects changed gate fence and releases sources
+  ---
+  duration_ms: 38.810667
+  type: 'test'
+  ...
+# Subtest: copied private-brand contextConnections cannot supply a source receipt
+ok 40 - copied private-brand contextConnections cannot supply a source receipt
+  ---
+  duration_ms: 41.89925
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptAssist cannot supply a source receipt
+ok 41 - copied private-brand promptAssist cannot supply a source receipt
+  ---
+  duration_ms: 46.504209
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptNext cannot supply a source receipt
+ok 42 - copied private-brand promptNext cannot supply a source receipt
+  ---
+  duration_ms: 39.1165
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptCommands cannot supply a source receipt
+ok 43 - copied private-brand promptCommands cannot supply a source receipt
+  ---
+  duration_ms: 44.375917
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptSurface cannot supply a source receipt
+ok 44 - copied private-brand promptSurface cannot supply a source receipt
+  ---
+  duration_ms: 40.692208
+  type: 'test'
+  ...
+# Subtest: exact Context private store identity refuses a genuine foreign original owner
+ok 45 - exact Context private store identity refuses a genuine foreign original owner
+  ---
+  duration_ms: 67.212375
+  type: 'test'
+  ...
+# Subtest: forged replacement Assist session cannot refresh its original birth binding
+ok 46 - forged replacement Assist session cannot refresh its original birth binding
+  ---
+  duration_ms: 33.524542
+  type: 'test'
+  ...
+# Subtest: genuine replacement Assist session cannot refresh its original birth binding
+ok 47 - genuine replacement Assist session cannot refresh its original birth binding
+  ---
+  duration_ms: 34.514
+  type: 'test'
+  ...
+# Subtest: Next constructor service binding cannot be refreshed before coordinator creation
+ok 48 - Next constructor service binding cannot be refreshed before coordinator creation
+  ---
+  duration_ms: 35.448125
+  type: 'test'
+  ...
+# Subtest: replaced instance session callbacks cannot hide original durable provider UNKNOWN
+ok 49 - replaced instance session callbacks cannot hide original durable provider UNKNOWN
+  ---
+  duration_ms: 324.744333
+  type: 'test'
+  ...
+# Subtest: replaced prototype session callbacks cannot hide original durable provider UNKNOWN
+ok 50 - replaced prototype session callbacks cannot hide original durable provider UNKNOWN
+  ---
+  duration_ms: 265.752167
+  type: 'test'
+  ...
+# Subtest: late same-object session callback replacement cannot hide a changed original source fence
+ok 51 - late same-object session callback replacement cannot hide a changed original source fence
+  ---
+  duration_ms: 66.2065
+  type: 'test'
+  ...
+# Subtest: a competing composer cannot release another composer's private holds
+ok 52 - a competing composer cannot release another composer's private holds
+  ---
+  duration_ms: 49.916209
+  type: 'test'
+  ...
+# Subtest: all original intake gates close synchronously before the first source drain
+ok 53 - all original intake gates close synchronously before the first source drain
+  ---
+  duration_ms: 47.712625
+  type: 'test'
+  ...
+# Subtest: synchronous factory refusal releases early and late original acquisitions
+ok 54 - synchronous factory refusal releases early and late original acquisitions
+  ---
+  duration_ms: 42.633875
+  type: 'test'
+  ...
+# Subtest: close during pending drain releases every late receipt and forbids reuse
+ok 55 - close during pending drain releases every late receipt and forbids reuse
+  ---
+  duration_ms: 41.999542
+  type: 'test'
+  ...
+# Subtest: post-hold owner relinking invalidates full proof and final fence releases others
+ok 56 - post-hold owner relinking invalidates full proof and final fence releases others
+  ---
+  duration_ms: 39.424625
+  type: 'test'
+  ...
+# Subtest: final source epoch fence rejects metadata replacement and releases original tokens
+ok 57 - final source epoch fence rejects metadata replacement and releases original tokens
+  ---
+  duration_ms: 51.334667
+  type: 'test'
+  ...
+# Subtest: database replacement and forged source token never release someone else's hold
+ok 58 - database replacement and forged source token never release someone else's hold
+  ---
+  duration_ms: 39.929666
+  type: 'test'
+  ...
+# Subtest: cleanup exception still releases every other receipt and permanently closes the composer
+ok 59 - cleanup exception still releases every other receipt and permanently closes the composer
+  ---
+  duration_ms: 34.795458
+  type: 'test'
+  ...
+# Subtest: instance callback shadows cannot replace captured original owner methods
+ok 60 - instance callback shadows cannot replace captured original owner methods
+  ---
+  duration_ms: 37.702125
+  type: 'test'
+  ...
+# Subtest: cold persisted Context connection refuses composed proof despite empty host registry
+ok 61 - cold persisted Context connection refuses composed proof despite empty host registry
+  ---
+  duration_ms: 39.166666
+  type: 'test'
+  ...
+# Subtest: configured Maintenance remains explicitly unqualified, even while idle
+ok 62 - configured Maintenance remains explicitly unqualified, even while idle
+  ---
+  duration_ms: 30.924084
+  type: 'test'
+  ...
+# Subtest: Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+ok 63 - Sync default is a bilingual unavailable Settings destination; opening performs one read-only status on original modal
+  ---
+  duration_ms: 10.034417
+  type: 'test'
+  ...
+# Subtest: qualified local facade renders explicit partial scope and user-only zero-argument transitions
+ok 64 - qualified local facade renders explicit partial scope and user-only zero-argument transitions
+  ---
+  duration_ms: 2.885875
+  type: 'test'
+  ...
+# Subtest: one explicit publish survives double click; unknown result exposes status only and no automatic replay
+ok 65 - one explicit publish survives double click; unknown result exposes status only and no automatic replay
+  ---
+  duration_ms: 3.215208
+  type: 'test'
+  ...
+# Subtest: restore continuation is only the original task and completion never says whole archive synchronized
+ok 66 - restore continuation is only the original task and completion never says whole archive synchronized
+  ---
+  duration_ms: 2.764916
+  type: 'test'
+  ...
+# Subtest: close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+ok 67 - close/reopen fences late status; malformed or fake full-sync state cannot expose actions
+  ---
+  duration_ms: 1.305208
+  type: 'test'
+  ...
+# Subtest: invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+ok 68 - invalid configured result and hidden Settings cannot be used as permission or overwrite late UI
+  ---
+  duration_ms: 0.711666
+  type: 'test'
+  ...
+# Subtest: original Data group placement and fixed worker request retain a single owner
+ok 69 - original Data group placement and fixed worker request retain a single owner
+  ---
+  duration_ms: 1.50225
+  type: 'test'
+  ...
+# Subtest: leaving Settings during an outstanding status never renders that late configuration
+ok 70 - leaving Settings during an outstanding status never renders that late configuration
+  ---
+  duration_ms: 0.418375
+  type: 'test'
+  ...
+# Subtest: configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+ok 71 - configured Prompt/preferences checkpoint keeps explicit enrollment and unknown original task semantics
+  ---
+  duration_ms: 1.390167
+  type: 'test'
+  ...
+# Subtest: all selection states keep activation, continued switching and restart unavailable without an original cross-page editor guard
+ok 72 - all selection states keep activation, continued switching and restart unavailable without an original cross-page editor guard
+  ---
+  duration_ms: 2.045041
+  type: 'test'
+  ...
+# Subtest: safe cancellation retains double-click and unknown-response guards without automatic replay
+ok 73 - safe cancellation retains double-click and unknown-response guards without automatic replay
+  ---
+  duration_ms: 1.519958
+  type: 'test'
+  ...
+# Subtest: late cancellation reply after leaving Settings is ignored
+ok 74 - late cancellation reply after leaving Settings is ignored
+  ---
+  duration_ms: 0.657959
+  type: 'test'
+  ...
+# Subtest: malformed selection restart entitlement exposes no selection action
+ok 75 - malformed selection restart entitlement exposes no selection action
+  ---
+  duration_ms: 0.464292
+  type: 'test'
+  ...
+# Subtest: active but unenrolled Context honestly gates NOW until explicit Resume and never dispatches the hidden action
+ok 76 - active but unenrolled Context honestly gates NOW until explicit Resume and never dispatches the hidden action
+  ---
+  duration_ms: 0.695333
+  type: 'test'
+  ...
+# Subtest: mounted PAUSE stays available during held NOW and fences its late ACK
+ok 77 - mounted PAUSE stays available during held NOW and fences its late ACK
+  ---
+  duration_ms: 1.269834
+  type: 'test'
+  ...
+# Subtest: mounted DISCONNECT stays available during held NOW and fences its late ACK
+ok 78 - mounted DISCONNECT stays available during held NOW and fences its late ACK
+  ---
+  duration_ms: 0.710917
+  type: 'test'
+  ...
+# Subtest: mounted PAUSE stays available during held RESTORE and fences its late ACK
+ok 79 - mounted PAUSE stays available during held RESTORE and fences its late ACK
+  ---
+  duration_ms: 0.651709
+  type: 'test'
+  ...
+# Subtest: mounted DISCONNECT stays available during held RESTORE and fences its late ACK
+ok 80 - mounted DISCONNECT stays available during held RESTORE and fences its late ACK
+  ---
+  duration_ms: 0.673084
+  type: 'test'
+  ...
+# Subtest: mounted PAUSE stays available during held STATUS and fences its late ACK
+ok 81 - mounted PAUSE stays available during held STATUS and fences its late ACK
+  ---
+  duration_ms: 1.72825
+  type: 'test'
+  ...
+# Subtest: mounted DISCONNECT stays available during held STATUS and fences its late ACK
+ok 82 - mounted DISCONNECT stays available during held STATUS and fences its late ACK
+  ---
+  duration_ms: 1.003084
+  type: 'test'
+  ...
+# Subtest: reopened busy worker permits only STATUS and PAUSE, not transfer or enrollment
+ok 83 - reopened busy worker permits only STATUS and PAUSE, not transfer or enrollment
+  ---
+  duration_ms: 0.644583
+  type: 'test'
+  ...
+# Subtest: reopened busy worker permits only STATUS and DISCONNECT, not transfer or enrollment
+ok 84 - reopened busy worker permits only STATUS and DISCONNECT, not transfer or enrollment
+  ---
+  duration_ms: 4.035
+  type: 'test'
+  ...
+# Subtest: late error from superseded transfer cannot overwrite confirmed pause or clear a newer status flight
+ok 85 - late error from superseded transfer cannot overwrite confirmed pause or clear a newer status flight
+  ---
+  duration_ms: 7.9655
+  type: 'test'
+  ...
+# Subtest: late invalid from superseded transfer cannot overwrite confirmed pause or clear a newer status flight
+ok 86 - late invalid from superseded transfer cannot overwrite confirmed pause or clear a newer status flight
+  ---
+  duration_ms: 0.913084
+  type: 'test'
+  ...
+# Subtest: pending stop rejects duplicate and contrary stop clicks; failed stop remains uncertain until status
+ok 87 - pending stop rejects duplicate and contrary stop clicks; failed stop remains uncertain until status
+  ---
+  duration_ms: 3.117334
+  type: 'test'
+  ...
+# Subtest: stop remains available after an uncertain ordinary operation without allowing a replay
+ok 88 - stop remains available after an uncertain ordinary operation without allowing a replay
+  ---
+  duration_ms: 0.766917
+  type: 'test'
+  ...
+# Subtest: selection holds do not become a stop-command concurrency bypass
+ok 89 - selection holds do not become a stop-command concurrency bypass
+  ---
+  duration_ms: 45.068583
+  type: 'test'
+  ...
+# Subtest: close and reopen after a stop fences all earlier responses
+ok 90 - close and reopen after a stop fences all earlier responses
+  ---
+  duration_ms: 7.920833
+  type: 'test'
+  ...
+# Subtest: active enrollment Resume remains stoppable by PAUSE without adopting its late ACK
+ok 91 - active enrollment Resume remains stoppable by PAUSE without adopting its late ACK
+  ---
+  duration_ms: 1.479625
+  type: 'test'
+  ...
+# Subtest: active enrollment Resume remains stoppable by DISCONNECT without adopting its late ACK
+ok 92 - active enrollment Resume remains stoppable by DISCONNECT without adopting its late ACK
+  ---
+  duration_ms: 1.214584
+  type: 'test'
+  ...
+# Subtest: not-started enrollment can be disconnected without broadening active-only pause availability
+ok 93 - not-started enrollment can be disconnected without broadening active-only pause availability
+  ---
+  duration_ms: 1.382042
+  type: 'test'
+  ...
+# Subtest: superseded transfer finally cannot unlock a newly authorized Resume flight
+ok 94 - superseded transfer finally cannot unlock a newly authorized Resume flight
+  ---
+  duration_ms: 1.78725
+  type: 'test'
+  ...
+# Subtest: generation preparation remains single-flight rather than accepting concurrent Sync stop commands
+ok 95 - generation preparation remains single-flight rather than accepting concurrent Sync stop commands
+  ---
+  duration_ms: 0.873333
+  type: 'test'
+  ...
+# Subtest: durable pending enrollment exposes only the original PAUSE stop and keeps UNKNOWN
+ok 96 - durable pending enrollment exposes only the original PAUSE stop and keeps UNKNOWN
+  ---
+  duration_ms: 3.33425
+  type: 'test'
+  ...
+# Subtest: durable pending enrollment exposes only the original DISCONNECT stop and keeps UNKNOWN
+ok 97 - durable pending enrollment exposes only the original DISCONNECT stop and keeps UNKNOWN
+  ---
+  duration_ms: 2.792042
+  type: 'test'
+  ...
+# Subtest: unknown without exact original stop availability remains status-only
+ok 98 - unknown without exact original stop availability remains status-only
+  ---
+  duration_ms: 1.162958
+  type: 'test'
+  ...
+# Subtest: cold Context requalification gates restore and continuation until a new explicit Resume
+ok 99 - cold Context requalification gates restore and continuation until a new explicit Resume
+  ---
+  duration_ms: 0.873542
+  type: 'test'
+  ...
+# Subtest: fresh local complete Source group survives cold reopen and publishes both exact original heads
+ok 100 - fresh local complete Source group survives cold reopen and publishes both exact original heads
+  ---
+  duration_ms: 2765.474208
+  type: 'test'
+  ...
+# Subtest: two local groups publish through a genuine sole common descendant retaining both original siblings
+ok 101 - two local groups publish through a genuine sole common descendant retaining both original siblings
+  ---
+  duration_ms: 2360.063584
+  type: 'test'
+  ...
+# Subtest: new local groups retain evaluated original and new filter decisions without changing stable sourceCut
+ok 102 - new local groups retain evaluated original and new filter decisions without changing stable sourceCut
+  ---
+  duration_ms: 477.775
+  type: 'test'
+  ...
+# Subtest: lost upload acknowledgement with a new local group cold resumes the same publication without duplicate POST
+ok 103 - lost upload acknowledgement with a new local group cold resumes the same publication without duplicate POST
+  ---
+  duration_ms: 987.897041
+  type: 'test'
+  ...
+# Subtest: publication refuses plain-edit and leaves all current rows untouched
+ok 104 - publication refuses plain-edit and leaves all current rows untouched
+  ---
+  duration_ms: 432.813416
+  type: 'test'
+  ...
+# Subtest: publication refuses working and leaves all current rows untouched
+ok 105 - publication refuses working and leaves all current rows untouched
+  ---
+  duration_ms: 409.928459
+  type: 'test'
+  ...
+# Subtest: publication refuses append and leaves all current rows untouched
+ok 106 - publication refuses append and leaves all current rows untouched
+  ---
+  duration_ms: 429.634
+  type: 'test'
+  ...
+# Subtest: publication refuses foreign-device and leaves all current rows untouched
+ok 107 - publication refuses foreign-device and leaves all current rows untouched
+  ---
+  duration_ms: 462.090875
+  type: 'test'
+  ...
+# Subtest: publication refuses same-device-remote and leaves all current rows untouched
+ok 108 - publication refuses same-device-remote and leaves all current rows untouched
+  ---
+  duration_ms: 685.768292
+  type: 'test'
+  ...
+# Subtest: publication refuses protected and leaves all current rows untouched
+ok 109 - publication refuses protected and leaves all current rows untouched
+  ---
+  duration_ms: 428.217125
+  type: 'test'
+  ...
+# Subtest: publication refuses human and leaves all current rows untouched
+ok 110 - publication refuses human and leaves all current rows untouched
+  ---
+  duration_ms: 437.930417
+  type: 'test'
+  ...
+# Subtest: publication refuses context and leaves all current rows untouched
+ok 111 - publication refuses context and leaves all current rows untouched
+  ---
+  duration_ms: 431.376958
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered missing-outbox provenance before any upload
+ok 112 - publication refuses tampered missing-outbox provenance before any upload
+  ---
+  duration_ms: 439.865
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered acknowledged-outbox provenance before any upload
+ok 113 - publication refuses tampered acknowledged-outbox provenance before any upload
+  ---
+  duration_ms: 434.517916
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered foreign-outbox provenance before any upload
+ok 114 - publication refuses tampered foreign-outbox provenance before any upload
+  ---
+  duration_ms: 449.922792
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered device-sequence provenance before any upload
+ok 115 - publication refuses tampered device-sequence provenance before any upload
+  ---
+  duration_ms: 431.066041
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered extra-device provenance before any upload
+ok 116 - publication refuses tampered extra-device provenance before any upload
+  ---
+  duration_ms: 452.797541
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered head provenance before any upload
+ok 117 - publication refuses tampered head provenance before any upload
+  ---
+  duration_ms: 454.2355
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered generation provenance before any upload
+ok 118 - publication refuses tampered generation provenance before any upload
+  ---
+  duration_ms: 836.505167
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered unknown-protocol provenance before any upload
+ok 119 - publication refuses tampered unknown-protocol provenance before any upload
+  ---
+  duration_ms: 465.437834
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered missing-member provenance before any upload
+ok 120 - publication refuses tampered missing-member provenance before any upload
+  ---
+  duration_ms: 436.291458
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered old-revision provenance before any upload
+ok 121 - publication refuses tampered old-revision provenance before any upload
+  ---
+  duration_ms: 412.052041
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered restore-device provenance before any upload
+ok 122 - publication refuses tampered restore-device provenance before any upload
+  ---
+  duration_ms: 414.579375
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered restore-database provenance before any upload
+ok 123 - publication refuses tampered restore-database provenance before any upload
+  ---
+  duration_ms: 400.053792
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered restore-selection provenance before any upload
+ok 124 - publication refuses tampered restore-selection provenance before any upload
+  ---
+  duration_ms: 412.776375
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered sourceCut-origin provenance before any upload
+ok 125 - publication refuses tampered sourceCut-origin provenance before any upload
+  ---
+  duration_ms: 443.237417
+  type: 'test'
+  ...
+# Subtest: publication refuses tampered active-origin provenance before any upload
+ok 126 - publication refuses tampered active-origin provenance before any upload
+  ---
+  duration_ms: 404.223375
+  type: 'test'
+  ...
+# Subtest: publication refuses changed old-input-allocation physical state
+ok 127 - publication refuses changed old-input-allocation physical state
+  ---
+  duration_ms: 417.280375
+  type: 'test'
+  ...
+# Subtest: publication refuses changed new-input-allocation physical state
+ok 128 - publication refuses changed new-input-allocation physical state
+  ---
+  duration_ms: 410.034417
+  type: 'test'
+  ...
+# Subtest: publication refuses changed old-history-allocation physical state
+ok 129 - publication refuses changed old-history-allocation physical state
+  ---
+  duration_ms: 416.48575
+  type: 'test'
+  ...
+# Subtest: publication refuses changed new-history-allocation physical state
+ok 130 - publication refuses changed new-history-allocation physical state
+  ---
+  duration_ms: 432.023042
+  type: 'test'
+  ...
+# Subtest: publication refuses changed record-counter physical state
+ok 131 - publication refuses changed record-counter physical state
+  ---
+  duration_ms: 467.081042
+  type: 'test'
+  ...
+# Subtest: publication refuses changed history-counter physical state
+ok 132 - publication refuses changed history-counter physical state
+  ---
+  duration_ms: 429.968416
+  type: 'test'
+  ...
+# Subtest: publication refuses changed delta-counter physical state
+ok 133 - publication refuses changed delta-counter physical state
+  ---
+  duration_ms: 501.62725
+  type: 'test'
+  ...
+# Subtest: publication refuses changed record-index physical state
+ok 134 - publication refuses changed record-index physical state
+  ---
+  duration_ms: 496.070084
+  type: 'test'
+  ...
+# Subtest: publication refuses changed block-index physical state
+ok 135 - publication refuses changed block-index physical state
+  ---
+  duration_ms: 442.973458
+  type: 'test'
+  ...
+# Subtest: publication refuses changed document-sequence physical state
+ok 136 - publication refuses changed document-sequence physical state
+  ---
+  duration_ms: 425.525541
+  type: 'test'
+  ...
+# Subtest: publication refuses changed filter-stable physical state
+ok 137 - publication refuses changed filter-stable physical state
+  ---
+  duration_ms: 422.12125
+  type: 'test'
+  ...
+# Subtest: publication refuses changed filter-runtime physical state
+ok 138 - publication refuses changed filter-runtime physical state
+  ---
+  duration_ms: 413.83025
+  type: 'test'
+  ...
+# Subtest: publication refuses changed extra-filter physical state
+ok 139 - publication refuses changed extra-filter physical state
+  ---
+  duration_ms: 430.436459
+  type: 'test'
+  ...
+# Subtest: publication refuses changed source-count physical state
+ok 140 - publication refuses changed source-count physical state
+  ---
+  duration_ms: 444.461917
+  type: 'test'
+  ...
+# Subtest: real repeated reads and new proof share the original reference quota without renewal
+ok 141 - real repeated reads and new proof share the original reference quota without renewal
+  ---
+  duration_ms: 509.78175
+  type: 'test'
+  ...
+# Subtest: expired original ticket cannot mint a publication continuation after held work resolves
+ok 142 - expired original ticket cannot mint a publication continuation after held work resolves
+  ---
+  duration_ms: 371.899458
+  type: 'test'
+  ...
+# Subtest: private publication cut rejects outbox change after discovery before encoding
+ok 143 - private publication cut rejects outbox change after discovery before encoding
+  ---
+  duration_ms: 545.8075
+  type: 'test'
+  ...
+# Subtest: private publication cut rejects active-pointer change after discovery before encoding
+ok 144 - private publication cut rejects active-pointer change after discovery before encoding
+  ---
+  duration_ms: 528.8355
+  type: 'test'
+  ...
+# Subtest: private publication cut rejects append change after discovery before encoding
+ok 145 - private publication cut rejects append change after discovery before encoding
+  ---
+  duration_ms: 566.257042
+  type: 'test'
+  ...
+# Subtest: private complete cut rejects outbox change allocated-before-post with truthful dispatched count
+ok 146 - private complete cut rejects outbox change allocated-before-post with truthful dispatched count
+  ---
+  duration_ms: 634.481459
+  type: 'test'
+  ...
+# Subtest: private complete cut rejects outbox change after-first-post with truthful dispatched count
+ok 147 - private complete cut rejects outbox change after-first-post with truthful dispatched count
+  ---
+  duration_ms: 668.58825
+  type: 'test'
+  ...
+# Subtest: actual second Store protocol mutation during provider await cannot borrow first repository fence
+ok 148 - actual second Store protocol mutation during provider await cannot borrow first repository fence
+  ---
+  duration_ms: 713.865125
+  type: 'test'
+  ...
+# Subtest: actual repeated complete-cut work exhausts the unchanged outer ledger without a replacement ticket
+ok 149 - actual repeated complete-cut work exhausts the unchanged outer ledger without a replacement ticket
+  ---
+  duration_ms: 1220.467375
+  type: 'test'
+  ...
+# Subtest: ordinary restored union can publish one new local group before disposable stage cleanup
+ok 150 - ordinary restored union can publish one new local group before disposable stage cleanup
+  ---
+  duration_ms: 821.494583
+  type: 'test'
+  ...
+# Subtest: publication prepare completes only the proven disposable stage and preserves every other physical row
+ok 151 - publication prepare completes only the proven disposable stage and preserves every other physical row
+  ---
+  duration_ms: 818.705334
+  type: 'test'
+  ...
+# Subtest: publication discovery without its private prepare work remains read only
+ok 152 - publication discovery without its private prepare work remains read only
+  ---
+  duration_ms: 418.286791
+  type: 'test'
+  ...
+# Subtest: forged publication cleanup token cannot authorize the original stage owner
+ok 153 - forged publication cleanup token cannot authorize the original stage owner
+  ---
+  duration_ms: 359.928208
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof active mutation before any deletion or upload
+ok 154 - prepare cleanup refuses post-proof active mutation before any deletion or upload
+  ---
+  duration_ms: 428.019833
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof receipt mutation before any deletion or upload
+ok 155 - prepare cleanup refuses post-proof receipt mutation before any deletion or upload
+  ---
+  duration_ms: 417.996416
+  type: 'test'
+  ...
+# Subtest: prepare cleanup refuses post-proof stage-item mutation before any deletion or upload
+ok 156 - prepare cleanup refuses post-proof stage-item mutation before any deletion or upload
+  ---
+  duration_ms: 426.158958
+  type: 'test'
+  ...
+# Subtest: pause before prepare cleanup leaves the stage intact and a new explicit prepare can continue
+ok 157 - pause before prepare cleanup leaves the stage intact and a new explicit prepare can continue
+  ---
+  duration_ms: 912.282
+  type: 'test'
+  ...
+# Subtest: a failed original cleanup page retains progress without publishing and explicit reentry completes safely
+ok 158 - a failed original cleanup page retains progress without publishing and explicit reentry completes safely
+  ---
+  duration_ms: 908.119209
+  type: 'test'
+  ...
+# Subtest: cleanup consumes the original cumulative recovery work and never renews an exhausted ticket
+ok 159 - cleanup consumes the original cumulative recovery work and never renews an exhausted ticket
+  ---
+  duration_ms: 420.923333
+  type: 'test'
+  ...
+# Subtest: publish never acquires prepare cleanup authority even when the old disposable stage reappears
+ok 160 - publish never acquires prepare cleanup authority even when the old disposable stage reappears
+  ---
+  duration_ms: 881.156709
+  type: 'test'
+  ...
+# Subtest: actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+ok 161 - actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+  ---
+  duration_ms: 364.928834
+  type: 'test'
+  ...
+# Subtest: fresh control qualification is readonly and never invokes substituted public run
+ok 162 - fresh control qualification is readonly and never invokes substituted public run
+  ---
+  duration_ms: 60.700917
+  type: 'test'
+  ...
+# Subtest: fresh qualification refuses altered original cache before SDK reload
+ok 163 - fresh qualification refuses altered original cache before SDK reload
+  ---
+  duration_ms: 37.242708
+  type: 'test'
+  ...
+# Subtest: fresh qualification refuses altered original settings before SDK reload
+ok 164 - fresh qualification refuses altered original settings before SDK reload
+  ---
+  duration_ms: 50.8175
+  type: 'test'
+  ...
+# Subtest: fresh qualification refuses altered original sdk-get before SDK reload
+ok 165 - fresh qualification refuses altered original sdk-get before SDK reload
+  ---
+  duration_ms: 51.78025
+  type: 'test'
+  ...
+# Subtest: fresh qualification refuses altered original sdk-set before SDK reload
+ok 166 - fresh qualification refuses altered original sdk-set before SDK reload
+  ---
+  duration_ms: 45.724208
+  type: 'test'
+  ...
+# Subtest: fresh qualification refuses altered original pending-control before SDK reload
+ok 167 - fresh qualification refuses altered original pending-control before SDK reload
+  ---
+  duration_ms: 41.087334
+  type: 'test'
+  ...
+# Subtest: fresh qualification refuses unsettled consumer without SDK reads or writes
+ok 168 - fresh qualification refuses unsettled consumer without SDK reads or writes
+  ---
+  duration_ms: 32.133375
+  type: 'test'
+  ...
+# Subtest: fresh qualification refuses unsettled reservation without SDK reads or writes
+ok 169 - fresh qualification refuses unsettled reservation without SDK reads or writes
+  ---
+  duration_ms: 39.468417
+  type: 'test'
+  ...
+# Subtest: closing the original database during held SDK read refuses without reopening or cache publication
+ok 170 - closing the original database during held SDK read refuses without reopening or cache publication
+  ---
+  duration_ms: 31.96725
+  type: 'test'
+  ...
+# Subtest: SDK mutation between original qualification and terminal read refuses without an enrollment result
+ok 171 - SDK mutation between original qualification and terminal read refuses without an enrollment result
+  ---
+  duration_ms: 29.953
+  type: 'test'
+  ...
+# Subtest: fresh qualification never replaces an explicit references recovery ticket
+ok 172 - fresh qualification never replaces an explicit references recovery ticket
+  ---
+  duration_ms: 29.244166
+  type: 'test'
+  ...
+# Subtest: fresh qualification never replaces an explicit bytes recovery ticket
+ok 173 - fresh qualification never replaces an explicit bytes recovery ticket
+  ---
+  duration_ms: 28.33975
+  type: 'test'
+  ...
+# Subtest: fresh qualification never replaces an explicit expired recovery ticket
+ok 174 - fresh qualification never replaces an explicit expired recovery ticket
+  ---
+  duration_ms: 40.4245
+  type: 'test'
+  ...
+# Subtest: fresh qualification never replaces an explicit failed recovery ticket
+ok 175 - fresh qualification never replaces an explicit failed recovery ticket
+  ---
+  duration_ms: 29.056792
+  type: 'test'
+  ...
+# Subtest: held SDK completion after explicit deadline cannot mint a new control owner or reset the ticket
+ok 176 - held SDK completion after explicit deadline cannot mint a new control owner or reset the ticket
+  ---
+  duration_ms: 67.079625
+  type: 'test'
+  ...
+# Subtest: full returned SDK bytes are charged before a fresh owner is installed
+ok 177 - full returned SDK bytes are charged before a fresh owner is installed
+  ---
+  duration_ms: 35.293416
+  type: 'test'
+  ...
+# Subtest: queue wait consumes the explicit deadline and a late original callback cannot publish control state
+ok 178 - queue wait consumes the explicit deadline and a late original callback cannot publish control state
+  ---
+  duration_ms: 66.02525
+  type: 'test'
+  ...
+# Subtest: terminal SDK timeout settles promptly and its late response cannot replace the already observed cache
+ok 179 - terminal SDK timeout settles promptly and its late response cannot replace the already observed cache
+  ---
+  duration_ms: 74.424417
+  type: 'test'
+  ...
+# Subtest: open substitution during original control digest is rejected before the substituted method can run
+ok 180 - open substitution during original control digest is rejected before the substituted method can run
+  ---
+  duration_ms: 27.109625
+  type: 'test'
+  ...
+# Subtest: remaining deadline accessor rejects foreign, forged and retired original tickets
+ok 181 - remaining deadline accessor rejects foreign, forged and retired original tickets
+  ---
+  duration_ms: 62.083791
+  type: 'test'
+  ...
+# Subtest: initial and terminal SDK payloads share one cumulative byte budget
+ok 182 - initial and terminal SDK payloads share one cumulative byte budget
+  ---
+  duration_ms: 35.266
+  type: 'test'
+  ...
+# Subtest: original enrollment completion ignores substituted Promise finally results
+ok 183 - original enrollment completion ignores substituted Promise finally results
+  ---
+  duration_ms: 42.413208
+  type: 'test'
+  ...
+# Subtest: original enrollment completion ignores substituted Promise race results
+ok 184 - original enrollment completion ignores substituted Promise race results
+  ---
+  duration_ms: 45.428292
+  type: 'test'
+  ...
+# Subtest: native tail chaining and species cannot replace the genuine one-shot read result identity
+ok 185 - native tail chaining and species cannot replace the genuine one-shot read result identity
+  ---
+  duration_ms: 27.096667
+  type: 'test'
+  ...
+# Subtest: successor control read observes original Promise settlement despite a substituted own call
+ok 186 - successor control read observes original Promise settlement despite a substituted own call
+  ---
+  duration_ms: 25.177
+  type: 'test'
+  ...
+# Subtest: successor independent control calls refuse an unrelated active window without borrowing its ticket
+ok 187 - successor independent control calls refuse an unrelated active window without borrowing its ticket
+  ---
+  duration_ms: 25.411416
+  type: 'test'
+  ...
+# {"boundary":"final-control-read","resumed":{"ok":false,"error":"BNS_CONTEXT_BOOTSTRAP_REQUIRED"},"status":{"ok":true,"data":{"version":1,"scope":"source-working-prompt","wholeArchiveComplete":false,"contextCommands":true,"needsContextEnrollment":true,"purgeProtection":"original-journal-fail-closed","portablePreferences":true,"needsPreferenceEnrollment":false,"needsPromptEnrollment":false,"stopAvailable":false,"resumeAvailable":true,"unsupportedOwners":["human-library","automatic-context","topic","nonportable-settings","edited-source-purge"],"state":"not-started","busy":false,"task":null,"error":"BNS_CONTEXT_BOOTSTRAP_REQUIRED","productionActivation":false}},"savedEnrollment":null,"triggered":true,"changeOK":true,"beforeItems":0,"afterItems":1,"controlFenceUnchanged":true,"sdkUnchanged":true,"cloudRequests":0}
+# Subtest: final-control-read: changed original Context cannot settle enrollment or report the journal alone as enrolled
+ok 188 - final-control-read: changed original Context cannot settle enrollment or report the journal alone as enrolled
+  ---
+  duration_ms: 258.755334
+  type: 'test'
+  ...
+# {"boundary":"lifecycle-set","resumed":{"ok":false,"error":"BNS_CONTEXT_BOOTSTRAP_REQUIRED"},"status":{"ok":true,"data":{"version":1,"scope":"source-working-prompt","wholeArchiveComplete":false,"contextCommands":true,"needsContextEnrollment":true,"purgeProtection":"original-journal-fail-closed","portablePreferences":true,"needsPreferenceEnrollment":false,"needsPromptEnrollment":false,"stopAvailable":true,"resumeAvailable":false,"unsupportedOwners":["human-library","automatic-context","topic","nonportable-settings","edited-source-purge"],"state":"settlement-unknown","busy":false,"task":null,"error":"BNS_CONTEXT_BOOTSTRAP_REQUIRED","productionActivation":false}},"savedEnrollment":{"version":1,"databaseId":"f8819139-7b29-453b-8df8-324b7f0c85e4","namespace":"initial","epoch":null},"triggered":true,"changeOK":true,"beforeItems":0,"afterItems":1,"controlFenceUnchanged":true,"sdkUnchanged":true,"cloudRequests":0}
+# Subtest: lifecycle-set: changed original Context cannot settle enrollment or report the journal alone as enrolled
+ok 189 - lifecycle-set: changed original Context cannot settle enrollment or report the journal alone as enrolled
+  ---
+  duration_ms: 174.223958
+  type: 'test'
+  ...
+# Subtest: STATUS demotes an empty enrollment after genuine unrepresented Context arrives, without enrolling or editing the receipt
+ok 190 - STATUS demotes an empty enrollment after genuine unrepresented Context arrives, without enrolling or editing the receipt
+  ---
+  duration_ms: 209.533792
+  type: 'test'
+  ...
+# Subtest: normal empty Resume uses one ticket without lending its active window to SDK persistence
+ok 191 - normal empty Resume uses one ticket without lending its active window to SDK persistence
+  ---
+  duration_ms: 135.107709
+  type: 'test'
+  ...
+# Subtest: successor external Resume refuses an unrelated active ticket before bootstrap or SDK persistence
+ok 192 - successor external Resume refuses an unrelated active ticket before bootstrap or SDK persistence
+  ---
+  duration_ms: 112.737083
+  type: 'test'
+  ...
+# Subtest: represented item and portable desired access remain enrolled, while stale same-head item changes demote status
+ok 193 - represented item and portable desired access remain enrolled, while stale same-head item changes demote status
+  ---
+  duration_ms: 179.739666
+  type: 'test'
+  ...
+# Subtest: a changed represented Context during SDK save remains uncertain even though both snapshots have genuine heads
+ok 194 - a changed represented Context during SDK save remains uncertain even though both snapshots have genuine heads
+  ---
+  duration_ms: 135.745167
+  type: 'test'
+  ...
+# Subtest: exact durable lost SDK acknowledgement still settles once after bounded readback
+ok 195 - exact durable lost SDK acknowledgement still settles once after bounded readback
+  ---
+  duration_ms: 119.643583
+  type: 'test'
+  ...
+# Subtest: PAUSE during a committed SDK enrollment write retains the explicit durable stop
+ok 196 - PAUSE during a committed SDK enrollment write retains the explicit durable stop
+  ---
+  duration_ms: 123.804458
+  type: 'test'
+  ...
+# Subtest: DISCONNECT during a committed SDK enrollment write retains the explicit durable stop
+ok 197 - DISCONNECT during a committed SDK enrollment write retains the explicit durable stop
+  ---
+  duration_ms: 118.318667
+  type: 'test'
+  ...
+# Subtest: successor confirmed cold attachment requires a new explicit Resume and never replays the previous attempt
+ok 198 - successor confirmed cold attachment requires a new explicit Resume and never replays the previous attempt
+  ---
+  duration_ms: 206.722666
+  type: 'test'
+  ...
+# Subtest: successor SDK invocation ignores own call properties on the captured get and set functions
+ok 199 - successor SDK invocation ignores own call properties on the captured get and set functions
+  ---
+  duration_ms: 143.994791
+  type: 'test'
+  ...
+# Subtest: successor pending enrollment stays UNKNOWN across cold start and explicit PAUSE does not clear it
+ok 200 - successor pending enrollment stays UNKNOWN across cold start and explicit PAUSE does not clear it
+  ---
+  duration_ms: 170.567
+  type: 'test'
+  ...
+# Subtest: successor pending enrollment stays UNKNOWN across cold start and explicit DISCONNECT does not clear it
+ok 201 - successor pending enrollment stays UNKNOWN across cold start and explicit DISCONNECT does not clear it
+  ---
+  duration_ms: 167.518875
+  type: 'test'
+  ...
+# Subtest: successor legacy lifecycle receipt is preserved but cannot enable cold publication without a fresh Resume
+ok 202 - successor legacy lifecycle receipt is preserved but cannot enable cold publication without a fresh Resume
+  ---
+  duration_ms: 174.199458
+  type: 'test'
+  ...
+# Subtest: successor Context change during confirmed SDK write cannot become cold enrolled after restart
+ok 203 - successor Context change during confirmed SDK write cannot become cold enrolled after restart
+  ---
+  duration_ms: 167.965083
+  type: 'test'
+  ...
+# Subtest: successor pending stop refuses SDK replacement across its original read and keeps UNKNOWN
+ok 204 - successor pending stop refuses SDK replacement across its original read and keeps UNKNOWN
+  ---
+  duration_ms: 101.435375
+  type: 'test'
+  ...
+# {"resumed":{"ok":false,"error":"BNS_CONTEXT_BOOTSTRAP_REQUIRED"},"triggered":true,"scopedReads":2,"beforeItems":0,"afterItems":1,"changeOK":true,"controlFenceUnchanged":true,"sdkUnchanged":true,"restoreEpochBefore":null,"restoreEpochAfter":null,"savedEnrollment":null,"currentItems":1,"lateItemRepresented":false,"cloudRequests":0}
+# Subtest: genuine second Store Context write during final SDK await cannot persist stale empty enrollment
+ok 205 - genuine second Store Context write during final SDK await cannot persist stale empty enrollment
+  ---
+  duration_ms: 227.941584
+  type: 'test'
+  ...
+# Subtest: original callback runs inside the final readonly fence after both SDK reads on the same ticket
+ok 206 - original callback runs inside the final readonly fence after both SDK reads on the same ticket
+  ---
+  duration_ms: 62.514458
+  type: 'test'
+  ...
+# Subtest: terminal Context predicate preserves original restore-fence SyncError rather than wrapper STORAGE_FAILED
+ok 207 - terminal Context predicate preserves original restore-fence SyncError rather than wrapper STORAGE_FAILED
+  ---
+  duration_ms: 52.249958
+  type: 'test'
+  ...
+# Subtest: shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+ok 208 - shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+  ---
+  duration_ms: 0.942167
+  type: 'test'
+  ...
+# Subtest: pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+ok 209 - pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+  ---
+  duration_ms: 109.887083
+  type: 'test'
+  ...
+# Subtest: same actual store journals feed original durable publication; no whole archive completion claim
+ok 210 - same actual store journals feed original durable publication; no whole archive completion claim
+  ---
+  duration_ms: 549.971625
+  type: 'test'
+  ...
+# Subtest: lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+ok 211 - lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+  ---
+  duration_ms: 404.715375
+  type: 'test'
+  ...
+# Subtest: pause during committed POST fences late response and explicit same task continuation first reconciles it
+ok 212 - pause during committed POST fences late response and explicit same task continuation first reconciles it
+  ---
+  duration_ms: 411.966917
+  type: 'test'
+  ...
+# Subtest: binding generation change and foreign account block old pending upload without retargeting it
+ok 213 - binding generation change and foreign account block old pending upload without retargeting it
+  ---
+  duration_ms: 224.635292
+  type: 'test'
+  ...
+# Subtest: durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+ok 214 - durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+  ---
+  duration_ms: 95.582125
+  type: 'test'
+  ...
+# Subtest: second owner and state changes are refused, malformed provider binding never installs journals
+ok 215 - second owner and state changes are refused, malformed provider binding never installs journals
+  ---
+  duration_ms: 33.363208
+  type: 'test'
+  ...
+# Subtest: wrong task command does not mutate pending identity or conceal original failure
+ok 216 - wrong task command does not mutate pending identity or conceal original failure
+  ---
+  duration_ms: 192.209417
+  type: 'test'
+  ...
+# Subtest: existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+ok 217 - existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+  ---
+  duration_ms: 221.100583
+  type: 'test'
+  ...
+# Subtest: suspend cancellation reconciles local state without IO or automatic continuation
+ok 218 - suspend cancellation reconciles local state without IO or automatic continuation
+  ---
+  duration_ms: 322.047542
+  type: 'test'
+  ...
+# Subtest: cold recovery of original confirmed publication receipt needs no remote request
+ok 219 - cold recovery of original confirmed publication receipt needs no remote request
+  ---
+  duration_ms: 315.110666
+  type: 'test'
+  ...
+# Subtest: remote loss after original verified cut never causes silently recreating it
+ok 220 - remote loss after original verified cut never causes silently recreating it
+  ---
+  duration_ms: 188.331958
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=false
+ok 221 - actual worker synchronous events and same-store command consumer, configured=false
+  ---
+  duration_ms: 118.56125
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=true
+ok 222 - actual worker synchronous events and same-store command consumer, configured=true
+  ---
+  duration_ms: 379.263709
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=restore
+ok 223 - actual worker synchronous events and same-store command consumer, configured=restore
+  ---
+  duration_ms: 235.805875
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge
+ok 224 - actual worker synchronous events and same-store command consumer, configured=purge
+  ---
+  duration_ms: 841.513375
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge-unknown
+ok 225 - actual worker synchronous events and same-store command consumer, configured=purge-unknown
+  ---
+  duration_ms: 371.003333
+  type: 'test'
+  ...
+# Subtest: OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+ok 226 - OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+  ---
+  duration_ms: 117.554625
+  type: 'test'
+  ...
+# Subtest: interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+ok 227 - interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+  ---
+  duration_ms: 119.621541
+  type: 'test'
+  ...
+# Subtest: configured capture owner always includes original permanent-denial journal
+ok 228 - configured capture owner always includes original permanent-denial journal
+  ---
+  duration_ms: 19.340542
+  type: 'test'
+  ...
+# Subtest: Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+ok 229 - Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+  ---
+  duration_ms: 0.284125
+  type: 'test'
+  ...
+# Subtest: configured actions still require original consent; status and stop remain non-transferring
+ok 230 - configured actions still require original consent; status and stop remain non-transferring
+  ---
+  duration_ms: 18.460125
+  type: 'test'
+  ...
+# Subtest: explicit pause during original preparation fences its transaction checkpoint before any transfer
+ok 231 - explicit pause during original preparation fences its transaction checkpoint before any transfer
+  ---
+  duration_ms: 33.385334
+  type: 'test'
+  ...
+# Subtest: explicit pause during enrollment wins over an earlier Resume and refuses simultaneous enrollment
+ok 232 - explicit pause during enrollment wins over an earlier Resume and refuses simultaneous enrollment
+  ---
+  duration_ms: 29.448333
+  type: 'test'
+  ...
+# Subtest: trusted CONTINUE advances the same validated negative task to its real second-purge descendant
+ok 233 - trusted CONTINUE advances the same validated negative task to its real second-purge descendant
+  ---
+  duration_ms: 1975.059167
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE preserves two-store outcome through candidate-saved and cold retry
+ok 234 - trusted negative CONTINUE preserves two-store outcome through candidate-saved and cold retry
+  ---
+  duration_ms: 2090.122917
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE preserves two-store outcome through candidate-not-saved and cold retry
+ok 235 - trusted negative CONTINUE preserves two-store outcome through candidate-not-saved and cold retry
+  ---
+  duration_ms: 2021.174167
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE preserves two-store outcome through tail-ack-lost and cold retry
+ok 236 - trusted negative CONTINUE preserves two-store outcome through tail-ack-lost and cold retry
+  ---
+  duration_ms: 2468.103583
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE preserves two-store outcome through confirmation-not-saved and cold retry
+ok 237 - trusted negative CONTINUE preserves two-store outcome through confirmation-not-saved and cold retry
+  ---
+  duration_ms: 2079.906208
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE preserves two-store outcome through confirmation-ack-lost and cold retry
+ok 238 - trusted negative CONTINUE preserves two-store outcome through confirmation-ack-lost and cold retry
+  ---
+  duration_ms: 2005.344208
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE refuses an authenticated unsupported positive addition before replacing either binding
+ok 239 - trusted negative CONTINUE refuses an authenticated unsupported positive addition before replacing either binding
+  ---
+  duration_ms: 2191.854375
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE and PAUSE settle promptly when candidate storage acknowledgement is held
+ok 240 - trusted negative CONTINUE and PAUSE settle promptly when candidate storage acknowledgement is held
+  ---
+  duration_ms: 2212.710958
+  type: 'test'
+  ...
+# Subtest: cold empty Context enrollment refuses absent without enrolling from active mode or repairing its receipt
+ok 241 - cold empty Context enrollment refuses absent without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 28.408
+  type: 'test'
+  ...
+# Subtest: cold empty Context enrollment refuses database without enrolling from active mode or repairing its receipt
+ok 242 - cold empty Context enrollment refuses database without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 28.536042
+  type: 'test'
+  ...
+# Subtest: cold empty Context enrollment refuses namespace without enrolling from active mode or repairing its receipt
+ok 243 - cold empty Context enrollment refuses namespace without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 28.988458
+  type: 'test'
+  ...
+# Subtest: cold empty Context enrollment refuses epoch without enrolling from active mode or repairing its receipt
+ok 244 - cold empty Context enrollment refuses epoch without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 29.436875
+  type: 'test'
+  ...
+# Subtest: cold empty Context enrollment refuses physical-namespace without enrolling from active mode or repairing its receipt
+ok 245 - cold empty Context enrollment refuses physical-namespace without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 29.3125
+  type: 'test'
+  ...
+# Subtest: cold empty Context enrollment refuses physical-epoch without enrolling from active mode or repairing its receipt
+ok 246 - cold empty Context enrollment refuses physical-epoch without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 27.207708
+  type: 'test'
+  ...
+# Subtest: cold empty Context enrollment refuses nonempty without enrolling from active mode or repairing its receipt
+ok 247 - cold empty Context enrollment refuses nonempty without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 27.261375
+  type: 'test'
+  ...
+# Subtest: cold empty Context enrollment refuses access without enrolling from active mode or repairing its receipt
+ok 248 - cold empty Context enrollment refuses access without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 28.409209
+  type: 'test'
+  ...
+# Subtest: cold empty Context enrollment refuses binding without enrolling from active mode or repairing its receipt
+ok 249 - cold empty Context enrollment refuses binding without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 32.323792
+  type: 'test'
+  ...
+# Subtest: cold empty Context enrollment refuses generation without enrolling from active mode or repairing its receipt
+ok 250 - cold empty Context enrollment refuses generation without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 29.854125
+  type: 'test'
+  ...
+# Subtest: malformed empty Context enrollment version fails closed before cold attachment
+ok 251 - malformed empty Context enrollment version fails closed before cold attachment
+  ---
+  duration_ms: 30.050209
+  type: 'test'
+  ...
+# Subtest: malformed empty Context enrollment extra fails closed before cold attachment
+ok 252 - malformed empty Context enrollment extra fails closed before cold attachment
+  ---
+  duration_ms: 29.259208
+  type: 'test'
+  ...
+# Subtest: malformed empty Context enrollment missing fails closed before cold attachment
+ok 253 - malformed empty Context enrollment missing fails closed before cold attachment
+  ---
+  duration_ms: 30.048709
+  type: 'test'
+  ...
+# Subtest: malformed empty Context enrollment epoch-type fails closed before cold attachment
+ok 254 - malformed empty Context enrollment epoch-type fails closed before cold attachment
+  ---
+  duration_ms: 29.400875
+  type: 'test'
+  ...
+# Subtest: empty enrollment ignores substituted public Store.run rather than accepting forged or delayed snapshots
+ok 255 - empty enrollment ignores substituted public Store.run rather than accepting forged or delayed snapshots
+  ---
+  duration_ms: 29.634916
+  type: 'test'
+  ...
+# Subtest: cold attach stays unenrolled and held explicit Resume proof refuses after host changes
+ok 256 - cold attach stays unenrolled and held explicit Resume proof refuses after host changes
+  ---
+  duration_ms: 33.521084
+  type: 'test'
+  ...
+# Subtest: cold attach stays unenrolled and held explicit Resume proof refuses after lifecycle changes
+ok 257 - cold attach stays unenrolled and held explicit Resume proof refuses after lifecycle changes
+  ---
+  duration_ms: 33.656333
+  type: 'test'
+  ...
+# Subtest: original v1 reader fails closed; explicit paused rollback removes only the local optional receipt and preserves original data/tasks
+ok 258 - original v1 reader fails closed; explicit paused rollback removes only the local optional receipt and preserves original data/tasks
+  ---
+  duration_ms: 30.213708
+  type: 'test'
+  ...
+# Subtest: mounted Settings PAUSE stops held original publication with no extra transfer or task replacement
+ok 259 - mounted Settings PAUSE stops held original publication with no extra transfer or task replacement
+  ---
+  duration_ms: 101.5545
+  type: 'test'
+  ...
+# Subtest: mounted Settings DISCONNECT stops held original publication with no extra transfer or task replacement
+ok 260 - mounted Settings DISCONNECT stops held original publication with no extra transfer or task replacement
+  ---
+  duration_ms: 97.463875
+  type: 'test'
+  ...
+# Subtest: mounted Settings stop does not grant consent and explicit resume still needs the original consent owner
+ok 261 - mounted Settings stop does not grant consent and explicit resume still needs the original consent owner
+  ---
+  duration_ms: 27.08175
+  type: 'test'
+  ...
+# Subtest: mounted Settings PAUSE stops held original restore without applying data or replacing its task
+ok 262 - mounted Settings PAUSE stops held original restore without applying data or replacing its task
+  ---
+  duration_ms: 67.543625
+  type: 'test'
+  ...
+# Subtest: mounted Settings DISCONNECT stops held original restore without applying data or replacing its task
+ok 263 - mounted Settings DISCONNECT stops held original restore without applying data or replacing its task
+  ---
+  duration_ms: 64.548041
+  type: 'test'
+  ...
+# Subtest: google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 264 - google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 2536.449667
+  type: 'test'
+  ...
+# Subtest: onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 265 - onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 1781.266083
+  type: 'test'
+  ...
+# Subtest: actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+ok 266 - actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+  ---
+  duration_ms: 132.124125
+  type: 'test'
+  ...
+# Subtest: unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+ok 267 - unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+  ---
+  duration_ms: 107.9075
+  type: 'test'
+  ...
+# Subtest: google original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+ok 268 - google original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+  ---
+  duration_ms: 1094.6125
+  type: 'test'
+  ...
+# Subtest: onedrive original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+ok 269 - onedrive original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+  ---
+  duration_ms: 936.95075
+  type: 'test'
+  ...
+# Subtest: google explicit empty Context enrollment is preserved cold and requalified only by fresh Resume without manufacturing content or access
+ok 270 - google explicit empty Context enrollment is preserved cold and requalified only by fresh Resume without manufacturing content or access
+  ---
+  duration_ms: 184.188584
+  type: 'test'
+  ...
+# Subtest: onedrive explicit empty Context enrollment is preserved cold and requalified only by fresh Resume without manufacturing content or access
+ok 271 - onedrive explicit empty Context enrollment is preserved cold and requalified only by fresh Resume without manufacturing content or access
+  ---
+  duration_ms: 194.982917
+  type: 'test'
+  ...
+1..271
+# tests 271
+# suites 0
+# pass 271
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 36302.179167

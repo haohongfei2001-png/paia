@@ -1,0 +1,9 @@
+# Coordinator local successor
+
+The first integrated Context/Source/Settings/null-Assist candidate 027bc2f passed 271/271 across 13 complete owning/related files on Node22.23.3, macOS, synthetic IDB/service. Exact command, source vector, TAP and exit receipt are retained. This result predates the later activity/capture/deadline changes.
+
+A source read showed original local Safety/Library waits and subsequent source fences could lack one bounded coordinator deadline. All original admission holds still start synchronously, but their aggregate and every subsequent fence now consume the same original 30-second deadline. Exact original method dispatch uses captured Reflect.apply. Timeout retains real work and releases late successful private receipts only after their actual completion; it is never a cancellation/quiet receipt.
+
+New-contract baseline: 0/2. Initial complete coordinator owning file: 11/11. Independent review found an unobserved late-rejection window at the deadline boundary; fixed by observing already-created promises even when they crossed the deadline and checking before each newly invoked fence. Next two-file combination 44/45: the new boundary fixture incorrectly assumed holds settle in declaration order. The runtime was unchanged for fixture correction; corrected boundary 1/1. All logs remain; no claim of one final45/45. The final source review records closure.
+
+Root also reviewed activity fec08a3 two-runtime/new-test difference and capture914ff08+f4dd4d6 original-owner difference. Capture review required captured original API dispatch, sticky source replacement and private factory identity; the followup implements those controls. Activity self exclusion is private, single-dispatch and finite; existing selection activation gates remain. These local integration candidates are not native, global host closure or product completion.

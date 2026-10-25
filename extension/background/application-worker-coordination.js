@@ -10,6 +10,16 @@ import {PromptSurfaceCommands} from './prompt-surface.js';
 import {PromptReuseService} from '../core/prompt-reuse-service.js';
 import {holdMaintenanceForApplicationSelection,maintenanceHeldForApplicationSelection,releaseMaintenanceForApplicationSelection} from '../core/ai-usage/maintenance-runner.js';
 const fail=()=>{throw new ArchiveError('GENERATION_WORKER_NOT_QUIET');};
+const apply=Reflect.apply,clock=performance.now.bind(performance),Timer=setTimeout,clearTimer=clearTimeout;
+const DEADLINE_MS=30000;
+const checkTime=state=>{if(clock()>=state.deadline)fail();};
+async function waitOriginalOwner(state,pending){
+ // Attach a rejection observer even when an already-created owner promise
+ // crossed the deadline synchronously before reaching this await.
+ let timer;
+ try{const result=await Promise.race([pending,new Promise((_,reject)=>{timer=Timer(()=>reject(new ArchiveError('GENERATION_WORKER_NOT_QUIET')),Math.max(0,state.deadline-clock()));})]);checkTime(state);return result;}
+ finally{clearTimer(timer);}
+}
 const exact=(owner,prototype)=>!!owner&&Object.getPrototypeOf(owner)===prototype;
 // Capture original methods, not instance callbacks or a later prototype edit.
 const methods=prototype=>Object.freeze({hold:prototype.holdForApplicationSelection,current:prototype.applicationSelectionHeld,fence:prototype.fenceApplicationSelection,release:prototype.releaseApplicationSelection,source:prototype.applicationSelectionSourceIs});
@@ -30,10 +40,10 @@ export function createApplicationWorkerCoordination({store,safety,libraryRunner,
  const storeCurrent=()=>!!database&&store.repository===repository&&repository.db===database&&store.databaseId===databaseId;
  const localCurrent=()=>storeCurrent()&&local.every(({owner,prototype})=>exact(owner,prototype)&&owner.store===store);
  const sourcesCurrent=()=>localCurrent()&&sources.every(({owner,prototype,hold,current,fence,release},i)=>exact(owner,prototype)&&[hold,current,fence,release].every(method=>typeof method==='function')&&owner.api===identities[i].api&&owner.service===identities[i].service&&owner.surface===identities[i].surface)&&
-  contextMethods.source.call(contextConnections,store)===true&&assistMethods.source.call(promptAssist,store)===true&&nextMethods.source.call(promptNext,store)===true&&
+  apply(contextMethods.source,contextConnections,[store])===true&&apply(assistMethods.source,promptAssist,[store])===true&&apply(nextMethods.source,promptNext,[store])===true&&
   exact(service,PromptReuseService.prototype)&&promptCommands.service===service&&service.s===store&&promptNext.service===service&&promptAssist.store===store&&promptAssist.session===session&&
   promptSurface.commands===promptCommands&&promptSurface.assist===promptAssist&&promptSurface.next===promptNext&&promptAssist.surface===promptSurface&&promptNext.surface===promptSurface;
- const call=(entry,method,...args)=>entry[method].call(entry.owner,...args);
+ const call=(entry,method,...args)=>apply(entry[method],entry.owner,args);
  // A failed cleanup cannot leave an apparently reusable coordinator. Continue
  // releasing the remaining original receipts even when one owner throws.
  const releaseEntry=entry=>{if(entry.released)return true;entry.released=true;try{return call(entry,'release',entry.token)===true;}catch{return false;}};
@@ -44,13 +54,13 @@ export function createApplicationWorkerCoordination({store,safety,libraryRunner,
  };
  const release=(token,scope)=>{if(active?.token!==token||active.scope!==scope)return false;if(!releaseState(active))fail();return true;};
  const current=(token,scope)=>{
-  const state=active;if(closed||!state||state.token!==token||state.scope!==scope||!state.ready||!state.valid)return false;
+  const state=active;if(closed||!state||state.token!==token||state.scope!==scope||!state.ready||!state.valid||clock()>=state.deadline)return false;
   try{return (scope==='sources'?sourcesCurrent():localCurrent())&&state.held.length===state.owners.length&&state.held.every(entry=>!entry.released&&call(entry,'current',entry.token)===true);}catch{return false;}
  };
  const hold=async scope=>{
   if(closed||active)fail();
   try{if(!(scope==='sources'?sourcesCurrent():localCurrent()))fail();}catch{fail();}
-  const token=Object.freeze(Object.create(null)),state={token,scope,owners:scope==='sources'?[...local,...sources,maintenance]:[...local,maintenance],held:[],ready:false,valid:true};active=state;
+  const token=Object.freeze(Object.create(null)),state={token,scope,deadline:clock()+DEADLINE_MS,owners:scope==='sources'?[...local,...sources,maintenance]:[...local,maintenance],held:[],ready:false,valid:true};active=state;
   try{
    // Invoke EVERY original admission hold in this turn before awaiting any
    // drain. A synchronous refusal must not strand earlier pending promises.
@@ -62,7 +72,7 @@ export function createApplicationWorkerCoordination({store,safety,libraryRunner,
      state.held.push(entry);return value;
     }).catch(error=>{releaseState(state);throw error;});
    });
-   const results=await Promise.allSettled(attempts),refused=results.find(result=>result.status==='rejected');
+   const results=await waitOriginalOwner(state,Promise.allSettled(attempts)),refused=results.find(result=>result.status==='rejected');
    if(refused)throw refused.reason;state.ready=true;if(!current(token,scope))fail();return token;
   }catch(error){releaseState(state);throw error;}
  };
@@ -78,7 +88,7 @@ export function createApplicationWorkerCoordination({store,safety,libraryRunner,
    try{
     // Each real asynchronous owner fence re-reads its own source snapshot. No
     // registry size or resolved outer wrapper replaces those original facts.
-    for(const entry of state.held){if(typeof entry.fence==='function'){if(await call(entry,'fence',entry.token)!==true)fail();}if(!current(token,'sources'))fail();}
+    for(const entry of state.held){if(typeof entry.fence==='function'){checkTime(state);if(await waitOriginalOwner(state,call(entry,'fence',entry.token))!==true)fail();}if(!current(token,'sources'))fail();}
     return true;
    }catch(error){releaseState(state);throw error;}
   },

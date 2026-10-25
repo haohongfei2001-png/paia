@@ -16,3 +16,20 @@ test('forged tokens and foreign repository identity fail without release',async(
 test('closing during drain releases late holds and cannot publish a usable receipt',async()=>{const f=fixture(),gate=deferred();f.store.processPurgeCleanup=async()=>{await gate.promise;return {pending:false};};f.safety.wake();const pending=f.coord.holdLocalMaintenance();f.coord.close();gate.resolve();await assert.rejects(pending);assert.equal(f.safety.applicationSelectionHolding(),false);assert.equal(f.libraryRunner.applicationSelectionHolding(),false);await assert.rejects(f.coord.holdLocalMaintenance());});
 test('default-null remote lane hold does not access store; copied factory cannot qualify',async()=>{let touched=0;const store=new Proxy({}, {get(){touched++;throw Error('store touched');}}),runner=createMaintenanceRunner(store,null);const token=await holdMaintenanceForApplicationSelection(runner,store);assert.equal(maintenanceHeldForApplicationSelection(runner,store,token),true);assert.equal(touched,0);assert.throws(()=>holdMaintenanceForApplicationSelection({...runner},store));runner.dispose();assert.equal(maintenanceHeldForApplicationSelection(runner,store,token),false);});
 test('copied local runner cannot qualify the private prototype guard',async()=>{const f=fixture();assert.throws(()=>createApplicationWorkerCoordination({...f,safety:{...f.safety}}));});
+
+test('captured original hold cannot be redirected through a method own call property',async()=>{
+ const f=fixture(),method=SafetyRunner.prototype.holdForApplicationSelection,descriptor=Object.getOwnPropertyDescriptor(method,'call');
+ Object.defineProperty(method,'call',{value(){throw Error('SYNTHETIC_REDIRECT');},configurable:true});
+ try{const token=await f.coord.holdLocalMaintenance();assert.equal(f.coord.assertLocalMaintenanceHeld(token),true);assert.equal(f.coord.releaseLocalMaintenance(token),true);}
+ finally{if(descriptor)Object.defineProperty(method,'call',descriptor);else delete method.call;f.coord.close();}
+});
+
+test('one fixed coordinator deadline refuses a hung original owner without dropping its task',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ const {createApplicationWorkerCoordination:bounded}=await import('../background/application-worker-coordination.js?bounded-owner-deadline');
+ const f=fixture(),gate=deferred();f.coord.close();f.coord=bounded(f);f.store.processPurgeCleanup=async()=>{await gate.promise;return {pending:false};};
+ const task=f.safety.wake();let outcome=null;const acquiring=f.coord.holdLocalMaintenance().then(v=>{outcome={value:v};},e=>{outcome={error:e};});
+ try{t.mock.timers.tick(30000);for(let i=0;i<12;i++)await Promise.resolve();assert.equal(outcome?.error?.code,'GENERATION_WORKER_NOT_QUIET');assert.equal(f.safety.running,task,'the original pending task remains tracked');assert.equal(f.safety.applicationSelectionHolding(),true,'a late original hold is not fabricated as complete');}
+ finally{gate.resolve();await task;await acquiring;for(let i=0;i<12;i++)await Promise.resolve();f.coord.close();}
+ assert.equal(f.safety.applicationSelectionHolding(),false,'the late private receipt is released after real settlement');
+});

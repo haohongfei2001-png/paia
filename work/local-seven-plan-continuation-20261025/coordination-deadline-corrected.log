@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: source fences share the acquisition deadline and observe already-started late rejection
+ok 1 - source fences share the acquisition deadline and observe already-started late rejection
+  ---
+  duration_ms: 48.267291
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 311.499083

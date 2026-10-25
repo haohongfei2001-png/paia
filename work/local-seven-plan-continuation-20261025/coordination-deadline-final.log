@@ -1,0 +1,298 @@
+TAP version 13
+# (node:5475) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: original local owners hold intake and release only requested work once
+ok 1 - original local owners hold intake and release only requested work once
+  ---
+  duration_ms: 1.741417
+  type: 'test'
+  ...
+# Subtest: all intake gates close before an existing drain settles, requested wake is retained
+ok 2 - all intake gates close before an existing drain settles, requested wake is retained
+  ---
+  duration_ms: 0.236417
+  type: 'test'
+  ...
+# Subtest: idle release does not invent work
+ok 3 - idle release does not invent work
+  ---
+  duration_ms: 0.103084
+  type: 'test'
+  ...
+# Subtest: failed original maintenance prevents proof and never becomes an automatic retry
+ok 4 - failed original maintenance prevents proof and never becomes an automatic retry
+  ---
+  duration_ms: 0.214834
+  type: 'test'
+  ...
+# Subtest: library retry during hold cannot clear the original failure marker
+ok 5 - library retry during hold cannot clear the original failure marker
+  ---
+  duration_ms: 0.290917
+  type: 'test'
+  ...
+# Subtest: forged tokens and foreign repository identity fail without release
+ok 6 - forged tokens and foreign repository identity fail without release
+  ---
+  duration_ms: 0.101
+  type: 'test'
+  ...
+# Subtest: closing during drain releases late holds and cannot publish a usable receipt
+ok 7 - closing during drain releases late holds and cannot publish a usable receipt
+  ---
+  duration_ms: 0.153333
+  type: 'test'
+  ...
+# Subtest: default-null remote lane hold does not access store; copied factory cannot qualify
+ok 8 - default-null remote lane hold does not access store; copied factory cannot qualify
+  ---
+  duration_ms: 0.0995
+  type: 'test'
+  ...
+# Subtest: copied local runner cannot qualify the private prototype guard
+ok 9 - copied local runner cannot qualify the private prototype guard
+  ---
+  duration_ms: 0.330875
+  type: 'test'
+  ...
+# Subtest: captured original hold cannot be redirected through a method own call property
+ok 10 - captured original hold cannot be redirected through a method own call property
+  ---
+  duration_ms: 0.372
+  type: 'test'
+  ...
+# Subtest: one fixed coordinator deadline refuses a hung original owner without dropping its task
+ok 11 - one fixed coordinator deadline refuses a hung original owner without dropping its task
+  ---
+  duration_ms: 5.6565
+  type: 'test'
+  ...
+# Subtest: all genuine source tokens compose without becoming global selection authority
+ok 12 - all genuine source tokens compose without becoming global selection authority
+  ---
+  duration_ms: 52.249458
+  type: 'test'
+  ...
+# Subtest: local maintenance receipt never substitutes for all original sources
+ok 13 - local maintenance receipt never substitutes for all original sources
+  ---
+  duration_ms: 20.567292
+  type: 'test'
+  ...
+# Subtest: original null Assist session can join live holds without claiming provider settlement
+ok 14 - original null Assist session can join live holds without claiming provider settlement
+  ---
+  duration_ms: 18.917958
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses forged session replacement before-coordinator
+ok 15 - constructor null Assist refuses forged session replacement before-coordinator
+  ---
+  duration_ms: 19.47975
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses forged session replacement after-hold
+ok 16 - constructor null Assist refuses forged session replacement after-hold
+  ---
+  duration_ms: 19.23325
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses genuine session replacement before-coordinator
+ok 17 - constructor null Assist refuses genuine session replacement before-coordinator
+  ---
+  duration_ms: 16.308709
+  type: 'test'
+  ...
+# Subtest: constructor null Assist refuses genuine session replacement after-hold
+ok 18 - constructor null Assist refuses genuine session replacement after-hold
+  ---
+  duration_ms: 17.767
+  type: 'test'
+  ...
+# Subtest: configured Assist cannot replace its original session with null to evade its owner
+ok 19 - configured Assist cannot replace its original session with null to evade its owner
+  ---
+  duration_ms: 16.763792
+  type: 'test'
+  ...
+# Subtest: null Assist live hold still rejects changed recovery-restore-epoch fence and releases sources
+ok 20 - null Assist live hold still rejects changed recovery-restore-epoch fence and releases sources
+  ---
+  duration_ms: 18.096417
+  type: 'test'
+  ...
+# Subtest: null Assist live hold still rejects changed gate fence and releases sources
+ok 21 - null Assist live hold still rejects changed gate fence and releases sources
+  ---
+  duration_ms: 15.361583
+  type: 'test'
+  ...
+# Subtest: copied private-brand contextConnections cannot supply a source receipt
+ok 22 - copied private-brand contextConnections cannot supply a source receipt
+  ---
+  duration_ms: 16.247375
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptAssist cannot supply a source receipt
+ok 23 - copied private-brand promptAssist cannot supply a source receipt
+  ---
+  duration_ms: 16.738958
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptNext cannot supply a source receipt
+ok 24 - copied private-brand promptNext cannot supply a source receipt
+  ---
+  duration_ms: 15.440417
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptCommands cannot supply a source receipt
+ok 25 - copied private-brand promptCommands cannot supply a source receipt
+  ---
+  duration_ms: 16.317584
+  type: 'test'
+  ...
+# Subtest: copied private-brand promptSurface cannot supply a source receipt
+ok 26 - copied private-brand promptSurface cannot supply a source receipt
+  ---
+  duration_ms: 15.5805
+  type: 'test'
+  ...
+# Subtest: exact Context private store identity refuses a genuine foreign original owner
+ok 27 - exact Context private store identity refuses a genuine foreign original owner
+  ---
+  duration_ms: 26.374458
+  type: 'test'
+  ...
+# Subtest: forged replacement Assist session cannot refresh its original birth binding
+ok 28 - forged replacement Assist session cannot refresh its original birth binding
+  ---
+  duration_ms: 13.804209
+  type: 'test'
+  ...
+# Subtest: genuine replacement Assist session cannot refresh its original birth binding
+ok 29 - genuine replacement Assist session cannot refresh its original birth binding
+  ---
+  duration_ms: 15.424375
+  type: 'test'
+  ...
+# Subtest: Next constructor service binding cannot be refreshed before coordinator creation
+ok 30 - Next constructor service binding cannot be refreshed before coordinator creation
+  ---
+  duration_ms: 13.504875
+  type: 'test'
+  ...
+# Subtest: replaced instance session callbacks cannot hide original durable provider UNKNOWN
+ok 31 - replaced instance session callbacks cannot hide original durable provider UNKNOWN
+  ---
+  duration_ms: 159.142542
+  type: 'test'
+  ...
+# Subtest: replaced prototype session callbacks cannot hide original durable provider UNKNOWN
+ok 32 - replaced prototype session callbacks cannot hide original durable provider UNKNOWN
+  ---
+  duration_ms: 104.837208
+  type: 'test'
+  ...
+# Subtest: late same-object session callback replacement cannot hide a changed original source fence
+ok 33 - late same-object session callback replacement cannot hide a changed original source fence
+  ---
+  duration_ms: 16.549792
+  type: 'test'
+  ...
+# Subtest: a competing composer cannot release another composer's private holds
+ok 34 - a competing composer cannot release another composer's private holds
+  ---
+  duration_ms: 16.817
+  type: 'test'
+  ...
+# Subtest: all original intake gates close synchronously before the first source drain
+ok 35 - all original intake gates close synchronously before the first source drain
+  ---
+  duration_ms: 18.573167
+  type: 'test'
+  ...
+# Subtest: synchronous factory refusal releases early and late original acquisitions
+ok 36 - synchronous factory refusal releases early and late original acquisitions
+  ---
+  duration_ms: 15.856666
+  type: 'test'
+  ...
+# Subtest: close during pending drain releases every late receipt and forbids reuse
+ok 37 - close during pending drain releases every late receipt and forbids reuse
+  ---
+  duration_ms: 17.281458
+  type: 'test'
+  ...
+# Subtest: post-hold owner relinking invalidates full proof and final fence releases others
+ok 38 - post-hold owner relinking invalidates full proof and final fence releases others
+  ---
+  duration_ms: 19.184292
+  type: 'test'
+  ...
+# Subtest: final source epoch fence rejects metadata replacement and releases original tokens
+ok 39 - final source epoch fence rejects metadata replacement and releases original tokens
+  ---
+  duration_ms: 17.532791
+  type: 'test'
+  ...
+# Subtest: database replacement and forged source token never release someone else's hold
+ok 40 - database replacement and forged source token never release someone else's hold
+  ---
+  duration_ms: 18.453542
+  type: 'test'
+  ...
+# Subtest: cleanup exception still releases every other receipt and permanently closes the composer
+ok 41 - cleanup exception still releases every other receipt and permanently closes the composer
+  ---
+  duration_ms: 19.422208
+  type: 'test'
+  ...
+# Subtest: instance callback shadows cannot replace captured original owner methods
+ok 42 - instance callback shadows cannot replace captured original owner methods
+  ---
+  duration_ms: 18.329334
+  type: 'test'
+  ...
+# Subtest: cold persisted Context connection refuses composed proof despite empty host registry
+ok 43 - cold persisted Context connection refuses composed proof despite empty host registry
+  ---
+  duration_ms: 16.077917
+  type: 'test'
+  ...
+# Subtest: configured Maintenance remains explicitly unqualified, even while idle
+ok 44 - configured Maintenance remains explicitly unqualified, even while idle
+  ---
+  duration_ms: 15.737666
+  type: 'test'
+  ...
+# Subtest: source fences share the acquisition deadline and observe already-started late rejection
+not ok 45 - source fences share the acquisition deadline and observe already-started late rejection
+  ---
+  duration_ms: 20.704375
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/application-worker-sources.test.mjs:184:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    the next source fence cannot refresh the original deadline
+    
+    1 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/application-worker-sources.test.mjs:193:38)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..45
+# tests 45
+# suites 0
+# pass 44
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1098.4105

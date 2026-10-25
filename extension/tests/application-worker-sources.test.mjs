@@ -180,3 +180,18 @@ test('configured Maintenance remains explicitly unqualified, even while idle',as
  const f=await maintenanceServiceFixture(t),runner=f.runner();t.after(()=>{runner.dispose();f.session.dispose();});assert.equal(runner.status().available,true);
  const coord=createApplicationWorkerCoordination({store:f.s,safety:new SafetyRunner(f.s),libraryRunner:new LibraryRunner(f.s),filterRunner:new FilterRunner(f.s),maintenanceRunner:runner});await assert.rejects(coord.holdLocalMaintenance(),{code:'GENERATION_WORKER_NOT_QUIET'});assert.equal(f.calls.length,0);assert.equal(f.physical(),0);coord.close();
 });
+
+test('source fences share the acquisition deadline and observe already-started late rejection',async t=>{
+ const f=await fixture(t,{configuredAssist:false});f.coord.close();let now=0,fenceCalls=0;
+ t.mock.method(performance,'now',()=>now);
+ // Acquisition resolves in original-owner completion order, not declaration order.
+ for(const prototype of [ContextConnections.prototype,AssistPromptCommands.prototype,NextPromptCommands.prototype,PromptReuseCommands.prototype,PromptSurfaceCommands.prototype]){
+  const original=prototype.fenceApplicationSelection;
+  t.mock.method(prototype,'fenceApplicationSelection',function(token){fenceCalls++;const pending=Reflect.apply(original,this,[token]);now=30001;return pending;});
+ }
+ const {createApplicationWorkerCoordination:bounded}=await import('../background/application-worker-coordination.js?source-shared-deadline');
+ const coord=bounded(f.owners);t.after(()=>coord.close());const token=await coord.holdApplicationSources();now=29000;
+ await assert.rejects(coord.fenceApplicationSources(token),{code:'GENERATION_WORKER_NOT_QUIET'});
+ assert.equal(fenceCalls,1,'the next source fence cannot refresh the original deadline');assert.equal(coord.applicationSourcesHeld(token),false);
+ await tick();await released(f);
+});
