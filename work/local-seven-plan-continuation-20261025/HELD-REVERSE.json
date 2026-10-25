@@ -1,0 +1,18 @@
+{
+  "status": "HELD_NOT_INTEGRATABLE",
+  "commit": "f19171d3c3f612c298fa3dd84e9d1a1f79934601",
+  "base": "54e15e911c297dd687d7162b7dcacb576c644c23",
+  "repository": "/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable",
+  "runtimeIntegrated": false,
+  "positiveResult": "0/1; original 2MiB exceeded in B terminal transaction after SDK",
+  "retainedLimits": {
+    "references": 4096,
+    "bytes": 2097152,
+    "ms": 30000
+  },
+  "copiedDocuments": {
+    "HELD-REVERSE-REPORT.md": "41cda97d3bfbe09623e6e1f639b2aef69c095fd10c92ed967f3604c8afbe1cb2",
+    "HELD-REVERSE-BUDGET-AND-CONTINUATION.md": "96a9066efc27386eb279465ff14a658c033ecbf05ff43f5d2d4c4289e814205e",
+    "warm-reverse-durable-frozen-review.md": "fc68f6f6545d781a2a30b0bb63fd3f4cb61afa30ea96ab71c29bb44c3e8393b4"
+  }
+}
