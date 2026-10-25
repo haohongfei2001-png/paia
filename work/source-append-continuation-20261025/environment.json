@@ -1,0 +1,9 @@
+{
+  "node": "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+  "nodeVersion": "v22.23.3",
+  "platform": "Darwin",
+  "machine": "arm64",
+  "nativeBrowserRun": false,
+  "cloudRun": false,
+  "networkTransport": "in-memory fakeGoogleCheckpointHTTP only"
+}

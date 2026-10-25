@@ -1,6 +1,7 @@
 import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,recordIndex,blockIndex,sourceCount,chatOf} from '../idb-repository.js';
 import {planInitialFilter} from '../smart-filter-store-owner.js';
 import {SOURCE_BOOTSTRAP_TYPES} from './source-bootstrap-codec.js';
+import {SOURCE_APPEND_TYPES} from './source-append-codec.js';
 import {readGroupRows} from './group-page-reader.js';
 import {equalSourceWorkingPhysicalTree,measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {clone,equal,fail} from './value.js';
@@ -17,24 +18,28 @@ function charge(core,value){const ticket=currentOriginalRecoveryWork(core.reposi
 export function sourceUnionPublicationGroups(core,plan,original){
  const retained=new Set(original.operations.map(op=>op.revisionId)),identities=new Set(),previous=[],added=[];
  for(const group of plan.groups){
-  if(group.type!=='sourceBootstrapCommit')fail('BNS_GROUP_OWNER_UNSUPPORTED');
+  if(!['sourceBootstrapCommit','sourceAppendCommit'].includes(group.type))fail('BNS_GROUP_OWNER_UNSUPPORTED');
   const n=group.operations.filter(op=>retained.has(op.revisionId)).length;
-  if(n&&n!==group.operations.length)invalid();(n?previous:added).push(group);
-  const e=entities(group),claims=[...Object.entries(e).map(([kind,row])=>[kind,row.id]),['sourceKey',e.source.sourceKey],['dedupeKey',e.source.dedupeKey],['conversation',e.source.chatId]];
+  if(n&&(n!==group.operations.length||group.type!=='sourceBootstrapCommit'))invalid();(n?previous:added).push(group);
+  const e=entities(group),claims=[...Object.entries(e).map(([kind,row])=>[kind,row.id]),['sourceKey',e.source.sourceKey],['dedupeKey',e.source.dedupeKey]];
+  // Only an original bootstrap claims a conversation. Append's exact retained
+  // bootstrap/document dependency was proved by the original group planner.
+  if(group.type==='sourceBootstrapCommit')claims.push(['conversation',e.source.chatId]);
   for(const claim of claims){const key=JSON.stringify(claim);if(identities.has(key))fail('BNS_SOURCE_UNION_COLLISION');identities.add(key);}
  }
  if(previous.reduce((n,g)=>n+g.operations.length,0)!==retained.size)invalid();
  added.sort((a,b)=>a.prepared.descriptor.sequence-b.prepared.descriptor.sequence);
  if(added.length&&original.operations.some(op=>op.deviceId===core.deviceId))invalid();
- for(let index=0;index<added.length;index++){
-  const group=added[index],ops=group.operations;
-  if(ops.length!==7||group.prepared.descriptor!==ops[6]&&group.prepared.descriptor.revisionId!==ops[6].revisionId)invalid();
-  for(let i=0;i<7;i++)if(ops[i].deviceId!==core.deviceId||ops[i].sequence!==index*7+i+1||i<6&&ops[i].value.entityType!==SOURCE_BOOTSTRAP_TYPES[i])invalid();
+ let sequence=0;
+ for(const group of added){
+  const ops=group.operations,types=group.type==='sourceBootstrapCommit'?SOURCE_BOOTSTRAP_TYPES:SOURCE_APPEND_TYPES;
+  if(ops.length!==types.length+1||group.prepared.descriptor.revisionId!==ops.at(-1).revisionId)invalid();
+  for(let i=0;i<ops.length;i++)if(ops[i].deviceId!==core.deviceId||ops[i].sequence!==++sequence||i<types.length&&ops[i].value.entityType!==types[i])invalid();
  }
  return {previous,added};
 }
 
-export async function requireSourceUnionPublicationPhysical(core,t,originalCut,currentCut,groups){
+export async function requireSourceUnionPublicationPhysical(core,t,originalCut,currentCut,groups,canonical){
  charge(core,originalCut);charge(core,currentCut);
  const expected=clone(originalCut),meta=new Map(expected.metadata.map(row=>[row.id,row]));
  if(meta.size!==expected.metadata.length||expected.inputStates.length!==groups.previous.length||expected.revisionAllocations.length!==groups.previous.length||expected.filterInputs.length!==groups.previous.length)invalid();
@@ -42,7 +47,7 @@ export async function requireSourceUnionPublicationPhysical(core,t,originalCut,c
  if(!sequence||!history||!delta||!equal(sequence,{id:'sequence',records:sequence.records,blocks:sequence.blocks,documents:sequence.documents})||!equal(history,{id:'revision-sequence',value:history.value})||!equal(delta,{id:'input-delta-sequence',value:delta.value}))invalid();
  const n=groups.previous.length,base={records:counter(sequence.records)-n,blocks:counter(sequence.blocks)-n,documents:counter(sequence.documents)-n,history:counter(history.value)-n,delta:counter(delta.value)-n};
  if(Object.values(base).some(value=>value<0))invalid();
- const expectedRows={recordIndex:[],blockIndex:[],documents:[],sourceCounts:[]};
+ const expectedRows={recordIndex:[],blockIndex:[],documents:[],sourceCounts:[]},documents=new Map();
  for(const [index,group]of [...groups.previous,...groups.added].entries()){
   const e=entities(group),h=e.baselineRevision,b=e.input,r=e.source,step=index+1;
   const state={...e.inputState,deltaSequence:base.delta+step},allocation={id:h.id,sequence:base.history+step,listKey:[h.entityKey,base.history+step],documentList:[h.documentId,base.history+step]},filter=stableFilter(planInitialFilter(b,state));
@@ -54,12 +59,27 @@ export async function requireSourceUnionPublicationPhysical(core,t,originalCut,c
    if(!equal(e.inputState,state)||h.sequence!==allocation.sequence||!equal(h.listKey,allocation.listKey)||!equal(h.documentList,allocation.documentList))invalid();
    expected.inputStates.push(state);expected.revisionAllocations.push(allocation);expected.filterInputs.push(filter);
   }
-  const ri=recordIndex(r,base.records+index),bi=blockIndex(b,base.blocks+index,[r]),count=sourceCount(b.documentId,r.sourceKey,[ri],[bi],r.chatId),doc=e.inputDocument.source;
-  const row={id:doc.id,chatKey:chatOf(r),sequence:base.documents+index,displayKey:[-(Date.parse(doc.lastSourceSentAt)||0),doc.id],value:doc};
-  for(const view of ['library','archive'])row[view+'Display']=[-(Date.parse(count[view+'Last']?.[2])||0),doc.id];
-  expectedRows.recordIndex.push(ri);expectedRows.blockIndex.push(bi);expectedRows.documents.push(row);expectedRows.sourceCounts.push(count);
+  const ri=recordIndex(r,base.records+index),bi=blockIndex(b,base.blocks+index,[r]),count=sourceCount(b.documentId,r.sourceKey,[ri],[bi],r.chatId);
+  if(group.type==='sourceBootstrapCommit'){
+   const doc=e.inputDocument.source;if(documents.has(doc.id))invalid();
+   documents.set(doc.id,{id:doc.id,chatKey:chatOf(r),sequence:base.documents+documents.size});
+  }
+  expectedRows.recordIndex.push(ri);expectedRows.blockIndex.push(bi);expectedRows.sourceCounts.push(count);
  }
- for(const key of ['records','blocks','documents'])sequence[key]+=groups.added.length;history.value+=groups.added.length;delta.value+=groups.added.length;
+ // Scope values are independently compiled by the original planner from the
+ // complete admitted graph. Reconstruct raw allocation/display rows as well:
+ // appending an Input never allocates another document or replaces its anchor.
+ if(canonical.expected.documents.length!==documents.size)invalid();
+ for(const doc of canonical.expected.documents){
+  const allocation=documents.get(doc.id);if(!allocation)invalid();
+  const row={...allocation,displayKey:[-(Date.parse(doc.lastSourceSentAt)||0),doc.id],value:doc};
+  for(const view of ['library','archive']){
+   const times=expectedRows.sourceCounts.filter(count=>count.documentId===doc.id&&count[view+'Last']?.[1]===0).map(count=>count[view+'Last'][2]).sort();
+   row[view+'Display']=[-(Date.parse(times.at(-1))||0),doc.id];
+  }
+  expectedRows.documents.push(row);
+ }
+ for(const key of ['records','blocks'])sequence[key]+=groups.added.length;sequence.documents+=groups.added.filter(group=>group.type==='sourceBootstrapCommit').length;history.value+=groups.added.length;delta.value+=groups.added.length;
  for(const name of ['inputStates','revisionAllocations','filterInputs'])order(expected[name]);
  charge(core,expected);if(!equalSourceWorkingPhysicalTree(currentCut,expected))invalid();
  for(const [table,rows]of Object.entries(expectedRows)){order(rows);charge(core,rows);if(!equalSourceWorkingPhysicalTree(await readGroupRows(t,table),rows))invalid();}

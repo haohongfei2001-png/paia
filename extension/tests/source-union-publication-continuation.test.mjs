@@ -17,6 +17,7 @@ const datasetId='SYNTHETIC_union_runtime',binding={subject:'SYNTHETIC_google_sub
 async function fresh(t,deviceId,{storage=local()}={}){const factory=new IDBFactory(),store=new LibraryDocumentsStore(storage,{indexedDB:factory});await store.consent(true);await store.finishFoundation();t.after(()=>store.repository.db?.close());const core=new BrowserNativeSyncCore(store.repository,{datasetId,deviceId});store.sourceBootstrapJournal=new SourceBootstrapJournal(core);return {store,core,storage,factory};}
 async function reopen(t,f){const deviceId=f.core.deviceId;await f.store.repository.close();const store=new LibraryDocumentsStore(f.storage,{indexedDB:f.factory});await store.finishFoundation();t.after(()=>store.repository.db?.close());const core=new BrowserNativeSyncCore(store.repository,{datasetId,deviceId});store.sourceBootstrapJournal=new SourceBootstrapJournal(core);return {...f,store,core};}
 async function source(f,name){const request=capture((await f.store.status()).epoch,'SYNTHETIC_message_'+name,'SYNTHETIC exact '+name+' 中文🙂');request.chat={id:'SYNTHETIC_chat_'+name,url:'https://chatgpt.com/c/SYNTHETIC_chat_'+name,title:'SYNTHETIC '+name};await f.store.capture(request);}
+async function appendSource(f,chatName,name,{time=null,order=2}={}){const request=capture((await f.store.status()).epoch,'SYNTHETIC_append_'+name,'SYNTHETIC exact append '+name+' 中文🙂');request.chat={id:'SYNTHETIC_chat_'+chatName,url:'https://chatgpt.com/c/SYNTHETIC_chat_'+chatName,title:'SYNTHETIC '+chatName};request.messages[0].pageOrder=order;if(time!==null)request.messages[0].sourceTime={state:'valid',createTime:time,updateTime:null};await f.store.capture(request);}
 const transport=(f,cloud)=>new GoogleDriveAppDataTransport(f.core,{binding,request:cloud.request,isCurrent:()=>true});
 const producer=(f,cloud)=>new RecoverableCheckpointPublication(f.core,{store:f.store,binding:{...binding,provider:'google-drive-appdata'},request:cloud.request,isCurrent:()=>true});
 const recovery=(f,cloud,options={})=>new LocalSyncRecoverySession(f.core,{store:f.store,transport:transport(f,cloud),...options});
@@ -56,13 +57,12 @@ test('lost upload acknowledgement with a new local group cold resumes the same p
  const f=await restored(t),pub=producer(f.c,f.cloud),prepared=await pub.prepare();f.cloud.loseNextPost();await assert.rejects(pub.publish());f.c=await reopen(t,f.c);const cold=producer(f.c,f.cloud);assert.equal((await cold.status()).taskId,prepared.taskId);assert.equal((await cold.publish()).ref.id,prepared.ref.id);
  const posts=f.cloud.requests.filter(r=>r.method==='POST'),ids=posts.map(r=>new TextDecoder().decode(r.body).match(/"id":"([^"]+)"/)?.[1]);assert.equal(new Set(ids).size,ids.length);
 });
-for(const kind of ['plain-edit','working','append','foreign-device','same-device-remote','protected','human','context'])test('publication refuses '+kind+' and leaves all current rows untouched',async t=>{
+for(const kind of ['plain-edit','working','foreign-device','same-device-remote','protected','human','context'])test('publication refuses '+kind+' and leaves all current rows untouched',async t=>{
  const f=await restored(t);
  if(kind==='plain-edit'||kind==='working'){
   if(kind==='working'){f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});}
   await inputEdit(f.c.store,(await f.c.store.snapshot()).library.blocks[0].id,{note:'SYNTHETIC unrelated edit'});
- }else if(kind==='append'){const req=capture((await f.c.store.status()).epoch,'SYNTHETIC_second_message','SYNTHETIC second source');req.chat={id:'SYNTHETIC_chat_local_0',url:'https://chatgpt.com/c/SYNTHETIC_chat_local_0',title:'SYNTHETIC local_0'};await f.c.store.capture(req);}
- else if(kind==='foreign-device'||kind==='same-device-remote'){
+ }else if(kind==='foreign-device'||kind==='same-device-remote'){
   const foreign=await fresh(t,kind==='foreign-device'?'SYNTHETIC_foreign':f.c.core.deviceId);
   if(kind==='same-device-remote'){const cp=await buildCheckpoint(f.c.core,transport(f.c,f.cloud),{grouped:{store:f.c.store}}),owner=new StagedSyncRestore(foreign.core,{grouped:{store:foreign.store}});await owner.stageCheckpoint(cp.ref,r=>transport(foreign,f.cloud).get(r));await owner.activate();}
   await source(foreign,'remote_new');const rows=[];for await(const row of foreign.core.rows('revision'))if(row.operation.deviceId===foreign.core.deviceId&&row.operation.type==='sourceBootstrapCommit'&&row.operation.value.sourceId===(await foreign.store.snapshot()).records.find(r=>r.chatId==='SYNTHETIC_chat_remote_new').id)rows.push(row.operation);
@@ -172,4 +172,50 @@ test('publish never acquires prepare cleanup authority even when the old disposa
  const f=await uncleaned(t),originalRows=stageRows(f,await state(f.c)),pub=producer(f.c,f.cloud);await pub.prepare();await f.c.core.transaction(true,async tx=>{for(const row of originalRows)await tx.put('meta',row);});const before=stageRows(f,await state(f.c)),original=GroupedCheckpointRestore.prototype.cleanup;let calls=0;
  GroupedCheckpointRestore.prototype.cleanup=async function(options){if(options?.publication)calls++;return original.call(this,options);};
  try{await assert.rejects(pub.publish(),{code:'BNS_CHECKPOINT_PUBLICATION_LIMIT'});}finally{GroupedCheckpointRestore.prototype.cleanup=original;}assert.equal(calls,0);assert.deepEqual(stageRows(f,await state(f.c)),before);assert.notEqual((await pub.status()).state,'confirmed');
+});
+
+// Append enters only through the existing capture/journal owner. No positive
+// fixture manufactures a revision, receipt, head, counter, or outbox row.
+for(const anchor of ['ancestor','local_0'])test('three original appends to '+anchor+' retain exact rows and fail closed at cumulative publication budget',async t=>{
+ const f=await restored(t,{added:anchor==='ancestor'?0:1}),before=await state(f.c),oldSnapshot=await f.c.store.snapshot(),original=structuredClone(f.original);
+ await appendSource(f.c,anchor,'known_later',{time:1640995200});await appendSource(f.c,anchor,'unknown',{order:3});await appendSource(f.c,anchor,'known_earlier',{time:1609459200,order:4});
+ const after=await state(f.c),snapshot=await f.c.store.snapshot();assert.equal(after.documents.length,before.documents.length);assert.equal(after.records.length,before.records.length+3);
+ for(const table of ['records','times','blocks','inputStates','revisions'])for(const row of before[table])assert.deepEqual(after[table].find(candidate=>candidate.id===row.id),row,table+' historical row remains exact');
+ const seq=rows=>rows.meta.find(row=>row.id==='sequence');assert.equal(seq(after).documents,seq(before).documents);assert.equal(seq(after).records,seq(before).records+3);assert.equal(seq(after).blocks,seq(before).blocks+3);
+ const target=snapshot.library.documents.find(row=>row.sourceConversationId==='SYNTHETIC_chat_'+anchor);assert.equal(target.firstSourceSentAt,'2021-01-01T00:00:00.000Z');assert.equal(target.lastSourceSentAt,'2022-01-01T00:00:00.000Z');
+ assert.deepEqual(snapshot.records.filter(row=>oldSnapshot.records.some(old=>old.id===row.id)),oldSnapshot.records);
+ await qualify(f.c);f.c=await reopen(t,f.c);const pub=producer(f.c,f.cloud),beforeWrites=writes(f.cloud);let phase='prepare';
+ await assert.rejects(async()=>{await pub.prepare();phase='publish';await pub.publish();},{code:'BNS_CHECKPOINT_PUBLICATION_LIMIT'});t.diagnostic(JSON.stringify({resourceLimitPhase:phase,syntheticWrites:writes(f.cloud)-beforeWrites}));
+ assert.deepEqual((await f.c.store.snapshot()).records,snapshot.records);assert.deepEqual(await new GroupedCheckpointRestore(f.c.core,{store:f.c.store,restoreId:f.session.restoreId}).stage.read('restore'),original);
+
+});
+test('interleaved original groups qualify variable-width sequence but retain the cumulative publication ceiling',async t=>{
+ const f=await restored(t,{added:0});await appendSource(f.c,'ancestor','first');await source(f.c,'interleaved');await appendSource(f.c,'interleaved','second');await source(f.c,'last');
+ const qualified=await qualify(f.c);assert.equal(qualified.parents.length,2);const pub=producer(f.c,f.cloud),before=await f.c.store.snapshot(),beforeWrites=writes(f.cloud);let phase='prepare';await assert.rejects(async()=>{await pub.prepare();phase='publish';await pub.publish();},{code:'BNS_CHECKPOINT_PUBLICATION_LIMIT'});t.diagnostic(JSON.stringify({resourceLimitPhase:phase,syntheticWrites:writes(f.cloud)-beforeWrites}));assert.deepEqual((await f.c.store.snapshot()).records,before.records);
+});
+test('append publication lost upload ACK resumes its exact durable task after cold reopen',async t=>{
+ const f=await restored(t,{added:0});await appendSource(f.c,'ancestor','lost_ack');const pub=producer(f.c,f.cloud),prepared=await pub.prepare();f.cloud.loseNextPost();await assert.rejects(pub.publish());f.c=await reopen(t,f.c);const cold=producer(f.c,f.cloud);assert.equal((await cold.status()).taskId,prepared.taskId);assert.equal((await cold.publish()).ref.id,prepared.ref.id);
+ const posts=f.cloud.requests.filter(row=>row.method==='POST'),ids=posts.map(row=>new TextDecoder().decode(row.body).match(/"id":"([^"]+)"/)?.[1]);assert.equal(new Set(ids).size,ids.length);
+ const before=await state(f.c);await assert.rejects(appendSource(f.c,'ancestor','lost_ack'),{code:'BNS_SOURCE_BOOTSTRAP_UNAVAILABLE'});assert.deepEqual(await state(f.c),before);
+});
+for(const kind of ['missing-append-member','missing-append-descriptor','missing-anchor-receipt','missing-append-outbox','extra-document-allocation','changed-document-display','changed-old-source','changed-append-source','working-after-append'])test('append continuation refuses '+kind+' without publication writes',async t=>{
+ const f=await restored(t,{added:0});await appendSource(f.c,'ancestor','negative');
+ if(kind==='working-after-append'){f.c.store.filterIntentJournal=new FilterIntentSyncJournal(f.c.core);f.c.store.inputWorkingJournal=new InputWorkingSyncJournal(f.c.core,{filterJournal:f.c.store.filterIntentJournal,logicalCommits:true});await inputEdit(f.c.store,(await f.c.store.snapshot()).library.blocks.at(-1).id,{note:'SYNTHETIC separate Working authority'});}
+ else await f.c.core.transaction(true,async tx=>{
+  const prefix=await f.c.core.idIn(tx,'revision'),revisions=(await tx.all('meta')).filter(row=>row.id.startsWith(prefix)),descriptor=revisions.find(row=>row.operation.type==='sourceAppendCommit').operation,member=revisions.find(row=>row.operation.type==='sourceAppendMember').operation;
+  if(kind==='missing-append-member'||kind==='missing-append-descriptor')await tx.delete('meta',await f.c.core.idIn(tx,'revision',kind==='missing-append-member'?member.revisionId:descriptor.revisionId));
+  else if(kind==='missing-anchor-receipt')await tx.delete('meta',await f.c.core.idIn(tx,'receipt',descriptor.value.bootstrap.operationId));
+  else if(kind==='missing-append-outbox')await tx.delete('meta',await f.c.core.idIn(tx,'outbox',member.operationId));
+  else if(kind==='extra-document-allocation'){const row=await tx.get('meta','sequence');row.documents++;await tx.put('meta',row);}
+  else if(kind==='changed-document-display'){const row=(await tx.all('documents')).find(row=>row.id===descriptor.value.documentId);row.libraryDisplay=[1,row.id];await tx.put('documents',row);}
+  else{const row=(await tx.all('records')).find(row=>(row.id===descriptor.value.sourceId)===(kind==='changed-append-source'));row.value.originalText+=' SYNTHETIC unauthorized source edit';await tx.put('records',row);}
+ });
+ await unchangedRefusal(f,()=>producer(f.c,f.cloud).prepare());
+});
+
+for(const anchor of ['ancestor','local_0'])test('single original append to '+anchor+' publishes and restores exact Source on a cold new installation',async t=>{
+ const f=await restored(t,{added:anchor==='ancestor'?0:1}),before=await state(f.c);await appendSource(f.c,anchor,'end_to_end',{time:1640995200});const snapshot=await f.c.store.snapshot(),rows=await state(f.c);assert.equal(rows.documents.length,before.documents.length);for(const row of before.records)assert.deepEqual(rows.records.find(current=>current.id===row.id),row);
+ f.c=await reopen(t,f.c);const pub=producer(f.c,f.cloud),prepared=await pub.prepare(),done=await pub.publish();assert.equal(done.ref.id,prepared.ref.id);assert.deepEqual((await manifest(f,done.ref)).parents,f.heads.map(head=>head.ref.id).sort());
+ const d=await fresh(t,'SYNTHETIC_single_append_installation_'+anchor);await recovery(d,f.cloud).recoverDiscovered();const received=await d.store.snapshot(),sort=values=>values.slice().sort((a,b)=>a.id.localeCompare(b.id));assert.deepEqual(sort(received.records),sort(snapshot.records));assert.deepEqual(sort(received.library.blocks),sort(snapshot.library.blocks));assert.deepEqual(sort(received.library.documents),sort(snapshot.library.documents));
+ const imported=await state(d);assert.equal(imported.inputStates.length,rows.inputStates.length);assert.equal(imported.revisions.length,rows.revisions.length);assert.deepEqual(imported.times,rows.times);const cold=await reopen(t,d);assert.deepEqual(sort((await cold.store.snapshot()).records),sort(snapshot.records));assert.deepEqual((await f.restore.stage.read('restore')).sourceCut,f.original.sourceCut);
 });

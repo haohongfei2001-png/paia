@@ -1,0 +1,26 @@
+{
+  "base": "027bc2f7fddd076b420fcf4179b7851fec9c0e53",
+  "paths": [
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint.js",
+      "baseSha256": "f6c0b450f91d6adb36414905794e9cddccadf50c2d6d2effc917a74d36715195",
+      "finalSha256": "2e26d08b9213291aa64b118757d0e4dbc7540c4c2cace8d35f75c1558aa6cb63",
+      "baseBlob": "f2ce92afc3422ece3d116d791acf401eb851698a",
+      "finalBlob": "b5a7a87f367f444c4cf8026b1128728f6cc73f68"
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-union-publication-continuation.js",
+      "baseSha256": "be58e87f33bb280bfca0f3b0a4b15fa8f79c5ed2335efe0821115aac1b894092",
+      "finalSha256": "9018f49dca88600acb2b151e9a15cf27b0c36d58568a7c6ac928a73a380f9656",
+      "baseBlob": "fb07eb8ffa4dfb9329b28389edf32521a2d7fb6a",
+      "finalBlob": "251b7a8ccdbf842ed99d0abd50ad4d81dd5db44e"
+    },
+    {
+      "path": "extension/tests/source-union-publication-continuation.test.mjs",
+      "baseSha256": "a54143790c84eb9c72165da559c2e988bf41e2dd11a5afb2eb1762816303e5be",
+      "finalSha256": "cfd2affc79536bb2c4e00e1992bfd31a4e3ebb94e5a16c83303f0194ed26dc87",
+      "baseBlob": "bfe667391c8d964bd781cee943cf563bc50aaa05",
+      "finalBlob": "b2b0edd21c28d5d0c41e9a892494becfe942038f"
+    }
+  ]
+}

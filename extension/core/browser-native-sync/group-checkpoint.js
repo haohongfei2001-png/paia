@@ -727,7 +727,7 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
  let state=await restore.stage.read('restore');sourceUnionState(restore,state);
  if(state.phase!=='activated'||state.replayId!==await sourceUnionReplayId(restore,state.base,state.selection)||!equal(active,{id:core.prefix+'active',namespace:state.replayId,restoreId:restore.restoreId,selection:state.selection,graphDigest:state.graphDigest}))fail('BNS_SOURCE_UNION_ACTIVATION_REQUIRED');
  const replay=new BrowserNativeSyncCore(core.repository,{datasetId:core.datasetId,deviceId:core.deviceId,namespace:state.replayId}),operations=await allOperations(replay);
- if(operations.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');if(operations.some(op=>!['sourceBootstrapMember','sourceBootstrapCommit'].includes(op.type)))fail('BNS_GROUP_OWNER_UNSUPPORTED');
+ if(operations.length>CORE_LIMITS.batch)fail('BNS_GROUP_RESOURCE_LIMIT');if(operations.some(op=>!['sourceBootstrapMember','sourceBootstrapCommit','sourceAppendMember','sourceAppendCommit'].includes(op.type)))fail('BNS_GROUP_OWNER_UNSUPPORTED');
  if(!Array.isArray(state.receipt?.cuts)||state.receipt.cuts.length!==3||state.receipt.cuts.some(cut=>!Array.isArray(cut.items)))fail('BNS_RESTORE_STAGE_CHANGED');
  // Do not let a caller choose an arbitrary old subset. The original receipt's
  // own ordered hash chains authenticate every declared revision and each cut.
@@ -738,7 +738,7 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
  for(const op of operations)frontiers.set(op.deviceId,acceptSequence(frontiers.get(op.deviceId),op.sequence));
  const protocol=sourceUnionProtocolRows(replay,{operations,heads:plan.heads,frontiers:[...frontiers].map(([deviceId,value])=>({deviceId,...value}))},state.base.fence.epoch);
  for(const group of groups.added)for(const op of group.operations){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,'outbox',[op.operationId]);protocol.set(id,{id,operationId:op.operationId,revisionId:op.revisionId,state:'queued'});}
- if(groups.added.length){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,'device',[core.deviceId]);protocol.set(id,{id,sequence:groups.added.length*7});}
+ if(groups.added.length){const id=protocolPhysicalId(replay.prefix,replay.fixedNamespace,'device',[core.deviceId]);protocol.set(id,{id,sequence:groups.added.reduce((n,group)=>n+group.operations.length,0)});}
  const prefix=replay.prefix+'generation:'+state.replayId+':',controls=await store.run(()=>replay.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix})).filter(row=>row.id.startsWith(prefix+'google-appdata-allocation:')||row.id.startsWith(prefix+'onedrive-upload-attempt:')),['meta']));
  for(const row of await requireSourcePurgeProtocolControlReceipts(store,core,controls,state.replayId)){if(protocol.has(row.id))fail('BNS_RESTORE_STAGE_CHANGED');protocol.set(row.id,row);}
  const identity=await prepareSourceUnionLocalIdentity(restore),cleanup=publicationWork&&requireOriginalCheckpointPublicationCleanup(publicationWork,core,store)&&!state.cleanup?.complete;
@@ -747,7 +747,7 @@ export async function requireSourceBootstrapUnionPublication(core,{store,selecti
   if(!equal(await restore.stage.get(t,'restore'),state)||!equal(await t.get('meta',active.id),active))fail('BNS_RESTORE_LOCAL_CHANGED');
   const current=await authority(store,core,t);if(current.namespace!==state.replayId||current.generation!==operations.length||!Number.isSafeInteger(current.ownerGeneration)||current.ownerGeneration<state.base.ownerGeneration+1+groups.added.length||current.fence.epoch!==state.base.fence.epoch||!equal(current.settings,state.base.settings))fail('BNS_RESTORE_LOCAL_CHANGED');
   await requireSourceUnionProtocol(replay,t,protocol);await requireGroupScope(store,t,canonical);
-  await requireSourceUnionPublicationPhysical(core,t,state.sourceCut,await sourceUnionPhysicalCut(t,identity),groups);
+  await requireSourceUnionPublicationPhysical(core,t,state.sourceCut,await sourceUnionPhysicalCut(t,identity),groups,canonical);
   if(publicationWork&&retain){
    chargeOriginalCheckpointPublicationWork(publicationWork,core,store,undefined,0);const tables=new Map();
    for(const table of t.tx.objectStoreNames)tables.set(table,await readGroupRows(t,table));

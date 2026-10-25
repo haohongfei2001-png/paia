@@ -1,0 +1,43 @@
+TAP version 13
+# Subtest: three original appends to ancestor retain exact rows and fail closed at cumulative publication budget
+ok 1 - three original appends to ancestor retain exact rows and fail closed at cumulative publication budget
+  ---
+  duration_ms: 1138.196625
+  type: 'test'
+  ...
+# {"resourceLimitPhase":"publish","syntheticWrites":3}
+# Subtest: three original appends to local_0 retain exact rows and fail closed at cumulative publication budget
+ok 2 - three original appends to local_0 retain exact rows and fail closed at cumulative publication budget
+  ---
+  duration_ms: 1064.8255
+  type: 'test'
+  ...
+# {"resourceLimitPhase":"publish","syntheticWrites":2}
+# Subtest: interleaved original groups qualify variable-width sequence but retain the cumulative publication ceiling
+ok 3 - interleaved original groups qualify variable-width sequence but retain the cumulative publication ceiling
+  ---
+  duration_ms: 1058.684959
+  type: 'test'
+  ...
+# {"resourceLimitPhase":"publish","syntheticWrites":2}
+# Subtest: single original append to ancestor publishes and restores exact Source on a cold new installation
+ok 4 - single original append to ancestor publishes and restores exact Source on a cold new installation
+  ---
+  duration_ms: 1242.056667
+  type: 'test'
+  ...
+# Subtest: single original append to local_0 publishes and restores exact Source on a cold new installation
+ok 5 - single original append to local_0 publishes and restores exact Source on a cold new installation
+  ---
+  duration_ms: 1165.373
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5873.458334
