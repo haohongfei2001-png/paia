@@ -122,5 +122,16 @@ test('unobservable original HOLD Promise never permits cleanup to reopen admissi
  f.owner.dispose();f.producer.dispose();const prior=f.api.tabs.sendMessage;f.api.tabs.sendMessage=(...args)=>args[1].type.endsWith('DOCUMENT_HOLD')?pending.promise:Reflect.apply(prior,f.api.tabs,args);
  const owner=new PromptInsertionReceipts(f.s,f.api);t.after(()=>owner.dispose());await owner.registerReceiver({type:'PAIA_PROMPT_INSERTION_RECEIVER_REGISTER',version:1,nonce:f.receiver.nonce},f.sender);
  try{await owner.holdKnownDocumentsForApplicationSelection();assert.fail();}catch(e){failure=e;}
- assert.equal(await owner.releaseFailedKnownDocumentsForApplicationSelection(failure),false);await assert.rejects(owner.registerReceiver({type:'PAIA_PROMPT_INSERTION_RECEIVER_REGISTER',version:1,nonce:f.receiver.nonce},f.sender),{code:'PROMPT_INSERTION_HELD'});pending.resolve(undefined);
+ assert.equal(f.state.documents.filter(e=>e.m.type.endsWith('RELEASE')).length,0);assert.equal(await owner.releaseFailedKnownDocumentsForApplicationSelection(failure),false);await assert.rejects(owner.registerReceiver({type:'PAIA_PROMPT_INSERTION_RECEIVER_REGISTER',version:1,nonce:f.receiver.nonce},f.sender),{code:'PROMPT_INSERTION_HELD'});pending.resolve(undefined);await flush();assert.equal(f.state.documents.filter(e=>e.m.type.endsWith('RELEASE')).length,0);
+});
+
+
+test('actual frozen receiver URL bytes consume the one original work budget before HOLD',async t=>{
+ const f=await fixture(t);f.state.tab.url='https://chatgpt.com/c/'+ 'x'.repeat(2*1024*1024);await f.owner.registerReceiver({type:'PAIA_PROMPT_INSERTION_RECEIVER_REGISTER',version:1,nonce:f.receiver.nonce},{...f.sender,url:f.state.tab.url});
+ await assert.rejects(f.owner.holdKnownDocumentsForApplicationSelection(),{code:'BNS_GROUP_RESOURCE_LIMIT'});assert.equal(f.state.documents.length,0);
+});
+
+test('each original tabs identity response charges actual URL bytes rather than a fixed allowance',async t=>{
+ const f=await fixture(t);f.state.tab.url='https://chatgpt.com/c/'+ 'x'.repeat(300000);await f.owner.registerReceiver({type:'PAIA_PROMPT_INSERTION_RECEIVER_REGISTER',version:1,nonce:f.receiver.nonce},{...f.sender,url:f.state.tab.url});
+ const token=await f.owner.holdKnownDocumentsForApplicationSelection();await assert.rejects(f.owner.fenceKnownDocumentsForApplicationSelection(token),{code:'BNS_GROUP_RESOURCE_LIMIT'});assert.equal(f.owner.knownDocumentsHeldForApplicationSelection(token),false);assert.equal(await f.owner.releaseKnownDocumentsForApplicationSelection(token),false);assert.throws(()=>f.owner.admissionEpoch(f.cap),{code:'PROMPT_INSERTION_HELD'});
 });

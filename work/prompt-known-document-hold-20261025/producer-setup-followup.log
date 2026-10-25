@@ -1,0 +1,264 @@
+TAP version 13
+# Subtest: manual actual producer commits PENDING before exact top-document transport and terminal CAS
+ok 1 - manual actual producer commits PENDING before exact top-document transport and terminal CAS
+  ---
+  duration_ms: 119.554833
+  type: 'test'
+  ...
+# Subtest: standalone actual producer commits PENDING before exact top-document transport and terminal CAS
+ok 2 - standalone actual producer commits PENDING before exact top-document transport and terminal CAS
+  ---
+  duration_ms: 78.815667
+  type: 'test'
+  ...
+# Subtest: next actual producer commits PENDING before exact top-document transport and terminal CAS
+ok 3 - next actual producer commits PENDING before exact top-document transport and terminal CAS
+  ---
+  duration_ms: 92.34475
+  type: 'test'
+  ...
+# Subtest: legacy-next actual producer commits PENDING before exact top-document transport and terminal CAS
+ok 4 - legacy-next actual producer commits PENDING before exact top-document transport and terminal CAS
+  ---
+  duration_ms: 89.181334
+  type: 'test'
+  ...
+# Subtest: assist actual producer commits PENDING before exact top-document transport and terminal CAS
+ok 5 - assist actual producer commits PENDING before exact top-document transport and terminal CAS
+  ---
+  duration_ms: 243.084
+  type: 'test'
+  ...
+# Subtest: manual legacy response cannot manufacture durable completion or replay
+ok 6 - manual legacy response cannot manufacture durable completion or replay
+  ---
+  duration_ms: 59.730542
+  type: 'test'
+  ...
+# Subtest: manual reject response cannot manufacture durable completion or replay
+ok 7 - manual reject response cannot manufacture durable completion or replay
+  ---
+  duration_ms: 58.482209
+  type: 'test'
+  ...
+# (node:38174) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: manual exact late ACK settles original durable claim without preference write or stale UI success
+ok 8 - manual exact late ACK settles original durable claim without preference write or stale UI success
+  ---
+  duration_ms: 69.102791
+  type: 'test'
+  ...
+# Subtest: manual cached result does not accept changed action authority
+ok 9 - manual cached result does not accept changed action authority
+  ---
+  duration_ms: 80.678166
+  type: 'test'
+  ...
+# Subtest: manual cached result does not accept changed initiator authority
+ok 10 - manual cached result does not accept changed initiator authority
+  ---
+  duration_ms: 76.542541
+  type: 'test'
+  ...
+# Subtest: receipt owner replacement and request-supplied owner are not producer authority
+ok 11 - receipt owner replacement and request-supplied owner are not producer authority
+  ---
+  duration_ms: 30.893375
+  type: 'test'
+  ...
+# Subtest: manual post-PENDING source change revalidates before dispatch and proves not-dispatched
+ok 12 - manual post-PENDING source change revalidates before dispatch and proves not-dispatched
+  ---
+  duration_ms: 59.854208
+  type: 'test'
+  ...
+# Subtest: manual post-PENDING consent change revalidates before dispatch and proves not-dispatched
+ok 13 - manual post-PENDING consent change revalidates before dispatch and proves not-dispatched
+  ---
+  duration_ms: 58.182042
+  type: 'test'
+  ...
+# Subtest: manual post-PENDING receiver change revalidates before dispatch and proves not-dispatched
+ok 14 - manual post-PENDING receiver change revalidates before dispatch and proves not-dispatched
+  ---
+  duration_ms: 55.212
+  type: 'test'
+  ...
+# Subtest: manual post-PENDING admission change revalidates before dispatch and proves not-dispatched
+ok 15 - manual post-PENDING admission change revalidates before dispatch and proves not-dispatched
+  ---
+  duration_ms: 52.683416
+  type: 'test'
+  ...
+# Subtest: next permission revoked after PENDING commit cannot reach physical insertion
+ok 16 - next permission revoked after PENDING commit cannot reach physical insertion
+  ---
+  duration_ms: 67.624417
+  type: 'test'
+  ...
+# Subtest: assist permission revoked after PENDING commit cannot reach physical insertion
+ok 17 - assist permission revoked after PENDING commit cannot reach physical insertion
+  ---
+  duration_ms: 169.591375
+  type: 'test'
+  ...
+# Subtest: manual original action cannot cross revoke and regrant of the Store consent epoch
+ok 18 - manual original action cannot cross revoke and regrant of the Store consent epoch
+  ---
+  duration_ms: 36.905458
+  type: 'test'
+  ...
+# Subtest: cached manual ACK does not restore success after exact source or receiving page changes
+ok 19 - cached manual ACK does not restore success after exact source or receiving page changes
+  ---
+  duration_ms: 73.667959
+  type: 'test'
+  ...
+# Subtest: epoch retirement waits for the actual early manual preference publication and rejects the old issued action
+ok 20 - epoch retirement waits for the actual early manual preference publication and rejects the old issued action
+  ---
+  duration_ms: 130.855875
+  type: 'test'
+  ...
+# Subtest: restart inspects retained uncertainty without automatic insertion or permission to replay
+ok 21 - restart inspects retained uncertainty without automatic insertion or permission to replay
+  ---
+  duration_ms: 62.612
+  type: 'test'
+  ...
+# Subtest: next concurrent presentation preserves one original issued action
+ok 22 - next concurrent presentation preserves one original issued action
+  ---
+  duration_ms: 40.866916
+  type: 'test'
+  ...
+# Subtest: assist concurrent presentation preserves one original issued action
+ok 23 - assist concurrent presentation preserves one original issued action
+  ---
+  duration_ms: 141.02525
+  type: 'test'
+  ...
+# Subtest: next issued action cannot adopt a new Store consent epoch
+ok 24 - next issued action cannot adopt a new Store consent epoch
+  ---
+  duration_ms: 41.432375
+  type: 'test'
+  ...
+# Subtest: assist issued action cannot adopt a new Store consent epoch
+ok 25 - assist issued action cannot adopt a new Store consent epoch
+  ---
+  duration_ms: 131.15975
+  type: 'test'
+  ...
+# Subtest: manual source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+ok 26 - manual source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+  ---
+  duration_ms: 54.219834
+  type: 'test'
+  ...
+# Subtest: next source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+ok 27 - next source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+  ---
+  duration_ms: 60.335292
+  type: 'test'
+  ...
+# Subtest: assist source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+ok 28 - assist source change after transport invocation refuses receiver qualification without NOT_DISPATCHED
+  ---
+  duration_ms: 160.886667
+  type: 'test'
+  ...
+# Subtest: exact early manual native ACK after source replacement settles only the claim without reuse publication
+ok 29 - exact early manual native ACK after source replacement settles only the claim without reuse publication
+  ---
+  duration_ms: 69.147042
+  type: 'test'
+  ...
+# Subtest: next exact late ACK settles only the original claim and retains sticky source uncertainty
+ok 30 - next exact late ACK settles only the original claim and retains sticky source uncertainty
+  ---
+  duration_ms: 76.430083
+  type: 'test'
+  ...
+# Subtest: assist exact late ACK settles only the original claim and retains sticky source uncertainty
+ok 31 - assist exact late ACK settles only the original claim and retains sticky source uncertainty
+  ---
+  duration_ms: 180.186708
+  type: 'test'
+  ...
+# Subtest: retained legacy Next requires the exact original initiating iframe at presentation
+ok 32 - retained legacy Next requires the exact original initiating iframe at presentation
+  ---
+  duration_ms: 28.922792
+  type: 'test'
+  ...
+# Subtest: retained legacy Next requires the exact original initiating iframe at pending-commit
+ok 33 - retained legacy Next requires the exact original initiating iframe at pending-commit
+  ---
+  duration_ms: 60.678042
+  type: 'test'
+  ...
+# Subtest: retained legacy Next requires the exact original initiating iframe at receiver-qualification
+ok 34 - retained legacy Next requires the exact original initiating iframe at receiver-qualification
+  ---
+  duration_ms: 65.149708
+  type: 'test'
+  ...
+# Subtest: next early exact ACK after authorization changed settles ledger without stale UI success
+ok 35 - next early exact ACK after authorization changed settles ledger without stale UI success
+  ---
+  duration_ms: 75.962542
+  type: 'test'
+  ...
+# Subtest: assist early exact ACK after authorization changed settles ledger without stale UI success
+ok 36 - assist early exact ACK after authorization changed settles ledger without stale UI success
+  ---
+  duration_ms: 174.160458
+  type: 'test'
+  ...
+# Subtest: manual current-check tail remains inside the original 2s UI deadline and retirement drain
+ok 37 - manual current-check tail remains inside the original 2s UI deadline and retirement drain
+  ---
+  duration_ms: 76.01175
+  type: 'test'
+  ...
+# Subtest: next current-check tail remains inside the original 2s UI deadline and retirement drain
+ok 38 - next current-check tail remains inside the original 2s UI deadline and retirement drain
+  ---
+  duration_ms: 83.192833
+  type: 'test'
+  ...
+# Subtest: assist current-check tail remains inside the original 2s UI deadline and retirement drain
+ok 39 - assist current-check tail remains inside the original 2s UI deadline and retirement drain
+  ---
+  duration_ms: 186.254834
+  type: 'test'
+  ...
+# Subtest: manual earliest actual insertion receiver probe uses the original opaque action event
+ok 40 - manual earliest actual insertion receiver probe uses the original opaque action event
+  ---
+  duration_ms: 69.688167
+  type: 'test'
+  ...
+# Subtest: next earliest actual insertion receiver probe uses the original opaque action event
+ok 41 - next earliest actual insertion receiver probe uses the original opaque action event
+  ---
+  duration_ms: 89.865667
+  type: 'test'
+  ...
+# Subtest: assist earliest actual insertion receiver probe uses the original opaque action event
+ok 42 - assist earliest actual insertion receiver probe uses the original opaque action event
+  ---
+  duration_ms: 211.740625
+  type: 'test'
+  ...
+1..42
+# tests 42
+# suites 0
+# pass 42
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4119.498458

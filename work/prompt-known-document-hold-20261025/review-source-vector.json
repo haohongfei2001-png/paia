@@ -1,0 +1,53 @@
+{
+  "parent": "1f4107cf9ef765865575b94f97fc5af7a314463a",
+  "files": [
+    {
+      "path": "extension/background/prompt-insertion-receipts.js",
+      "bytes": 44394,
+      "sha256": "f2f6ca682b76ce6f39635315f6317284236be067da185984ad5b0adf2741b285",
+      "git_blob": "1ab98b72eb048ef55aea8a6d26145a24594575ca"
+    },
+    {
+      "path": "extension/tests/prompt-insertion-known-document-hold.test.mjs",
+      "bytes": 18980,
+      "sha256": "023620bd2ec0bc27e8e2c7b9c1d1fa0169eed98af93a655b69d4ec8633d52987",
+      "git_blob": "d2d331633c8c4f6dcf47349bad493e5aa12d0399"
+    },
+    {
+      "path": "extension/tests/prompt-insertion-receipts.test.mjs",
+      "bytes": 40303,
+      "sha256": "a69574d28a292a6f0640ad4400ba2ccf915bba2d22b00b2fd215dc3dcaef3588",
+      "git_blob": "e16794cbe90af59041ec722937a76666cb9154c8"
+    },
+    {
+      "path": "extension/tests/prompt-insertion-receipt-hold.test.mjs",
+      "bytes": 19375,
+      "sha256": "178d76005aff6fbbd0570eb82c68c1ed1ea9c28fa631f5a2465317b5254f708c",
+      "git_blob": "1c670bf417dba596b3f99c76b737e7a9fe3b5de3"
+    },
+    {
+      "path": "extension/tests/prompt-insertion-producer-receipts.test.mjs",
+      "bytes": 25964,
+      "sha256": "c0d6bf1dfea26405494e555c877b5fabe54eb84af779f1acf4ac0480842e75a6",
+      "git_blob": "71b3f195d7a5146bb3284740b2ab3b06950e2979"
+    },
+    {
+      "path": "extension/tests/prompt-insertion-worker-receipts.test.mjs",
+      "bytes": 4596,
+      "sha256": "d57c8c689026b323180820935c2972e59aa69e0c0cbe876215bcfdba0c9445e4",
+      "git_blob": "dbfd43422719a24142303af94ca75dbd9dbb57f3"
+    },
+    {
+      "path": "extension/tests/prompt-insertion-ui-receipts.test.mjs",
+      "bytes": 3756,
+      "sha256": "9adc49d867ef8dcf3367027faf519f2b8db9e2a26a0f566a5ba11e65366f2796",
+      "git_blob": "8d27e7dbb05943df57e6187c7d5f9093e4307cba"
+    },
+    {
+      "path": "extension/tests/prompt-insertion-local-checkpoint.test.mjs",
+      "bytes": 12174,
+      "sha256": "3e03d87fc04b20bb46e148a688ec95bc293dbabbafea05def014f92e68194d92",
+      "git_blob": "e82c157d3c93016b44f0185002cd2189efb7cf82"
+    }
+  ]
+}

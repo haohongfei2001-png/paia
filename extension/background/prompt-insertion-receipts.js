@@ -134,7 +134,7 @@ export class PromptInsertionReceipts {
  // Prospective, nonempty known-document subset only. This is not global host coverage.
  #knownCurrent(d){try{return this.#knownDocumentHold===d&&this.#held(d.hold)&&!d.cleaning&&!d.failed&&d.version===this.#receiverVersion&&this.#receivers.size===d.entries.length&&d.entries.every(e=>this.#receivers.get(e.receiver.tabId)===e.original&&same(e.original.receiver,e.receiver)&&e.original.url===e.url);}catch{return false;}}
  #knownCheck(d){if(!this.#knownCurrent(d))fail('OUTCOME_UNKNOWN');this.#checkWork(d.hold.work);}
- async #knownTab(d,e){this.#knownCheck(d);this.#charge(d.hold.work,512,1);const tab=await this.#wait(d.hold.work,this.#track(originalApply(this.#get,this.#tabs,[e.receiver.tabId])));this.#knownCheck(d);if(tab?.id!==e.receiver.tabId||tab.windowId!==e.receiver.windowId||tab.incognito||tab.discarded||tab.url!==e.url||!site(tab.url))fail('OUTCOME_UNKNOWN');}
+ async #knownTab(d,e){this.#knownCheck(d);this.#charge(d.hold.work,0,1);const tab=await this.#wait(d.hold.work,this.#track(originalApply(this.#get,this.#tabs,[e.receiver.tabId])));this.#knownCheck(d);this.#charge(d.hold.work,new TextEncoder().encode(promptInsertionEncoding({id:tab?.id??null,windowId:tab?.windowId??null,url:tab?.url??null,incognito:tab?.incognito??null,discarded:tab?.discarded??null})).length,0);if(tab?.id!==e.receiver.tabId||tab.windowId!==e.receiver.windowId||tab.incognito||tab.discarded||tab.url!==e.url||!site(tab.url))fail('OUTCOME_UNKNOWN');}
  #knownMessage(d,e,kind){return {type:'PAIA_PROMPT_INSERTION_DOCUMENT_'+kind,version:1,receiver:structuredClone(e.receiver),ownerToken:d.hold.receiptEpoch,domainDigest:d.domainDigest,challenge:e.challenge};}
  #knownProof(d,e,result){this.#knownCheck(d);if(!exact(result,['version','held','challenge','receiver','ownerToken','domainDigest','remainingMs'])||result.version!==1||result.held!==true||result.challenge!==e.challenge||!same(result.receiver,e.receiver)||result.ownerToken!==d.hold.receiptEpoch||result.domainDigest!==d.domainDigest||!Number.isFinite(result.remainingMs)||result.remainingMs<=0||result.remainingMs>30000)fail('OUTCOME_UNKNOWN');this.#charge(d.hold.work,1024,1);}
  #knownCleanupEntry(d,e){
@@ -154,9 +154,12 @@ export class PromptInsertionReceipts {
  async #knownAcquire(d,e){
   await this.#knownTab(d,e);const request=this.#knownMessage(d,e,'HOLD'),release=this.#knownMessage(d,e,'RELEASE');
   this.#charge(d.hold.work,new TextEncoder().encode(promptInsertionEncoding([request,release])).length+1024,3);this.#knownCheck(d);e.attempted=true;
-  try{e.raw=this.#track(originalApply(this.#send,this.#tabs,[e.receiver.tabId,request,{documentId:e.receiver.documentId}]));}
-  catch(error){e.settled=true;this.#knownCleanupEntry(d,e);throw error;}
-  originalObserve(e.raw,()=>{e.settled=true;this.#knownCleanupEntry(d,e);},()=>{e.settled=true;this.#knownCleanupEntry(d,e);});
+  try{e.transport=originalApply(this.#send,this.#tabs,[e.receiver.tabId,request,{documentId:e.receiver.documentId}]);}
+  catch(error){this.#trackingUnknown=true;throw error;}
+  // Only observation of the original SDK Promise proves settlement. A local
+  // tracking/observation failure cannot cause an early RELEASE of a late HOLD.
+  const observed=new OriginalPromise((resolve,reject)=>{const settled=()=>{e.settled=true;this.#knownCleanupEntry(d,e);};try{originalObserve(e.transport,value=>{settled();resolve(value);},error=>{settled();reject(error);});}catch(error){this.#trackingUnknown=true;reject(error);}});
+  e.raw=this.#track(observed);
   const result=await this.#wait(d.hold.work,e.raw);this.#knownProof(d,e,result);await this.#knownTab(d,e);
  }
  async #knownFence(d){for(const e of d.entries){await this.#knownTab(d,e);const request=this.#knownMessage(d,e,'FENCE');this.#charge(d.hold.work,new TextEncoder().encode(promptInsertionEncoding(request)).length,1);const result=await this.#wait(d.hold.work,this.#track(originalApply(this.#send,this.#tabs,[e.receiver.tabId,request,{documentId:e.receiver.documentId}])));this.#knownProof(d,e,result);await this.#knownTab(d,e);}}
@@ -165,6 +168,7 @@ export class PromptInsertionReceipts {
   const work=this.#work(),deadline=budgetClock()+30000;work.deadline=Math.min(work.deadline,deadline);
   const hold={token:Object.freeze(Object.create(null)),valid:true,ready:false,deadline:work.deadline,receiptEpoch:this.#receiptEpoch,work,snapshot:null,error:null};
   const d={token:Object.freeze(Object.create(null)),hold,version:this.#receiverVersion,domainDigest:this.#domainDigest,entries:[...this.#receivers.values()].map(original=>({original,receiver:structuredClone(original.receiver),url:original.url,challenge:crypto.randomUUID(),attempted:false,settled:false,released:false,cleanupStarted:false})),failed:false,cleaning:false,error:null};
+  for(const e of d.entries)this.#charge(work,new TextEncoder().encode(promptInsertionEncoding({receiver:e.receiver,url:e.url})).length,1);
   this.#selectionHold=hold;this.#knownDocumentHold=d;for(const action of this.#actions.values())if(!action.invoked)action.valid=false;
   const acquire=(async()=>{for(const e of d.entries)await this.#knownAcquire(d,e);await this.#drain(hold);this.#knownCheck(d);const before=await this.#holdSnapshot(work);if(this.#trackingUnknown||before.ledger?.claims.some(c=>c.state==='pending'))fail('OUTCOME_UNKNOWN');await this.#knownFence(d);const after=await this.#holdSnapshot(work);this.#knownCheck(d);if(this.#tasks.size||!same(before,after))fail('OUTCOME_UNKNOWN');hold.snapshot=after;hold.ready=true;return d.token;})();
   try{return await this.#wait(work,acquire);}catch(error){if(error?.code==='BNS_GROUP_RESOURCE_LIMIT')work.failed=true;d.failed=true;d.error=error;hold.valid=false;hold.error=new ArchiveError('OUTCOME_UNKNOWN');this.#knownStartCleanup(d);throw error;}
