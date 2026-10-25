@@ -299,33 +299,33 @@ class Transaction {
  async all(store,index,key,limit){requireReadableScope(this);this.metrics.scans++;const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);const rows=await req(target.getAll(key,limit));this.metrics.reads+=rows.length;return rows;}
  async keys(store,index,key){requireReadableScope(this);return req((index?this.tx.objectStore(store).index(index):this.tx.objectStore(store)).getAllKeys(key));}
  async edge(store,index,key,direction='next'){requireReadableScope(this);return new Promise((resolve,reject)=>{const r=this.tx.objectStore(store).index(index).openCursor(key,direction);r.onsuccess=()=>resolve(r.result?.value);r.onerror=()=>reject(fail());});}
- async rangePage(store,index,range,after,limit,direction='next'){requireReadableScope(this);return new Promise((resolve,reject)=>{const reverse=direction==='prev',rows=[],effective=after?(reverse?(range?.lower!==undefined?IDBKeyRange.bound(range.lower,after,range.lowerOpen,true):IDBKeyRange.upperBound(after,true)):(range?.upper!==undefined?IDBKeyRange.bound(after,range.upper,true,range.upperOpen):IDBKeyRange.lowerBound(after,true))):range,target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store),r=target.openCursor(effective,direction);r.onerror=()=>reject(fail());r.onsuccess=()=>{const c=r.result;if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}if(after&&(reverse?indexedKeyCompare(c.key,after)>=0:indexedKeyCompare(c.key,after)<=0)){c.continue();return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();};});}
+ async rangePage(store,index,range,after,limit,direction='next'){requireReadableScope(this);return new Promise((resolve,reject)=>{const reverse=direction==='prev',rows=[],effective=after?(reverse?(range?.lower!==undefined?IDBKeyRange.bound(range.lower,after,range.lowerOpen,true):IDBKeyRange.upperBound(after,true)):(range?.upper!==undefined?IDBKeyRange.bound(after,range.upper,true,range.upperOpen):IDBKeyRange.lowerBound(after,true))):range,target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store),r=target.openCursor(effective,direction);r.onerror=()=>reject(fail());r.onsuccess=()=>{try{const c=r.result;if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}if(after&&(reverse?indexedKeyCompare(c.key,after)>=0:indexedKeyCompare(c.key,after)<=0)){c.continue();return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();}catch(error){reject(error);}};});}
  async indexPrimaryPage(store,index,key,{after=null,limit=100}={}){requireReadableScope(this);
   if(!Number.isInteger(limit)||limit<1||limit>100||after!==null&&typeof after!=='string')throw new ArchiveError('INVALID_REQUEST');
-  return new Promise((resolve,reject)=>{const rows=[],r=this.tx.objectStore(store).index(index).openCursor(IDBKeyRange.only(key));r.onerror=()=>reject(fail(r.error));r.onsuccess=()=>{
+  return new Promise((resolve,reject)=>{const rows=[],r=this.tx.objectStore(store).index(index).openCursor(IDBKeyRange.only(key));r.onerror=()=>reject(fail(r.error));r.onsuccess=()=>{try{
    const c=r.result;if(!c){resolve({rows,next:null});return;}
    if(after!==null&&c.primaryKey<after){c.continuePrimaryKey(key,after);return;}
    if(after!==null&&c.primaryKey===after){c.continue();return;}
    this.metrics.reads++;rows.push({key:c.primaryKey,value:c.value});this.metrics.primaryMaxBatch=Math.max(this.metrics.primaryMaxBatch||0,rows.length);
    if(rows.length===limit){resolve({rows,next:c.primaryKey});return;}c.continue();
-  };});
+  }catch(error){reject(error);}};});
  }
  async primaryRangePage(store,{prefix='',after=null,limit=100}={}){requireReadableScope(this);
   if(typeof prefix!=='string'||!Number.isInteger(limit)||limit<1||limit>100||after!==null&&(typeof after!=='string'||!after.startsWith(prefix)||after>=prefix+'\uffff'))throw new ArchiveError('INVALID_REQUEST');
   const upper=prefix+'\uffff',range=IDBKeyRange.bound(after===null?prefix:after,upper,after!==null,true),target=this.tx.objectStore(store);
-  return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail(r.error));r.onsuccess=()=>{
+  return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail(r.error));r.onsuccess=()=>{try{
    const c=r.result;if(!c){resolve({rows,next:null});return;}
    this.metrics.reads++;rows.push({key:c.key,value:c.value});this.metrics.primaryMaxBatch=Math.max(this.metrics.primaryMaxBatch||0,rows.length);
    if(rows.length<limit){c.continue();return;}
    // Peek only the next key: never materialize object limit+1.
    const probe=target.openKeyCursor(IDBKeyRange.bound(c.key,upper,true,true));
-   probe.onerror=()=>reject(fail(probe.error));probe.onsuccess=()=>{this.metrics.primaryKeyProbes=(this.metrics.primaryKeyProbes||0)+1;resolve({rows,next:probe.result?c.key:null});};
-  };});
+   probe.onerror=()=>reject(fail(probe.error));probe.onsuccess=()=>{try{this.metrics.primaryKeyProbes=(this.metrics.primaryKeyProbes||0)+1;resolve({rows,next:probe.result?c.key:null});}catch(error){reject(error);}};
+  }catch(error){reject(error);}};});
  }
  async page(store,{index,after,limit=100}={}){requireReadableScope(this);
   const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);
   const range=after===undefined?undefined:IDBKeyRange.lowerBound(after,true);
-  return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail());r.onsuccess=()=>{const c=r.result;if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();};});
+  return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail());r.onsuccess=()=>{try{const c=r.result;if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();}catch(error){reject(error);}};});
  }
 }
 
