@@ -1,0 +1,162 @@
+TAP version 13
+# Subtest: nonempty entire original known map holds and fences readonly without global or legacy claims
+ok 1 - nonempty entire original known map holds and fences readonly without global or legacy claims
+  ---
+  duration_ms: 86.39425
+  type: 'test'
+  ...
+# Subtest: empty cold receiver map cannot become positive proof
+ok 2 - empty cold receiver map cannot become positive proof
+  ---
+  duration_ms: 23.485667
+  type: 'test'
+  ...
+# Subtest: registration admitted before hold cannot change frozen map after its original tabs await
+ok 3 - registration admitted before hold cannot change frozen map after its original tabs await
+  ---
+  duration_ms: 37.278208
+  type: 'test'
+  ...
+# Subtest: actual tab window change refuses without fallback or discovery
+ok 4 - actual tab window change refuses without fallback or discovery
+  ---
+  duration_ms: 21.386333
+  type: 'test'
+  ...
+# Subtest: actual tab url change refuses without fallback or discovery
+ok 5 - actual tab url change refuses without fallback or discovery
+  ---
+  duration_ms: 22.111667
+  type: 'test'
+  ...
+# Subtest: actual tab discarded change refuses without fallback or discovery
+ok 6 - actual tab discarded change refuses without fallback or discovery
+  ---
+  duration_ms: 19.62875
+  type: 'test'
+  ...
+# Subtest: document nonce reply rejects and every attempted holder has exact cleanup
+ok 7 - document nonce reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 20.054542
+  type: 'test'
+  ...
+# Subtest: document owner reply rejects and every attempted holder has exact cleanup
+ok 8 - document owner reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 19.429084
+  type: 'test'
+  ...
+# Subtest: document domain reply rejects and every attempted holder has exact cleanup
+ok 9 - document domain reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 23.35175
+  type: 'test'
+  ...
+# Subtest: document challenge reply rejects and every attempted holder has exact cleanup
+ok 10 - document challenge reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 27.684667
+  type: 'test'
+  ...
+# Subtest: document zero reply rejects and every attempted holder has exact cleanup
+ok 11 - document zero reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 20.846584
+  type: 'test'
+  ...
+# Subtest: document overflow reply rejects and every attempted holder has exact cleanup
+ok 12 - document overflow reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 22.229917
+  type: 'test'
+  ...
+# Subtest: document shape reply rejects and every attempted holder has exact cleanup
+ok 13 - document shape reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 20.55525
+  type: 'test'
+  ...
+# Subtest: document old reply rejects and every attempted holder has exact cleanup
+ok 14 - document old reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 19.863541
+  type: 'test'
+  ...
+# Subtest: negative HOLD followed by unknown RELEASE retains worker admission without retry
+ok 15 - negative HOLD followed by unknown RELEASE retains worker admission without retry
+  ---
+  duration_ms: 20.395
+  type: 'test'
+  ...
+# Subtest: locally quiet documents cannot cover durable pending UNKNOWN claims
+ok 16 - locally quiet documents cannot cover durable pending UNKNOWN claims
+  ---
+  duration_ms: 53.4835
+  type: 'test'
+  ...
+# Subtest: frozen membership removal invalidates proof and still cleans exact removed receiver
+ok 17 - frozen membership removal invalidates proof and still cleans exact removed receiver
+  ---
+  duration_ms: 33.802833
+  type: 'test'
+  ...
+# Subtest: original gate snapshot change refuses fence without repairing it
+ok 18 - original gate snapshot change refuses fence without repairing it
+  ---
+  duration_ms: 75.97475
+  type: 'test'
+  ...
+# Subtest: original generation snapshot change refuses fence without repairing it
+ok 19 - original generation snapshot change refuses fence without repairing it
+  ---
+  duration_ms: 74.429209
+  type: 'test'
+  ...
+# Subtest: original ledger snapshot change refuses fence without repairing it
+ok 20 - original ledger snapshot change refuses fence without repairing it
+  ---
+  duration_ms: 72.87375
+  type: 'test'
+  ...
+# (node:34741) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: one timed-out raw HOLD remains tracked and its actual late result triggers only exact cleanup
+ok 21 - one timed-out raw HOLD remains tracked and its actual late result triggers only exact cleanup
+  ---
+  duration_ms: 19.319583
+  type: 'test'
+  ...
+# Subtest: dispose invalidates proof but retains exact attempted cleanup records
+ok 22 - dispose invalidates proof but retains exact attempted cleanup records
+  ---
+  duration_ms: 32.074292
+  type: 'test'
+  ...
+# Subtest: original pending insertion ACK can settle while acquiring all document holders
+ok 23 - original pending insertion ACK can settle while acquiring all document holders
+  ---
+  duration_ms: 73.231875
+  type: 'test'
+  ...
+# Subtest: an unresolved release cannot silently open admission or send repeated cleanup
+ok 24 - an unresolved release cannot silently open admission or send repeated cleanup
+  ---
+  duration_ms: 32.549334
+  type: 'test'
+  ...
+# Subtest: all document acquisitions and repeated fences share the original remaining deadline
+ok 25 - all document acquisitions and repeated fences share the original remaining deadline
+  ---
+  duration_ms: 66.8925
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1148.2155

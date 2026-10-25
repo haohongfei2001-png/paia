@@ -1,0 +1,23 @@
+{
+  "base": "34cc9bf462476a6663bd533c93aa384bf1060dbb",
+  "files": [
+    {
+      "path": "extension/background/prompt-insertion-receipts.js",
+      "bytes": 43723,
+      "sha256": "4d6850ced49b6b4030f23473f43eaa1ad746c5a7d7131698d2fe7c44a56b5e90",
+      "git_blob": "35353a4eda29bcbf05bbc3537e166ff1fffcc695"
+    },
+    {
+      "path": "extension/tests/prompt-insertion-known-document-hold.test.mjs",
+      "bytes": 17526,
+      "sha256": "24e41a652baab5c0163e477bf2e3efd6bd04b34c4254ca4999ce4edacf52b76c",
+      "git_blob": "80e3365fa8f437e99b6cdb4e3aed6647f8b9285b"
+    },
+    {
+      "path": "extension/tests/prompt-insertion-receipt-hold.test.mjs",
+      "bytes": 19375,
+      "sha256": "178d76005aff6fbbd0570eb82c68c1ed1ea9c28fa631f5a2465317b5254f708c",
+      "git_blob": "1c670bf417dba596b3f99c76b737e7a9fe3b5de3"
+    }
+  ]
+}

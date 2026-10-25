@@ -1,0 +1,276 @@
+TAP version 13
+# Subtest: nonempty entire original known map holds and fences readonly without global or legacy claims
+ok 1 - nonempty entire original known map holds and fences readonly without global or legacy claims
+  ---
+  duration_ms: 120.388666
+  type: 'test'
+  ...
+# Subtest: empty cold receiver map cannot become positive proof
+ok 2 - empty cold receiver map cannot become positive proof
+  ---
+  duration_ms: 24.786875
+  type: 'test'
+  ...
+# Subtest: registration admitted before hold cannot change frozen map after its original tabs await
+ok 3 - registration admitted before hold cannot change frozen map after its original tabs await
+  ---
+  duration_ms: 38.589375
+  type: 'test'
+  ...
+# Subtest: actual tab window change refuses without fallback or discovery
+ok 4 - actual tab window change refuses without fallback or discovery
+  ---
+  duration_ms: 20.358125
+  type: 'test'
+  ...
+# Subtest: actual tab url change refuses without fallback or discovery
+ok 5 - actual tab url change refuses without fallback or discovery
+  ---
+  duration_ms: 24.190625
+  type: 'test'
+  ...
+# Subtest: actual tab discarded change refuses without fallback or discovery
+ok 6 - actual tab discarded change refuses without fallback or discovery
+  ---
+  duration_ms: 19.513291
+  type: 'test'
+  ...
+# Subtest: document nonce reply rejects and every attempted holder has exact cleanup
+ok 7 - document nonce reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 19.449084
+  type: 'test'
+  ...
+# Subtest: document owner reply rejects and every attempted holder has exact cleanup
+ok 8 - document owner reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 19.552584
+  type: 'test'
+  ...
+# Subtest: document domain reply rejects and every attempted holder has exact cleanup
+ok 9 - document domain reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 29.437584
+  type: 'test'
+  ...
+# Subtest: document challenge reply rejects and every attempted holder has exact cleanup
+ok 10 - document challenge reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 36.941542
+  type: 'test'
+  ...
+# Subtest: document zero reply rejects and every attempted holder has exact cleanup
+ok 11 - document zero reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 52.432208
+  type: 'test'
+  ...
+# Subtest: document overflow reply rejects and every attempted holder has exact cleanup
+ok 12 - document overflow reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 33.1995
+  type: 'test'
+  ...
+# Subtest: document shape reply rejects and every attempted holder has exact cleanup
+ok 13 - document shape reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 22.373583
+  type: 'test'
+  ...
+# Subtest: document old reply rejects and every attempted holder has exact cleanup
+ok 14 - document old reply rejects and every attempted holder has exact cleanup
+  ---
+  duration_ms: 24.318125
+  type: 'test'
+  ...
+# Subtest: negative HOLD followed by unknown RELEASE retains worker admission without retry
+ok 15 - negative HOLD followed by unknown RELEASE retains worker admission without retry
+  ---
+  duration_ms: 20.717709
+  type: 'test'
+  ...
+# Subtest: locally quiet documents cannot cover durable pending UNKNOWN claims
+ok 16 - locally quiet documents cannot cover durable pending UNKNOWN claims
+  ---
+  duration_ms: 57.857875
+  type: 'test'
+  ...
+# Subtest: frozen membership removal invalidates proof and still cleans exact removed receiver
+ok 17 - frozen membership removal invalidates proof and still cleans exact removed receiver
+  ---
+  duration_ms: 37.681083
+  type: 'test'
+  ...
+# Subtest: original gate snapshot change refuses fence without repairing it
+ok 18 - original gate snapshot change refuses fence without repairing it
+  ---
+  duration_ms: 76.169042
+  type: 'test'
+  ...
+# Subtest: original generation snapshot change refuses fence without repairing it
+ok 19 - original generation snapshot change refuses fence without repairing it
+  ---
+  duration_ms: 79.891875
+  type: 'test'
+  ...
+# Subtest: original ledger snapshot change refuses fence without repairing it
+ok 20 - original ledger snapshot change refuses fence without repairing it
+  ---
+  duration_ms: 79.543208
+  type: 'test'
+  ...
+# (node:33725) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: one timed-out raw HOLD remains tracked and its actual late result triggers only exact cleanup
+not ok 21 - one timed-out raw HOLD remains tracked and its actual late result triggers only exact cleanup
+  ---
+  duration_ms: 22.998834
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-known-document-hold/extension/tests/prompt-insertion-known-document-hold.test.mjs:89:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/prompt-known-document-hold/extension/tests/prompt-insertion-known-document-hold.test.mjs:93:168)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: dispose invalidates proof but retains exact attempted cleanup records
+ok 22 - dispose invalidates proof but retains exact attempted cleanup records
+  ---
+  duration_ms: 39.081625
+  type: 'test'
+  ...
+# Subtest: warm hold is readonly, retains legacy unknown, rejects new admissions and does not revive old actions
+ok 23 - warm hold is readonly, retains legacy unknown, rejects new admissions and does not revive old actions
+  ---
+  duration_ms: 146.212125
+  type: 'test'
+  ...
+# Subtest: hold drains already issued physical transport and its original terminal ledger settlement
+ok 24 - hold drains already issued physical transport and its original terminal ledger settlement
+  ---
+  duration_ms: 60.564834
+  type: 'test'
+  ...
+# Subtest: pending before physical send becomes original not_dispatched and does not send after hold
+ok 25 - pending before physical send becomes original not_dispatched and does not send after hold
+  ---
+  duration_ms: 52.56075
+  type: 'test'
+  ...
+# Subtest: settled transport with unknown native outcome refuses hold until exact original ACK settles
+ok 26 - settled transport with unknown native outcome refuses hold until exact original ACK settles
+  ---
+  duration_ms: 76.785
+  type: 'test'
+  ...
+# Subtest: held receiver registration is an actual drain task, not an empty-set completion
+ok 27 - held receiver registration is an actual drain task, not an empty-set completion
+  ---
+  duration_ms: 74.0825
+  type: 'test'
+  ...
+# (node:33726) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: timeout keeps the actual underlying transport and pending claim until it really settles
+ok 28 - timeout keeps the actual underlying transport and pending claim until it really settles
+  ---
+  duration_ms: 82.75475
+  type: 'test'
+  ...
+# Subtest: fence rejects changed ledger without repairing it
+ok 29 - fence rejects changed ledger without repairing it
+  ---
+  duration_ms: 71.316459
+  type: 'test'
+  ...
+# Subtest: fence rejects changed gate without repairing it
+ok 30 - fence rejects changed gate without repairing it
+  ---
+  duration_ms: 71.794875
+  type: 'test'
+  ...
+# Subtest: fence rejects changed epoch without repairing it
+ok 31 - fence rejects changed epoch without repairing it
+  ---
+  duration_ms: 63.500958
+  type: 'test'
+  ...
+# Subtest: fence rejects changed generation without repairing it
+ok 32 - fence rejects changed generation without repairing it
+  ---
+  duration_ms: 73.747958
+  type: 'test'
+  ...
+# Subtest: late registered original continuation invalidates ready hold and remains tracked for a later hold
+ok 33 - late registered original continuation invalidates ready hold and remains tracked for a later hold
+  ---
+  duration_ms: 33.078208
+  type: 'test'
+  ...
+# Subtest: original owner identity refuses method and API-object replacement without using forged hold results
+ok 34 - original owner identity refuses method and API-object replacement without using forged hold results
+  ---
+  duration_ms: 20.603875
+  type: 'test'
+  ...
+# Subtest: an already entered ack original native read drains before the warm fence
+ok 35 - an already entered ack original native read drains before the warm fence
+  ---
+  duration_ms: 62.401
+  type: 'test'
+  ...
+# Subtest: an already entered reconcile original native read drains before the warm fence
+ok 36 - an already entered reconcile original native read drains before the warm fence
+  ---
+  duration_ms: 62.541833
+  type: 'test'
+  ...
+# Subtest: captured SDK invocation ignores own call replacement
+ok 37 - captured SDK invocation ignores own call replacement
+  ---
+  duration_ms: 72.251458
+  type: 'test'
+  ...
+# Subtest: substituted Promise race and finally cannot manufacture drain completion while a real continuation remains pending
+ok 38 - substituted Promise race and finally cannot manufacture drain completion while a real continuation remains pending
+  ---
+  duration_ms: 25.8325
+  type: 'test'
+  ...
+# Subtest: a rejected original continuation cannot become warm proof after task-set removal
+ok 39 - a rejected original continuation cannot become warm proof after task-set removal
+  ---
+  duration_ms: 28.89625
+  type: 'test'
+  ...
+# Subtest: a unobservable original continuation cannot become warm proof after task-set removal
+ok 40 - a unobservable original continuation cannot become warm proof after task-set removal
+  ---
+  duration_ms: 28.992875
+  type: 'test'
+  ...
+# Subtest: action admission entered before hold cannot mint a usable capability after its native read resumes
+ok 41 - action admission entered before hold cannot mint a usable capability after its native read resumes
+  ---
+  duration_ms: 62.877167
+  type: 'test'
+  ...
+1..41
+# tests 41
+# suites 0
+# pass 40
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1353.846
