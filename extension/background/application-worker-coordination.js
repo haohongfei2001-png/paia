@@ -20,6 +20,8 @@ async function waitOriginalOwner(state,pending){
  try{const result=await Promise.race([pending,new Promise((_,reject)=>{timer=Timer(()=>reject(new ArchiveError('GENERATION_WORKER_NOT_QUIET')),Math.max(0,state.deadline-clock()));})]);checkTime(state);return result;}
  finally{clearTimer(timer);}
 }
+const originalCoordinators=new WeakMap();
+export function isOriginalApplicationWorkerCoordination(owner,store){const original=originalCoordinators.get(owner);try{return !!original&&original.store===store&&original.current();}catch{return false;}}
 const exact=(owner,prototype)=>!!owner&&Object.getPrototypeOf(owner)===prototype;
 // Capture original methods, not instance callbacks or a later prototype edit.
 const methods=prototype=>Object.freeze({hold:prototype.holdForApplicationSelection,current:prototype.applicationSelectionHeld,fence:prototype.fenceApplicationSelection,release:prototype.releaseApplicationSelection,source:prototype.applicationSelectionSourceIs});
@@ -76,7 +78,7 @@ export function createApplicationWorkerCoordination({store,safety,libraryRunner,
    if(refused)throw refused.reason;state.ready=true;if(!current(token,scope))fail();return token;
   }catch(error){releaseState(state);throw error;}
  };
- return Object.freeze({
+ const coordinator=Object.freeze({
   holdLocalMaintenance:()=>hold('local'),
   assertLocalMaintenanceHeld(token){if(!current(token,'local'))fail();return true;},
   releaseLocalMaintenance:token=>release(token,'local'),
@@ -95,4 +97,5 @@ export function createApplicationWorkerCoordination({store,safety,libraryRunner,
   releaseApplicationSources:token=>release(token,'sources'),
   close(){closed=true;if(active&&!releaseState(active))fail();}
  });
+ originalCoordinators.set(coordinator,{store,current:()=>!closed&&sourcesCurrent()});return coordinator;
 }

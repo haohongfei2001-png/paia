@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: fixed original warm owners compose without granting activation or historical coverage
+ok 1 - fixed original warm owners compose without granting activation or historical coverage
+  ---
+  duration_ms: 159.739209
+  type: 'test'
+  ...
+# Subtest: missing capture owner refuses before borrowing original source gates
+ok 2 - missing capture owner refuses before borrowing original source gates
+  ---
+  duration_ms: 62.405625
+  type: 'test'
+  ...
+# Subtest: copied fixed owners and foreign API cannot manufacture composition
+ok 3 - copied fixed owners and foreign API cannot manufacture composition
+  ---
+  duration_ms: 74.748667
+  type: 'test'
+  ...
+# Subtest: capture admission during hold invalidates the composition without replaying capture
+ok 4 - capture admission during hold invalidates the composition without replaying capture
+  ---
+  duration_ms: 80.978875
+  type: 'test'
+  ...
+# Subtest: timed out original capture remains pending and old completion cannot clear a new hold
+ok 5 - timed out original capture remains pending and old completion cannot clear a new hold
+  ---
+  duration_ms: 72.470792
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 638.254167

@@ -1,0 +1,7 @@
+{
+  "extension/background/application-transport-coordination.js": "afad5d4ba2e9a1a2a5c02614271183cc9193a1785a00f10205323c8d43f954dc",
+  "extension/background/application-worker-coordination.js": "2e8ead75e924f169a1f6d184263ca251ae4afdd5633f58e437d87fadbd29939e",
+  "extension/background/service-worker.js": "dbccc1e7e07faf9fd3676e93d06af3e21506535ca11056fee576f0dd44d5a5ec",
+  "extension/tests/harness/selection-admission-worker.mjs": "7979674660fdc4c5022df69abacc8284888c7e66dbd6bc9d7fd69de63b4fffe5",
+  "extension/tests/application-transport-coordination.test.mjs": "5831824adc0f9e544531dab4878ea7480056836ee824b8150b16498cdfc2c49d"
+}
