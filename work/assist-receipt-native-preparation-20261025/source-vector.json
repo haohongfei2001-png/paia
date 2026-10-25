@@ -1,0 +1,14 @@
+{
+  "base": "815584ccca9c037673c3cc04fc7d950a9fcd011b",
+  "sources": {
+    "extension/tests/harness/assist-receipt-native-service.mjs": "25ef58e1819845a0cf94a085c4eaf0fcae45c1d43f934343c274ed9ba9bb907a",
+    "extension/tests/assist-receipt-native-bridge-contract.test.mjs": "9cbaeffe708fb800b39bf5acf6a8cd1d50f42fb6f8a72969fef1bab9bdc4c9e8",
+    "services/ai-gateway/tests/assist-native-service-bridge.test.mjs": "fafcfbf5c956842f4f5b91a46b05d8c95aa39d898ca1f77207d97cf116dc0ca4",
+    "services/ai-gateway/tests/assist-client-fixture.mjs": "7c07e436646945e8478ca04908ce8e79b44b6fc6204a739a6c7228894634441a",
+    "services/ai-gateway/tests/assist-signed-service-fixture.mjs": "5e863b2bba14037e34563fb57940feec75e09a9fb35a26e7733a1f5aa93c183d"
+  },
+  "nativeOwningUnchanged": {
+    "extension/tests/harness/ai-assist-native.mjs": "fed34d3420167509c7e3cc0923e660b61d7f13be14ec16fd35dd4eb274ca6d7e",
+    "extension/tests/harness/ai-cost-session-lifecycle-cases.mjs": "e228bc4a97fe271a12b0151f3db0c37db9a59001efde922303cecef18fab6175"
+  }
+}

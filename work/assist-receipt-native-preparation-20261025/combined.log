@@ -1,0 +1,524 @@
+TAP version 13
+# Subtest: original private native Assist fixture loads the actual source controller into its isolated classic-script world
+ok 1 - original private native Assist fixture loads the actual source controller into its isolated classic-script world
+  ---
+  duration_ms: 7.628083
+  type: 'test'
+  ...
+# Subtest: fixed bridge returns the actual signed fixture profile and original tokenizer, never a receipt ACK
+ok 2 - fixed bridge returns the actual signed fixture profile and original tokenizer, never a receipt ACK
+  ---
+  duration_ms: 166.889458
+  type: 'test'
+  ...
+# Subtest: fixed bridge rejects foreign nonce, variant, operation and extra fields before handlers
+ok 3 - fixed bridge rejects foreign nonce, variant, operation and extra fields before handlers
+  ---
+  duration_ms: 4.885208
+  type: 'test'
+  ...
+# Subtest: fixed bridge refuses arbitrary origin, path, method, headers and oversized body
+ok 4 - fixed bridge refuses arbitrary origin, path, method, headers and oversized body
+  ---
+  duration_ms: 5.981583
+  type: 'test'
+  ...
+# Subtest: allowed request reaches actual declaration parser, retaining its failure response
+ok 5 - allowed request reaches actual declaration parser, retaining its failure response
+  ---
+  duration_ms: 21.105333
+  type: 'test'
+  ...
+# Subtest: dispose refuses fresh calls and late completion without dropping the actual pending task
+ok 6 - dispose refuses fresh calls and late completion without dropping the actual pending task
+  ---
+  duration_ms: 4.199833
+  type: 'test'
+  ...
+# Subtest: archive relay ignores all real receipt messages and refuses forged sender/nonce
+ok 7 - archive relay ignores all real receipt messages and refuses forged sender/nonce
+  ---
+  duration_ms: 0.802083
+  type: 'test'
+  ...
+# Subtest: archive relay binds original runtime identity and refuses a late reply after disposal
+ok 8 - archive relay binds original runtime identity and refuses a late reply after disposal
+  ---
+  duration_ms: 0.701584
+  type: 'test'
+  ...
+# Subtest: generated staged configuration uses only fixed bridge and original signed profile inputs
+not ok 9 - generated staged configuration uses only fixed bridge and original signed profile inputs
+  ---
+  duration_ms: 3.975917
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/assist-receipt-native-preparation/extension/tests/assist-receipt-native-service.test.mjs:51:1'
+  failureType: 'testCodeFailure'
+  error: 'ASSIST_NATIVE_BRIDGE_REFUSED'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/assist-receipt-native-preparation/extension/tests/harness/assist-receipt-native-service.mjs:7:23)
+    validate (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/assist-receipt-native-preparation/extension/tests/harness/assist-receipt-native-service.mjs:20:243)
+    Object.handle (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/assist-receipt-native-preparation/extension/tests/harness/assist-receipt-native-service.mjs:22:17)
+    Object.sendMessage (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/assist-receipt-native-preparation/extension/tests/assist-receipt-native-service.test.mjs:53:139)
+    call (evalmachine.<anonymous>:5:114)
+    Object.readProfile (evalmachine.<anonymous>:6:436)
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/assist-receipt-native-preparation/extension/tests/assist-receipt-native-service.test.mjs:56:58)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: real signed automatic reply works with the R3 board closed and ten identical READY events spend once
+ok 10 - real signed automatic reply works with the R3 board closed and ten identical READY events spend once
+  ---
+  duration_ms: 393.767459
+  type: 'test'
+  ...
+# Subtest: surface reads and the retired generation command cannot generate a paid request
+ok 11 - surface reads and the retired generation command cannot generate a paid request
+  ---
+  duration_ms: 109.873333
+  type: 'test'
+  ...
+# Subtest: a prerequisite that cannot fit the one-click R3 contract truthfully commits DEFER
+ok 12 - a prerequisite that cannot fit the one-click R3 contract truthfully commits DEFER
+  ---
+  duration_ms: 219.920584
+  type: 'test'
+  ...
+# Subtest: an automatic provider failure cannot be retried by repeated DOM-ready events
+ok 13 - an automatic provider failure cannot be retried by repeated DOM-ready events
+  ---
+  duration_ms: 161.705042
+  type: 'test'
+  ...
+# Subtest: a closed R3 view does not cancel a bounded host-owned automatic evaluation
+ok 14 - a closed R3 view does not cancel a bounded host-owned automatic evaluation
+  ---
+  duration_ms: 192.836125
+  type: 'test'
+  ...
+# Subtest: persistent automatic preference survives restart without permitting an already completed historical reply
+ok 15 - persistent automatic preference survives restart without permitting an already completed historical reply
+  ---
+  duration_ms: 30.133708
+  type: 'test'
+  ...
+# (node:64764) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: manual v1 configure messages cannot silently enable the automatic remote contract
+ok 16 - manual v1 configure messages cannot silently enable the automatic remote contract
+  ---
+  duration_ms: 32.250042
+  type: 'test'
+  ...
+# Subtest: automatic idle expiry releases the private result and cannot become a new paid READY opportunity
+ok 17 - automatic idle expiry releases the private result and cannot become a new paid READY opportunity
+  ---
+  duration_ms: 211.344625
+  type: 'test'
+  ...
+# Subtest: a Context notification cannot renew revoked processing authority into another automatic paid opportunity
+ok 18 - a Context notification cannot renew revoked processing authority into another automatic paid opportunity
+  ---
+  duration_ms: 231.845458
+  type: 'test'
+  ...
+# Subtest: failed Settings revocation cannot revive automatic processing through the same owner status or a new READY
+ok 19 - failed Settings revocation cannot revive automatic processing through the same owner status or a new READY
+  ---
+  duration_ms: 26.788292
+  type: 'test'
+  ...
+# Subtest: an unrelated unselected Item notification during the real provider await preserves the single in-flight automatic result
+ok 20 - an unrelated unselected Item notification during the real provider await preserves the single in-flight automatic result
+  ---
+  duration_ms: 234.955291
+  type: 'test'
+  ...
+# Subtest: a genuine signed Free entitlement cannot enter the automatic Pro provider route
+ok 21 - a genuine signed Free entitlement cannot enter the automatic Pro provider route
+  ---
+  duration_ms: 92.154875
+  type: 'test'
+  ...
+# Subtest: a selected Item change during the real provider await retires the sent attempt without another paid automatic retry
+ok 22 - a selected Item change during the real provider await retires the sent attempt without another paid automatic retry
+  ---
+  duration_ms: 183.7955
+  type: 'test'
+  ...
+# Subtest: automatic Pro gate rejects missing original status identity before provider transport
+ok 23 - automatic Pro gate rejects missing original status identity before provider transport
+  ---
+  duration_ms: 90.076
+  type: 'test'
+  ...
+# Subtest: automatic Pro gate rejects foreign-operation original status identity before provider transport
+ok 24 - automatic Pro gate rejects foreign-operation original status identity before provider transport
+  ---
+  duration_ms: 86.072125
+  type: 'test'
+  ...
+# Subtest: automatic Pro gate rejects free-forged-pro original status identity before provider transport
+ok 25 - automatic Pro gate rejects free-forged-pro original status identity before provider transport
+  ---
+  duration_ms: 85.349292
+  type: 'test'
+  ...
+# Subtest: automatic Pro identity expires before the original final physical send without fetching a replacement proof
+ok 26 - automatic Pro identity expires before the original final physical send without fetching a replacement proof
+  ---
+  duration_ms: 115.411833
+  type: 'test'
+  ...
+# Subtest: Settings reports a failed durable disable honestly while its original owner remains fail-closed
+ok 27 - Settings reports a failed durable disable honestly while its original owner remains fail-closed
+  ---
+  duration_ms: 20.66025
+  type: 'test'
+  ...
+# Subtest: the original recovery owner releases only the signed Free automatic path unsent reservation without provider replay
+ok 28 - the original recovery owner releases only the signed Free automatic path unsent reservation without provider replay
+  ---
+  duration_ms: 105.162875
+  type: 'test'
+  ...
+# Subtest: signed Free automatic rejection preserves the original local suggestion and its direct first R3 insertion
+ok 29 - signed Free automatic rejection preserves the original local suggestion and its direct first R3 insertion
+  ---
+  duration_ms: 100.977875
+  type: 'test'
+  ...
+# Subtest: an in-flight signed Pro request leaves original local suggestion consumption available without another paid request
+ok 30 - an in-flight signed Pro request leaves original local suggestion consumption available without another paid request
+  ---
+  duration_ms: 162.930458
+  type: 'test'
+  ...
+# Subtest: Assist boundary: a cancelled automatic opportunity does not replay; a new reply follows the original prepublication boundary
+ok 31 - Assist boundary: a cancelled automatic opportunity does not replay; a new reply follows the original prepublication boundary
+  ---
+  duration_ms: 442.990459
+  type: 'test'
+  ...
+# Subtest: Assist boundary: authenticated host navigation during proof acquisition cannot reach physical provider
+ok 32 - Assist boundary: authenticated host navigation during proof acquisition cannot reach physical provider
+  ---
+  duration_ms: 82.204666
+  type: 'test'
+  ...
+# Subtest: Assist final physical-send fence rejects host navigation after the original dispatch record has committed
+ok 33 - Assist final physical-send fence rejects host navigation after the original dispatch record has committed
+  ---
+  duration_ms: 172.855833
+  type: 'test'
+  ...
+# Subtest: default source-owned signed Assist assembly selects independently granted automatic current-conversation Info
+ok 34 - default source-owned signed Assist assembly selects independently granted automatic current-conversation Info
+  ---
+  duration_ms: 646.918667
+  type: 'test'
+  ...
+# Subtest: default source-owned signed Assist assembly refuses selected Context with no independent processing capability
+ok 35 - default source-owned signed Assist assembly refuses selected Context with no independent processing capability
+  ---
+  duration_ms: 76.219625
+  type: 'test'
+  ...
+# Subtest: source service assembly rejects Context selectors and processing accessors without invoking them
+ok 36 - source service assembly rejects Context selectors and processing accessors without invoking them
+  ---
+  duration_ms: 24.094834
+  type: 'test'
+  ...
+# Subtest: signed final physical-send fence rejects selected item change after original dispatch record
+ok 37 - signed final physical-send fence rejects selected item change after original dispatch record
+  ---
+  duration_ms: 446.077417
+  type: 'test'
+  ...
+# Subtest: signed final physical-send fence rejects selected source change after original dispatch record
+ok 38 - signed final physical-send fence rejects selected source change after original dispatch record
+  ---
+  duration_ms: 396.708417
+  type: 'test'
+  ...
+# Subtest: signed final physical-send fence rejects selected working change after original dispatch record
+ok 39 - signed final physical-send fence rejects selected working change after original dispatch record
+  ---
+  duration_ms: 389.028
+  type: 'test'
+  ...
+# Subtest: signed final physical-send fence rejects selected processing change after original dispatch record
+ok 40 - signed final physical-send fence rejects selected processing change after original dispatch record
+  ---
+  duration_ms: 367.649542
+  type: 'test'
+  ...
+# Subtest: default source-owned signed Assist includes an exact one-hop automatic Context Item from another conversation
+ok 41 - default source-owned signed Assist includes an exact one-hop automatic Context Item from another conversation
+  ---
+  duration_ms: 706.803708
+  type: 'test'
+  ...
+# Subtest: signed cross-conversation discovery cannot turn a missing foreign Item field grant into any remote call
+ok 42 - signed cross-conversation discovery cannot turn a missing foreign Item field grant into any remote call
+  ---
+  duration_ms: 75.660417
+  type: 'test'
+  ...
+# Subtest: signed last physical-send fence rejects a one-hop Source chatKey change even when both Item bodies are unchanged
+ok 43 - signed last physical-send fence rejects a one-hop Source chatKey change even when both Item bodies are unchanged
+  ---
+  duration_ms: 545.316292
+  type: 'test'
+  ...
+# Subtest: configured default source route invokes separate label discovery then exact human Item body processing
+ok 44 - configured default source route invokes separate label discovery then exact human Item body processing
+  ---
+  duration_ms: 205.946709
+  type: 'test'
+  ...
+# Subtest: configured source defaults to refusing new label purpose even when ordinary body processing exists
+ok 45 - configured source defaults to refusing new label purpose even when ordinary body processing exists
+  ---
+  duration_ms: 20.7
+  type: 'test'
+  ...
+# Subtest: configured discovery capability rejects unknown keys, symbols and accessors without invoking them
+ok 46 - configured discovery capability rejects unknown keys, symbols and accessors without invoking them
+  ---
+  duration_ms: 16.617166
+  type: 'test'
+  ...
+# Subtest: signed last physical-send fence refuses revoked discovery without renewing the original human body receipt
+ok 47 - signed last physical-send fence refuses revoked discovery without renewing the original human body receipt
+  ---
+  duration_ms: 154.915709
+  type: 'test'
+  ...
+# Subtest: actual content script and result controller reject Context revoke during final qualification ACK
+ok 48 - actual content script and result controller reject Context revoke during final qualification ACK
+  ---
+  duration_ms: 453.331666
+  type: 'test'
+  ...
+# Subtest: a delivered Context notification grants nothing; fresh original worker qualification can still insert an unrelated cached result
+ok 49 - a delivered Context notification grants nothing; fresh original worker qualification can still insert an unrelated cached result
+  ---
+  duration_ms: 264.335167
+  type: 'test'
+  ...
+# Subtest: actual content owner rejects delayed availability for a different reply or old consent generation
+ok 50 - actual content owner rejects delayed availability for a different reply or old consent generation
+  ---
+  duration_ms: 190.252208
+  type: 'test'
+  ...
+# Subtest: actual prospective content observer ignores one hundred unrelated redraws after its single automatic evaluation
+ok 51 - actual prospective content observer ignores one hundred unrelated redraws after its single automatic evaluation
+  ---
+  duration_ms: 222.072625
+  type: 'test'
+  ...
+# Subtest: a failed Settings disable clears the original content automatic offer even without a storage change event
+ok 52 - a failed Settings disable clears the original content automatic offer even without a storage change event
+  ---
+  duration_ms: 220.134208
+  type: 'test'
+  ...
+# Subtest: actual automatic Assist opportunity composes signed service owners, genuine local result and one paid child for ten identical opportunities
+ok 53 - actual automatic Assist opportunity composes signed service owners, genuine local result and one paid child for ten identical opportunities
+  ---
+  duration_ms: 462.904625
+  type: 'test'
+  ...
+# Subtest: ordinary actual surface status/open never creates a job, declaration, reservation or provider request
+ok 54 - ordinary actual surface status/open never creates a job, declaration, reservation or provider request
+  ---
+  duration_ms: 65.88175
+  type: 'test'
+  ...
+# Subtest: actual surface rejects forged frame/nonce/configuration before a signed service request
+ok 55 - actual surface rejects forged frame/nonce/configuration before a signed service request
+  ---
+  duration_ms: 33.170959
+  type: 'test'
+  ...
+# Subtest: consent/reply withdrawal after real signed settlement withholds output and never exposes or inserts stale body
+ok 56 - consent/reply withdrawal after real signed settlement withholds output and never exposes or inserts stale body
+  ---
+  duration_ms: 190.268084
+  type: 'test'
+  ...
+# Subtest: new reply invalidates old result and late insertion without changing the stable local prompts
+ok 57 - new reply invalidates old result and late insertion without changing the stable local prompts
+  ---
+  duration_ms: 183.728666
+  type: 'test'
+  ...
+# Subtest: original local ACK failure reuses only the retained validated response, with no second paid dispatch
+ok 58 - original local ACK failure reuses only the retained validated response, with no second paid dispatch
+  ---
+  duration_ms: 220.776583
+  type: 'test'
+  ...
+# Subtest: lost result ACK reports the original metadata again without a provider retry
+ok 59 - lost result ACK reports the original metadata again without a provider retry
+  ---
+  duration_ms: 226.627375
+  type: 'test'
+  ...
+# Subtest: same live prospective reply retains cache for unrelated Context changes but qualifies a new relevant Context-change opportunity
+ok 60 - same live prospective reply retains cache for unrelated Context changes but qualifies a new relevant Context-change opportunity
+  ---
+  duration_ms: 465.479458
+  type: 'test'
+  ...
+# Subtest: final insertion requalifies selected independent Context after the worker-to-content handoff
+ok 61 - final insertion requalifies selected independent Context after the worker-to-content handoff
+  ---
+  duration_ms: 222.159209
+  type: 'test'
+  ...
+# Subtest: real signed DEFER settles spend but reports no effective result and shares the same cached evaluation
+ok 62 - real signed DEFER settles spend but reports no effective result and shares the same cached evaluation
+  ---
+  duration_ms: 252.01925
+  type: 'test'
+  ...
+# Subtest: actual original Prompt view state traverses authenticated surface RPC and requires presentation before insertion
+ok 63 - actual original Prompt view state traverses authenticated surface RPC and requires presentation before insertion
+  ---
+  duration_ms: 170.106708
+  type: 'test'
+  ...
+# Subtest: actual two Settings UI states use owner CAS so one cannot restore the other window's revoked permission
+ok 64 - actual two Settings UI states use owner CAS so one cannot restore the other window's revoked permission
+  ---
+  duration_ms: 24.102584
+  type: 'test'
+  ...
+# Subtest: actual surface cancellation before declaration prevents a paid request and stops only that pending owner
+ok 65 - actual surface cancellation before declaration prevents a paid request and stops only that pending owner
+  ---
+  duration_ms: 50.999
+  type: 'test'
+  ...
+# Subtest: actual surface cancellation after provider dispatch leaves the original possibly billed attempt and cannot publish late output
+ok 66 - actual surface cancellation after provider dispatch leaves the original possibly billed attempt and cannot publish late output
+  ---
+  duration_ms: 130.615417
+  type: 'test'
+  ...
+# Subtest: a profile denial never retries automatically and a genuinely new reply can create its own paid opportunity
+ok 67 - a profile denial never retries automatically and a genuinely new reply can create its own paid opportunity
+  ---
+  duration_ms: 181.498209
+  type: 'test'
+  ...
+# Subtest: cancelling a saved preflight before publication restores only its own never-sent marker and permits the same reply
+ok 68 - cancelling a saved preflight before publication restores only its own never-sent marker and permits the same reply
+  ---
+  duration_ms: 163.267542
+  type: 'test'
+  ...
+# Subtest: same-document conversation navigation retires the old reply and registers only the new canonical host
+ok 69 - same-document conversation navigation retires the old reply and registers only the new canonical host
+  ---
+  duration_ms: 238.524875
+  type: 'test'
+  ...
+# Subtest: the actual configured route still needs both independent current Settings consents before any remote request
+ok 70 - the actual configured route still needs both independent current Settings consents before any remote request
+  ---
+  duration_ms: 21.63125
+  type: 'test'
+  ...
+# Subtest: cold restart cannot rebill or recover the body of an old reply, even with lost provider acknowledgement
+ok 71 - cold restart cannot rebill or recover the body of an old reply, even with lost provider acknowledgement
+  ---
+  duration_ms: 361.433667
+  type: 'test'
+  ...
+# Subtest: lost reservation acknowledgement cancels only the original provably unsent hold; no new paid replay
+ok 72 - lost reservation acknowledgement cancels only the original provably unsent hold; no new paid replay
+  ---
+  duration_ms: 145.023584
+  type: 'test'
+  ...
+# Subtest: UNKNOWN original financial outcome retains its hold through cold recovery and never admits a fresh paid retry
+ok 73 - UNKNOWN original financial outcome retains its hold through cold recovery and never admits a fresh paid retry
+  ---
+  duration_ms: 201.13725
+  type: 'test'
+  ...
+# Subtest: only the original private Assist recovery handle and observed original status/cancellation can release a hold
+ok 74 - only the original private Assist recovery handle and observed original status/cancellation can release a hold
+  ---
+  duration_ms: 104.452584
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original marker
+ok 75 - Assist final recovery transaction rolls back a changed original marker
+  ---
+  duration_ms: 168.264208
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original job
+ok 76 - Assist final recovery transaction rolls back a changed original job
+  ---
+  duration_ms: 184.431375
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original attempt
+ok 77 - Assist final recovery transaction rolls back a changed original attempt
+  ---
+  duration_ms: 186.880416
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original reply-fence
+ok 78 - Assist final recovery transaction rolls back a changed original reply-fence
+  ---
+  duration_ms: 151.469167
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original flight
+ok 79 - Assist final recovery transaction rolls back a changed original flight
+  ---
+  duration_ms: 156.456334
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original dispatch
+ok 80 - Assist final recovery transaction rolls back a changed original dispatch
+  ---
+  duration_ms: 154.206709
+  type: 'test'
+  ...
+# Subtest: Assist final recovery transaction rolls back a changed original authority
+ok 81 - Assist final recovery transaction rolls back a changed original authority
+  ---
+  duration_ms: 133.433792
+  type: 'test'
+  ...
+# Subtest: Assist recovery transport and final write both reject revoked current authority without admitting another paid operation
+ok 82 - Assist recovery transport and final write both reject revoked current authority without admitting another paid operation
+  ---
+  duration_ms: 134.830416
+  type: 'test'
+  ...
+# Subtest: Assist cold recovery retries only an identical original FAILED result after losing the remote result ACK
+ok 83 - Assist cold recovery retries only an identical original FAILED result after losing the remote result ACK
+  ---
+  duration_ms: 147.910458
+  type: 'test'
+  ...
+1..83
+# tests 83
+# suites 0
+# pass 82
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5109.991209
