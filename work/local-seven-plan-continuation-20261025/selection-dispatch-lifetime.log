@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: original final wait set-replaced must prevent SDK entry
+ok 1 - original final wait set-replaced must prevent SDK entry
+  ---
+  duration_ms: 2528.353667
+  type: 'test'
+  ...
+# Subtest: original final wait closed must prevent SDK entry
+ok 2 - original final wait closed must prevent SDK entry
+  ---
+  duration_ms: 1794.550167
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4369.665459

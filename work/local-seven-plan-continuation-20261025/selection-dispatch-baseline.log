@@ -1,0 +1,54 @@
+TAP version 13
+# Subtest: baseline final wait set-replaced must prevent SDK entry
+not ok 1 - baseline final wait set-replaced must prevent SDK entry
+  ---
+  duration_ms: 2559.4725
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/local-seven-plan-continuation-20261025/selection-dispatch-baseline.test.mjs:34:46'
+  failureType: 'testCodeFailure'
+  error: |-
+    no SDK call after original owner or SDK identity invalidation
+    
+    5 !== 4
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4
+  actual: 5
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/local-seven-plan-continuation-20261025/selection-dispatch-baseline.test.mjs:37:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: baseline final wait closed must prevent SDK entry
+not ok 2 - baseline final wait closed must prevent SDK entry
+  ---
+  duration_ms: 1713.089292
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/local-seven-plan-continuation-20261025/selection-dispatch-baseline.test.mjs:34:46'
+  failureType: 'testCodeFailure'
+  error: |-
+    no SDK call after original owner or SDK identity invalidation
+    
+    5 !== 4
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4
+  actual: 5
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/local-seven-plan-continuation-20261025/selection-dispatch-baseline.test.mjs:37:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4356.589917

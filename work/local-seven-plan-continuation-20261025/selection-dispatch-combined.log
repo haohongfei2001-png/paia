@@ -1,0 +1,295 @@
+TAP version 13
+# Subtest: same complete reviewed cut renews a stale tail proof with the original operation and no write
+ok 1 - same complete reviewed cut renews a stale tail proof with the original operation and no write
+  ---
+  duration_ms: 638.266542
+  type: 'test'
+  ...
+# Subtest: source changed represented content cannot be silently re-reviewed
+ok 2 - source changed represented content cannot be silently re-reviewed
+  ---
+  duration_ms: 539.6165
+  type: 'test'
+  ...
+# Subtest: target changed represented content cannot be silently re-reviewed
+ok 3 - target changed represented content cannot be silently re-reviewed
+  ---
+  duration_ms: 515.145875
+  type: 'test'
+  ...
+# Subtest: source unknown physical metadata is retained and requires review despite same graph
+ok 4 - source unknown physical metadata is retained and requires review despite same graph
+  ---
+  duration_ms: 490.53775
+  type: 'test'
+  ...
+# Subtest: target unknown physical metadata is retained and requires review despite same graph
+ok 5 - target unknown physical metadata is retained and requires review despite same graph
+  ---
+  duration_ms: 486.256291
+  type: 'test'
+  ...
+# Subtest: replaced registry candidate is refused without opening the replacement database
+ok 6 - replaced registry candidate is refused without opening the replacement database
+  ---
+  duration_ms: 468.496084
+  type: 'test'
+  ...
+# Subtest: target original gate revision change requires review
+ok 7 - target original gate revision change requires review
+  ---
+  duration_ms: 461.572584
+  type: 'test'
+  ...
+# Subtest: source rebound database identity cannot reuse the original reviewed target
+ok 8 - source rebound database identity cannot reuse the original reviewed target
+  ---
+  duration_ms: 457.583666
+  type: 'test'
+  ...
+# Subtest: changed SDK control before row requires review and no SDK dispatch
+ok 9 - changed SDK control before row requires review and no SDK dispatch
+  ---
+  duration_ms: 478.581458
+  type: 'test'
+  ...
+# Subtest: source unresolved original selection marker refuses requalification
+ok 10 - source unresolved original selection marker refuses requalification
+  ---
+  duration_ms: 458.566541
+  type: 'test'
+  ...
+# Subtest: target unresolved original selection marker refuses requalification
+ok 11 - target unresolved original selection marker refuses requalification
+  ---
+  duration_ms: 485.871292
+  type: 'test'
+  ...
+# Subtest: restore epoch change remains an original proof refusal with no writes
+ok 12 - restore epoch change remains an original proof refusal with no writes
+  ---
+  duration_ms: 522.160708
+  type: 'test'
+  ...
+# Subtest: forged argument and another owner cannot supply or replace the private review
+ok 13 - forged argument and another owner cannot supply or replace the private review
+  ---
+  duration_ms: 509.373875
+  type: 'test'
+  ...
+# Subtest: full new raw preimage still rejects mutation after requalification
+ok 14 - full new raw preimage still rejects mutation after requalification
+  ---
+  duration_ms: 526.677125
+  type: 'test'
+  ...
+# Subtest: close during requalification invalidates old async completion; new explicit review survives
+ok 15 - close during requalification invalidates old async completion; new explicit review survives
+  ---
+  duration_ms: 562.896083
+  type: 'test'
+  ...
+# Subtest: close while initial prepare is waiting cannot publish a late prepared record
+ok 16 - close while initial prepare is waiting cannot publish a late prepared record
+  ---
+  duration_ms: 500.81125
+  type: 'test'
+  ...
+# Subtest: explicit reprepare replaces original review identity, never adopts an old response
+ok 17 - explicit reprepare replaces original review identity, never adopts an old response
+  ---
+  duration_ms: 552.436208
+  type: 'test'
+  ...
+# Subtest: source pending control publication remains unresolved and blocks requalification
+ok 18 - source pending control publication remains unresolved and blocks requalification
+  ---
+  duration_ms: 484.962
+  type: 'test'
+  ...
+# Subtest: target pending control publication remains unresolved and blocks requalification
+ok 19 - target pending control publication remains unresolved and blocks requalification
+  ---
+  duration_ms: 469.2035
+  type: 'test'
+  ...
+# Subtest: explicit complete original existing cut selects the published candidate and cold original owner preserves source
+ok 20 - explicit complete original existing cut selects the published candidate and cold original owner preserves source
+  ---
+  duration_ms: 571.337167
+  type: 'test'
+  ...
+# Subtest: source mutation after readonly preparation invalidates activation without a marker or overwritten data
+ok 21 - source mutation after readonly preparation invalidates activation without a marker or overwritten data
+  ---
+  duration_ms: 477.24325
+  type: 'test'
+  ...
+# Subtest: target mutation after readonly preparation invalidates activation without a marker or overwritten data
+ok 22 - target mutation after readonly preparation invalidates activation without a marker or overwritten data
+  ---
+  duration_ms: 481.291667
+  type: 'test'
+  ...
+# Subtest: unrepresented default content and foreign candidate graph cannot pass inheritance
+ok 23 - unrepresented default content and foreign candidate graph cannot pass inheritance
+  ---
+  duration_ms: 445.534375
+  type: 'test'
+  ...
+# Subtest: ordinary callers cannot install, clone or erase the private selection marker
+ok 24 - ordinary callers cannot install, clone or erase the private selection marker
+  ---
+  duration_ms: 428.562458
+  type: 'test'
+  ...
+# Subtest: local SDK reject-before retains one dispatch and reconciles only durable original receipt
+ok 25 - local SDK reject-before retains one dispatch and reconciles only durable original receipt
+  ---
+  duration_ms: 475.440792
+  type: 'test'
+  ...
+# Subtest: local SDK reject-after retains one dispatch and reconciles only durable original receipt
+ok 26 - local SDK reject-after retains one dispatch and reconciles only durable original receipt
+  ---
+  duration_ms: 483.362917
+  type: 'test'
+  ...
+# Subtest: interruption after committed source fence has a cold explicit continue path
+ok 27 - interruption after committed source fence has a cold explicit continue path
+  ---
+  duration_ms: 487.264667
+  type: 'test'
+  ...
+# Subtest: interruption after committed source fence has a cold explicit cancel path
+ok 28 - interruption after committed source fence has a cold explicit cancel path
+  ---
+  duration_ms: 492.887292
+  type: 'test'
+  ...
+# Subtest: cold configured application consumes only completed receipt and refuses rollback after later human edit
+ok 29 - cold configured application consumes only completed receipt and refuses rollback after later human edit
+  ---
+  duration_ms: 492.474209
+  type: 'test'
+  ...
+# selected original startup
+# original human edit committed
+# fallback refusal preserved rows
+# Subtest: unrepresented existing default Source is refused without implicit enrollment or any writes
+ok 30 - unrepresented existing default Source is refused without implicit enrollment or any writes
+  ---
+  duration_ms: 421.104291
+  type: 'test'
+  ...
+# Subtest: existing default without a selected receipt is the prior original application, not an automatic candidate switch
+ok 31 - existing default without a selected receipt is the prior original application, not an automatic candidate switch
+  ---
+  duration_ms: 406.543875
+  type: 'test'
+  ...
+# Subtest: actual cold configured worker uses selected original services and keeps the prior database
+ok 32 - actual cold configured worker uses selected original services and keeps the prior database
+  ---
+  duration_ms: 2767.180334
+  type: 'test'
+  ...
+# Subtest: durable interruption at source-dispatched reconciles the original operation without another SDK dispatch
+ok 33 - durable interruption at source-dispatched reconciles the original operation without another SDK dispatch
+  ---
+  duration_ms: 494.29625
+  type: 'test'
+  ...
+# Subtest: durable interruption at source-selected reconciles the original operation without another SDK dispatch
+ok 34 - durable interruption at source-selected reconciles the original operation without another SDK dispatch
+  ---
+  duration_ms: 483.109917
+  type: 'test'
+  ...
+# Subtest: durable interruption at target-cleanup reconciles the original operation without another SDK dispatch
+ok 35 - durable interruption at target-cleanup reconciles the original operation without another SDK dispatch
+  ---
+  duration_ms: 482.858625
+  type: 'test'
+  ...
+# Subtest: actual Settings keeps original complete-cut preparation read-only while cross-page editor protection is unavailable
+ok 36 - actual Settings keeps original complete-cut preparation read-only while cross-page editor protection is unavailable
+  ---
+  duration_ms: 677.911417
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CONTINUE without initializing a second writer
+ok 37 - failed ready retains actual Settings pending CONTINUE without initializing a second writer
+  ---
+  duration_ms: 526.864625
+  type: 'test'
+  ...
+# Subtest: failed ready retains actual Settings pending CANCEL without initializing a second writer
+ok 38 - failed ready retains actual Settings pending CANCEL without initializing a second writer
+  ---
+  duration_ms: 517.67575
+  type: 'test'
+  ...
+# Subtest: fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+ok 39 - fixed selection messages reject caller data, subframes, incognito and malformed roots before writes
+  ---
+  duration_ms: 460.620792
+  type: 'test'
+  ...
+# Subtest: default fixed source remains unavailable without selection controls or mutations
+ok 40 - default fixed source remains unavailable without selection controls or mutations
+  ---
+  duration_ms: 57.199291
+  type: 'test'
+  ...
+# Subtest: unknown SDK outcome remains reachable before ready, never resends or exposes restart
+ok 41 - unknown SDK outcome remains reachable before ready, never resends or exposes restart
+  ---
+  duration_ms: 520.136959
+  type: 'test'
+  ...
+# Subtest: selection cannot activate while a real original checkpoint request is in flight
+ok 42 - selection cannot activate while a real original checkpoint request is in flight
+  ---
+  duration_ms: 752.459292
+  type: 'test'
+  ...
+# Subtest: original final wait set-replaced must prevent SDK entry
+ok 43 - original final wait set-replaced must prevent SDK entry
+  ---
+  duration_ms: 1692.586625
+  type: 'test'
+  ...
+# Subtest: original final wait closed must prevent SDK entry
+ok 44 - original final wait closed must prevent SDK entry
+  ---
+  duration_ms: 1676.741209
+  type: 'test'
+  ...
+# Subtest: without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+ok 45 - without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+  ---
+  duration_ms: 620.244375
+  type: 'test'
+  ...
+# Subtest: a prepared interrupted operation cannot bypass the editor gate through continue before ready
+ok 46 - a prepared interrupted operation cannot bypass the editor gate through continue before ready
+  ---
+  duration_ms: 526.173583
+  type: 'test'
+  ...
+# Subtest: even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+ok 47 - even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+  ---
+  duration_ms: 545.331958
+  type: 'test'
+  ...
+1..47
+# tests 47
+# suites 0
+# pass 47
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 28709.516708

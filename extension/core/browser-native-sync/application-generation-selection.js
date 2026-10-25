@@ -11,6 +11,7 @@ import {controlPublicationDigest as digest,controlPublicationRow,readControlPubl
 
 export const APPLICATION_SELECTION_MARKER='application-generation-selection:v1';
 export const APPLICATION_SELECTION_REGISTRY='paia-canonical-generation-registry-v1';
+const originalSelectionApply=Reflect.apply,selectionReviews=new WeakMap();
 const authorities=new WeakMap(),cuts=new WeakMap(),copy=value=>structuredClone(value);
 const fail=(code='GENERATION_SELECTION_CHANGED')=>{throw new ArchiveError(code);};
 const exact=(v,keys)=>v&&Object.getPrototypeOf(v)===Object.prototype&&Reflect.ownKeys(v).length===keys.length&&keys.every(k=>Object.hasOwn(Object.getOwnPropertyDescriptors(v)[k]??{},'value'));
@@ -31,18 +32,26 @@ async function rows(repository){return originalGenerationRepositoryRead(reposito
 async function requireRows(repository,t,expected){for(const table of repository.stores)if(!equal(await readGroupRows(t,table),expected[table]))fail();}
 
 const control=value=>Object.fromEntries(['settings','preferences','diagnostics','memoryAccessPolicy','classificationRules','filterRules'].map(k=>[k,copy(value[k])]));
-async function localRow(local){const value=(await local.get(STORAGE_KEY))[STORAGE_KEY];if(!value||value.schemaVersion!==6||!tokenId(value.databaseId))fail();return value;}
+async function localRow(local,get=local.get){const value=(await originalSelectionApply(get,local,[STORAGE_KEY]))[STORAGE_KEY];if(!value||value.schemaVersion!==6||!tokenId(value.databaseId))fail();return value;}
 async function registryRoot(repository){return originalGenerationRepositoryRead(repository,t=>t.get('meta',CANONICAL_GENERATION_REGISTRY),['meta']);}
 async function point(repository,key){return originalGenerationRepositoryRead(repository,t=>t.get('meta',key),['meta']);}
 async function sameRegistry(registry,row){if(!equal(await registryRoot(registry),row.registryRoot))fail();}
 function checkGate(actual,row,increment=0){if(!equal(actual,{...row.targetGate,writeRevision:row.targetGate.writeRevision+increment}))fail();}
 
+// Read-only identity query; only the original constructor registers a closure.
+// Returning a review ID is not a reservation, a global permit or a writer token.
+export function readOriginalApplicationSelectionReview(owner,store,core,local){
+ const read=selectionReviews.get(owner);if(!read)fail('GENERATION_SELECTION_CAPABILITY');return read(store,core,local);
+}
+
 // Explicit existing-library selection. It only selects an already published,
 // retired-copy candidate proven to contain the exact complete current cut.
 // It never creates a candidate, imports an unknown family or deletes a library.
 export class OriginalApplicationGenerationSelection{
- #source;#core;#local;#factory;#authority;#prepared=null;#busy=false;#lifetime=0;
- constructor(store,core,local,aiFilterAuthority=null){requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(core);if(store.repository!==core.repository||store.repository.name!==DATABASE_NAME||store.local!==local)fail('GENERATION_SELECTION_CAPABILITY');this.#source=store;this.#core=core;this.#local=local;this.#factory=store.repository.factory;this.#authority=aiFilterAuthority;}
+ #source;#core;#local;#localGet;#localSet;#factory;#authority;#prepared=null;#busy=false;#lifetime=0;
+ constructor(store,core,local,aiFilterAuthority=null){requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(core);if(store.repository!==core.repository||store.repository.name!==DATABASE_NAME||store.local!==local)fail('GENERATION_SELECTION_CAPABILITY');this.#source=store;this.#core=core;this.#local=local;this.#factory=store.repository.factory;this.#authority=aiFilterAuthority;this.#localGet=local.get;this.#localSet=local.set;
+  selectionReviews.set(this,(s,c,l)=>{const p=cuts.get(this.#prepared);if(s!==this.#source||c!==this.#core||l!==this.#local||!p||p.owner!==this||this.#source.repository!==p.sourceRepository||this.#source.repository.db!==p.sourceDatabase||this.#core.repository!==p.sourceRepository||this.#local.get!==this.#localGet||this.#local.set!==this.#localSet)fail('GENERATION_SELECTION_NOT_PREPARED');return Object.freeze({operationId:p.record.operationId});});
+ }
  async prepare(){
   if(this.#busy)fail('GENERATION_SELECTION_BUSY');this.#busy=true;const lifetime=++this.#lifetime;this.#discardPrepared(this.#prepared);
   try{
@@ -110,15 +119,19 @@ export class OriginalApplicationGenerationSelection{
  }
  #discardPrepared(prepared){const p=cuts.get(prepared);p?.candidate.repository.db?.close();p?.registry.db?.close();cuts.delete(prepared);if(this.#prepared===prepared)this.#prepared=null;}
  async activate(){
-  const p=cuts.get(this.#prepared);if(this.#busy||!p||p.owner!==this)fail('GENERATION_SELECTION_NOT_PREPARED');this.#busy=true;
+  const prepared=this.#prepared,p=cuts.get(prepared),lifetime=this.#lifetime;if(this.#busy||!p||p.owner!==this)fail('GENERATION_SELECTION_NOT_PREPARED');
+  const check=()=>{if(this.#prepared!==prepared||this.#lifetime!==lifetime||cuts.get(prepared)!==p)fail('GENERATION_SELECTION_NOT_PREPARED');if(this.#local.get!==this.#localGet||this.#local.set!==this.#localSet)fail('GENERATION_SELECTION_CAPABILITY');};
+  check();this.#busy=true;
+  const guarded={check,marker:check,sdk:check,get:this.#localGet,set:this.#localSet};
+  const attempt=async(repository,fn,stores)=>{check();guarded?.marker();return write(repository,async t=>{check();const value=await fn(t);check();return value;},undefined,stores);};
   try{
-   await requireOriginalApplicationInheritanceCut(p.sourceProof);await requireOriginalApplicationInheritanceCut(p.targetProof);
-   if(!equal(await localRow(this.#local),p.before))fail();await sameRegistry(p.registry,p.record);
-   await write(this.#source.repository,async t=>{await requireRows(this.#source.repository,t,p.sourceRows);await t.put('meta',p.record);},undefined,this.#source.repository.stores);
+   await requireOriginalApplicationInheritanceCut(p.sourceProof);await requireOriginalApplicationInheritanceCut(p.targetProof);check();
+   if(!equal(await localRow(this.#local,guarded?.get??this.#local.get),p.before))fail();await sameRegistry(p.registry,p.record);check();
+   await attempt(this.#source.repository,async t=>{await requireRows(this.#source.repository,t,p.sourceRows);check();await t.put('meta',p.record);},this.#source.repository.stores);
    // A failure after this point retains the original source fence. Explicit
    // cancel can remove only an undispatched exact original pending operation.
-   await write(p.candidate.repository,async t=>{await requireRows(p.candidate.repository,t,p.targetRows);await t.put('meta',{...p.record,role:'target'});},undefined,p.candidate.repository.stores);
-   return await finishSelection(this.#source.repository,p.candidate.repository,p.registry,this.#local,p.record,false);
+   await attempt(p.candidate.repository,async t=>{await requireRows(p.candidate.repository,t,p.targetRows);check();await t.put('meta',{...p.record,role:'target'});},p.candidate.repository.stores);
+   return await finishSelection(this.#source.repository,p.candidate.repository,p.registry,this.#local,p.record,false,guarded);
   }finally{this.#busy=false;}
  }
  async status(){return inspectOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}
@@ -128,7 +141,9 @@ export class OriginalApplicationGenerationSelection{
  close(){this.#lifetime++;this.#discardPrepared(this.#prepared);}
 }
 
-async function finishSelection(source,target,registry,local,record,cold){
+async function finishSelection(source,target,registry,local,record,cold,guarded=null){
+ const readLocal=()=>localRow(local,guarded?.get??local.get);
+ const attempt=async(repository,fn,keys)=>{guarded?.marker();return write(repository,async tx=>{guarded?.check();const value=await fn(tx);guarded?.check();return value;},keys);};
  await sameRegistry(registry,record);let s=marker(await point(source,APPLICATION_SELECTION_MARKER)),t=await point(target,APPLICATION_SELECTION_MARKER);
  if(s.role!=='source'||t!==undefined&&!equal({...s,role:'target'},t)){
   // Final source receipt can precede target cleanup after a lost response.
@@ -137,24 +152,27 @@ async function finishSelection(source,target,registry,local,record,cold){
  }
  if(s.phase==='selected')return settleSelection(source,target,registry,local,s);
  if(s.phase==='dispatched'){
-  if(await digest(await localRow(local))!==s.afterDigest)return {state:'outcome-unknown',operationId:s.operationId,retryAllowed:false};
+  if(await digest(await readLocal())!==s.afterDigest)return {state:'outcome-unknown',operationId:s.operationId,retryAllowed:false};
   await write(source,async tx=>{if(!equal(await tx.get('meta',APPLICATION_SELECTION_MARKER),s))fail();await tx.put('meta',{...s,phase:'selected'});});return settleSelection(source,target,registry,local,{...s,phase:'selected'});
  }
  if(cold&&t===undefined){await write(target,async tx=>{if(await tx.get('meta',APPLICATION_SELECTION_MARKER))fail();checkGate(await tx.get('meta',CANONICAL_GENERATION_GATE),s);await tx.put('meta',{...s,role:'target'});});}
  if(cold&&t?.phase==='dispatched'){return {state:'prepared',operationId:s.operationId,retryAllowed:false,cancelAvailable:true};}
  checkGate(await point(target,CANONICAL_GENERATION_GATE),s,1);
- const before=await localRow(local);if(await digest(before)!==s.beforeDigest)fail();
+ const before=await readLocal();if(await digest(before)!==s.beforeDigest)fail();
  const prior=await originalGenerationRepositoryRead(target,readControlPublicationFence,['meta']);if(prior.reservation||prior.migration?.databaseId!==s.targetDatabaseId||prior.gate?.epoch!==before.settings.epoch||prior.gate?.enabled!==before.settings.enabled)fail();
  const reservation={id:CONTROL_PUBLICATION_RESERVATION,version:1,revision:prior.revision+1,nonce:s.operationId,databaseId:s.targetDatabaseId,beforeDigest:s.beforeDigest,afterDigest:null,fenceDigest:null},fences={migration:prior.migration,gate:prior.gate,epoch:prior.epoch};
  const after=controlPublicationRow(control(before),s.targetDatabaseId,reservation),afterDigest=await digest(after),fenceDigest=await digest(fences),reserved={...reservation,afterDigest,fenceDigest};
  const next={...s,phase:'dispatched',afterDigest,reservation:reserved,fences};
- await write(target,async tx=>{if(!equal(await tx.get('meta',APPLICATION_SELECTION_MARKER),{...s,role:'target'}))fail();checkGate(await tx.get('meta',CANONICAL_GENERATION_GATE),s,1);const actual=await reserveControlPublication(tx,prior,{nonce:s.operationId,databaseId:s.targetDatabaseId,beforeDigest:s.beforeDigest});if(!equal(actual,reservation))fail();await tx.put('meta',reserved);await tx.put('meta',{...next,role:'target'});},[APPLICATION_SELECTION_MARKER,CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION]);
- await write(source,async tx=>{if(!equal(await tx.get('meta',APPLICATION_SELECTION_MARKER),s))fail();await tx.put('meta',next);});
- await sameRegistry(registry,next);if(await digest(await localRow(local))!==s.beforeDigest)fail();
+ await attempt(target,async tx=>{if(!equal(await tx.get('meta',APPLICATION_SELECTION_MARKER),{...s,role:'target'}))fail();checkGate(await tx.get('meta',CANONICAL_GENERATION_GATE),s,1);const actual=await reserveControlPublication(tx,prior,{nonce:s.operationId,databaseId:s.targetDatabaseId,beforeDigest:s.beforeDigest});if(!equal(actual,reservation))fail();await tx.put('meta',reserved);await tx.put('meta',{...next,role:'target'});},[APPLICATION_SELECTION_MARKER,CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION]);
+ await attempt(source,async tx=>{if(!equal(await tx.get('meta',APPLICATION_SELECTION_MARKER),s))fail();await tx.put('meta',next);});
+ await sameRegistry(registry,next);if(await digest(await readLocal())!==s.beforeDigest)fail();
  // Exactly one original SDK dispatch. Failure is unresolved until the durable
  // exact after-row is observed; no repeat set and no timeout-based unlocking.
- try{await local.set({[STORAGE_KEY]:after});}catch{}
- if(await digest(await localRow(local))!==afterDigest)return {state:'outcome-unknown',operationId:s.operationId,retryAllowed:false};
+ // This original synchronous check is after every pre-dispatch await. It
+ // checks only this original live owner and SDK identity; it is no host proof.
+ guarded?.sdk();
+ try{await originalSelectionApply(guarded?.set??local.set,local,[{[STORAGE_KEY]:after}]);}catch{}
+ if(await digest(await readLocal())!==afterDigest)return {state:'outcome-unknown',operationId:s.operationId,retryAllowed:false};
  await write(source,async tx=>{if(!equal(await tx.get('meta',APPLICATION_SELECTION_MARKER),next))fail();await tx.put('meta',{...next,phase:'selected'});});
  return settleSelection(source,target,registry,local,{...next,phase:'selected'});
 }

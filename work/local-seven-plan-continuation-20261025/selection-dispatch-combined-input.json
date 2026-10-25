@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "extension/tests/application-existing-selection.test.mjs",
+    "extension/tests/application-existing-selection-requalification.test.mjs",
+    "extension/tests/application-selection-editor-safety.test.mjs",
+    "extension/tests/application-selection-consumer.test.mjs",
+    "extension/tests/application-selection-dispatch-lifetime.test.mjs"
+  ],
+  "base": "7401104627c37a646ac2646ad36c814dc76510dc",
+  "sha256": {
+    "extension/tests/application-existing-selection.test.mjs": "16a7ce98bca17a5cdd5abd1e661ffac48549398a8c302d9210af1c59bef7071d",
+    "extension/tests/application-existing-selection-requalification.test.mjs": "cb14ce74c87d3e4e9841940e029564516d8dc8e34aa716fa7919edabcbfb55d4",
+    "extension/tests/application-selection-editor-safety.test.mjs": "3820eb87c6941f140c2f18baadfd9210a027cdbc0b38fcbb269a43c06eb9edac",
+    "extension/tests/application-selection-consumer.test.mjs": "3c5c34a380df29018ee0895afd4adfe5d24fc3e5fafef05d6a0e8e9359b0944f",
+    "extension/tests/application-selection-dispatch-lifetime.test.mjs": "d525ce1119393814057be9eab8cb662d9dbf634d8d00fd7e51f62aa572f953e0",
+    "extension/core/browser-native-sync/application-generation-selection.js": "a705c4ccf87fc4d8377bb811c12ac42b0d487f0a7675c2eaecb1b39aede72e9b"
+  }
+}
