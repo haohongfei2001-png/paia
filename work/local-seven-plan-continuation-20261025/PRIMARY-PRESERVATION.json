@@ -1,9 +1,10 @@
 {
   "head": "8522134ac23a8e563161b4e3633d56e858e01d5c",
   "headUnchanged": true,
-  "originalExtensionUntrackedCount": 0,
+  "originalExtensionUntrackedCount": 33,
   "originalExtensionStatusUnchanged": true,
   "stashUnchanged": true,
   "trackedDiff": "",
-  "note": "Inventory and tracked/stash identity only; no prior byte hashes exist for unknown untracked files."
+  "note": "Inventory and tracked/stash identity only; no prior byte hashes exist for unknown untracked files.",
+  "verifierCorrection": "Previous refresh omitted quoted Git status paths and reported 0; bounded extension inventory with both quoted/unquoted forms confirms original 33 unchanged. No file altered."
 }
