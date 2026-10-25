@@ -30,4 +30,10 @@ Ordinary limits remain 4096 references / 2 MiB / 30 seconds. The previous cloud 
 
 Exact source 815584c includes receipt-only core, manual refresh UI, Source internal-manifest omission and unexecuted native-request preparation. The one current tracked-only offline build passes 24,884 package guards / 708 files, and 78 changed-script syntax checks. See BUILD-815584c.md. No installation, browser, cloud or whole-product acceptance occurred.
 
-The separate durable reverse candidate is HELD: its original cumulative ticket exhausted 2MiB after the SDK change, before terminal settlement. Intent/reservations remained; it is not integrated. Cold re-entry does not authorize replenishing that operation's budget. Other local independent dependencies continue; this does not redefine all seven plans as complete.
+The separate durable reverse candidate is HELD: its original cumulative ticket exhausted 2MiB after the SDK change, before terminal settlement. Post-failure A/B snapshots were not collected for that positive; retention was observed only in a separate lower-bound refusal control. It is not integrated. Cold re-entry does not authorize replenishing that operation's budget. Other local independent dependencies continue; this does not redefine all seven plans as complete.
+
+## Retained Working continuation integrated at b25daa6
+
+397dad0 integrates the exact 17def613 two-Input proof implementation (117/117 local synthetic cases). b25daa6 then removes its temporary count-only gate, preserving complete per-Input reconstruction, shared global counters, two-sibling original ancestry and all original limits. A→B→A coalesced and allocated histories and A→B→C now complete original publication, fresh synthetic recovery and cold reopen. The follow-up evidence is first 4/6 (two new receiver fixture IDs rejected after publication), then only the corrected two cases 2/2; no combined 6/6 or repeated 117 claim. Both frozen independent source reviews are included. Mixed Source/Working/Human/Context tails, further incomparable heads and larger capacity remain separate.
+
+The 815584c offline artifact predates these runtime changes and is now historical. A fresh integrated build will be prepared at the next combined milestone.

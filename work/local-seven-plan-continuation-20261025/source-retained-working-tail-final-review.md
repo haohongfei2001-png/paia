@@ -1,0 +1,11 @@
+# Retained Working tail: frozen independent review
+
+Reviewed `4cf6da815986c0c706b503d67d1cd94593b9e76e`, parent `17def613728d6c63c3fe563a228cab297f0e506e`. Four source hashes and 18 evidence-manifest entries match; tree clean. Read-only review; no tests rerun.
+
+No blocking issue in the exact delta: the runtime removes only the temporary count gate, retaining the pure Working-only predicate. Existing per-Input original-cut state/history and shared global operation/revision/delta/epoch reconstruction are unchanged. Repeated A after B reuses A history while charging/advancing global counters; no synthetic expected body is taken from the current after-row. All canonical, physical, protocol, source and final publication checks remain under original budgets. The ancestry remains two sibling heads.
+
+Three new positives cover A→B→A coalesced history, A→B→A newly allocated history and A→B→C, each through original edit/publication/fresh synthetic recovery/cold reopen. Coalesced history explicitly keeps A sequence distinct from the final global revision counter; allocation uses the next global counter. Three obsolete count negatives were narrowly replaced with genuine Source mismatch, delta mismatch and parent mutation. The last yields OPERATION_DIGEST integrity failure; it is not claimed to exercise graph-parent validation after a valid digest was recomputed. Existing nine mutation controls and exact-table/no-POST assertions remain.
+
+Actual evidence is 4/6 followed by 2/2, not a single 6/6: the first two positive publications succeeded then their new receiver device IDs contained forbidden `+`; the original identity validator rejected. Only fixture IDs were corrected to `_`, and only those two cases reran. Final two cold recovery cases pass; ABC and three negatives passed once earlier. No resource failure or native execution. The old 117/117 remains prior-commit evidence and was not rerun.
+
+This permits the reviewed Working-only local tail under ordinary 4096 references / 2 MiB / 30 seconds and all existing graph/history limits. It does not qualify mixed Source/Working/Human/Context, additional incomparable heads, scale capacity, real provider/native execution or global current-library activation.
