@@ -1,3 +1,5 @@
+import {requireOriginalContextMutationCore} from './core.js';
+import {requireRepositoryTransactionDataMethods} from '../idb-repository.js';
 import {readContextCards,CONTEXT_CARDS_ROW,validContextCards} from '../context-cards.js';
 import {ContextManualSyncJournal,contextManualMaterializer} from './context-journal.js';
 import {readRestoreEpoch} from './prompt-journal.js';
@@ -16,6 +18,12 @@ async function proof(t,core,id){
  if(p.epoch!==epoch)fail('BNS_RESTORE_EPOCH_CHANGED');
  return {epoch,record:p};
 }
+// Read-only reuse of the original desired-owner proof. This returns no mutation
+// or export authority and accepts only an original Core/transaction pair.
+export async function readOriginalContextDesiredOwner(t,core,id){
+ requireOriginalContextMutationCore(core);requireRepositoryTransactionDataMethods(core.repository,t);if(!keys.includes(id))fail('BNS_CONTEXT_SCOPE_UNAVAILABLE');return proof(t,core,id);
+}
+
 async function record(t,core,value,heads,epoch){const marker=await core.get(t,'ownerRecoveryEpoch');if(marker&&(!exact(marker,['id','version','epoch'])||marker.version!==1||marker.epoch!==epoch))fail('BNS_RESTORE_EPOCH_CHANGED');await core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch});await core.put(t,'contextDesiredOwner',[value.id],{version:1,epoch,heads:[...heads].sort(),value:clone(value)});}
 function desiredStep(op,next,parents){
  if(!parents.length){if(op.actor!=='bootstrap'&&next.revision!==1)fail('BNS_CONTEXT_TRANSITION_INVALID');}

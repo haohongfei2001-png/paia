@@ -6,7 +6,7 @@ import {prepareRemoval,expandRemoval,validateRemovalEdit} from './archive-remova
 import {queryPage} from './archive-query.js';
 import {OperationAttemptLedger,validateOperationQuery} from './operation-outcome.js';
 import {captureIsExcluded,clearReadingTargets,clearPurgedReaderPolicy} from './reader-state.js';
-import {registerRepositoryWorkLimit,requireRepositoryTransactionScope,ArchiveRepository,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
+import {originalExistingRepositoryRead,requireOriginalExistingRepositoryReadOwner,originalRepositoryTransactionOwner,createOriginalRecoveryWork,currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,remainingOriginalRecoveryWork,finishOriginalRecoveryWork,withOriginalRecoveryWork,registerRepositoryWorkLimit,requireRepositoryTransactionScope,ArchiveRepository,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
 import {ADAPTER_VERSION,CONSENT_VERSION,STORAGE_KEY,ArchiveError,STATUS_CODES,ERROR_CODES} from './constants.js';
 import {validateCapture,validateEnrichment,validateChanges,canonicalChat} from './validation.js';
 import {identify,identifySource,hashText} from './dedupe.js';
@@ -19,6 +19,7 @@ import {purgeSourceStructureForRecords} from './source-structure-store.js';
 import {assessSourcePurge,sourcePurgePreview} from './source-purge-admission.js';
 import {CONTROL_PUBLICATION_RESERVATION,readControlPublicationFence,reserveControlPublication,requireControlPublicationOwner,controlPublicationEqual,controlPublicationDigest,controlPublicationRow,validateControlPublicationStamp,renewControlPublication} from './local-control-publication.js';
 import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
+import {measureSourceWorkingPhysicalTree} from './browser-native-sync/source-working-physical.js';
 
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // Optional original-writer budget only, never a caller-provided transaction hook.
@@ -52,12 +53,12 @@ const error=code=>{throw new ArchiveError(code);};
 const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(!c.settings.enabled)error('PAUSED');if(epoch!==c.settings.epoch)error('STALE_CAPTURE');};
 const localPublicationOwners=new WeakMap(),originalLocalControls=new WeakMap(),nativeControlObservations=new WeakMap(),originalControlIdentityFailures=new WeakMap();
 const promptControlExecutions=new WeakMap(),promptActiveExecutions=new WeakMap(),promptControlObservations=new WeakMap();
-const originalQueueOnly=Symbol('original-store-queue-only'),OriginalQueuePromise=Promise,originalQueueThen=Promise.prototype.then;
+const originalQueueOnly=Symbol('original-store-queue-only'),OriginalQueuePromise=Promise,originalQueueThen=Promise.prototype.then,originalControlApply=Reflect.apply;
 // Use the native tail's settlement, never a mutable .then return value. The
 // native completion is resolved only by the original one-shot queued action.
 function originalQueueTask(tail,action){
  return new OriginalQueuePromise((resolve,reject)=>{let entered=false;
-  try{originalQueueThen.call(tail,()=>{if(entered){reject(new ArchiveError('BNS_RECOVERY_BINDING'));return;}entered=true;try{originalQueueThen.call(action(),resolve,reject);}catch(error){reject(error);}},reject);}catch{reject(new ArchiveError('BNS_RECOVERY_BINDING'));}
+  try{originalControlApply(originalQueueThen,tail,[()=>{if(entered){reject(new ArchiveError('BNS_RECOVERY_BINDING'));return;}entered=true;try{originalControlApply(originalQueueThen,action(),[resolve,reject]);}catch(error){reject(error);}},reject]);}catch{reject(new ArchiveError('BNS_RECOVERY_BINDING'));}
  });
 }
 // This projection is minted only by the original load/publication assignments.
@@ -214,7 +215,7 @@ export class IndexedArchiveStore {
    return await fn();
   }finally{execution.active=false;active.delete(execution);if(!active.size)promptActiveExecutions.delete(this);if(promptControlExecutions.get(this)===execution)promptControlExecutions.delete(this);}
  };const task=queueOnly===originalQueueOnly?originalQueueTask(this.tail,execute):this.tail.then(execute);
- this.tail=queueOnly===originalQueueOnly?new OriginalQueuePromise(resolve=>{originalQueueThen.call(task,()=>resolve(),()=>resolve());}):task.catch(()=>{});return task;}
+ this.tail=queueOnly===originalQueueOnly?new OriginalQueuePromise(resolve=>{originalControlApply(originalQueueThen,task,[()=>resolve(),()=>resolve()]);}):task.catch(()=>{});return task;}
  // Explicit startup repair of an original local publication, never a replay.
  // Prepared but unobserved SDK writes remain held: a restart is not an ACK.
  recoverControlPublication(){const task=this.tail.then(async()=>{
@@ -225,14 +226,14 @@ export class IndexedArchiveStore {
   original();const before=await this.repository.transaction(false,snapshot,['meta']),reservation=before.fence.reservation;
   if(!reservation)return {state:'absent'};
   if(before.blocked||this.consumerPreferenceJournal)return pending();
-  const actual=(await bound.get.call(bound.local,STORAGE_KEY))[STORAGE_KEY];original();
+  const actual=(await originalControlApply(bound.get,bound.local,[STORAGE_KEY]))[STORAGE_KEY];original();
   if(!actual||actual.schemaVersion!==6||actual.databaseId!==reservation.databaseId||before.fence.migration?.phase!=='active'||before.fence.migration.databaseId!==actual.databaseId)return pending();
   if(Object.hasOwn(actual,'controlPublication'))validateControlPublicationStamp(actual.controlPublication);
   const digest=await controlPublicationDigest(actual),fences={migration:before.fence.migration,gate:before.fence.gate,epoch:before.fence.epoch};
   const undispatched=reservation.afterDigest===null&&reservation.fenceDigest===null&&reservation.beforeDigest===digest;
   const visible=reservation.afterDigest!==null&&reservation.fenceDigest!==null&&reservation.afterDigest===digest&&reservation.fenceDigest===await controlPublicationDigest(fences)&&actual.controlPublication?.revision===reservation.revision&&actual.controlPublication?.nonce===reservation.nonce&&fences.gate?.epoch===actual.settings?.epoch&&fences.gate?.enabled===actual.settings?.enabled;
   if(!undispatched&&!visible)return pending();
-  if(!controlPublicationEqual(actual,(await bound.get.call(bound.local,STORAGE_KEY))[STORAGE_KEY]))return pending();original();
+  if(!controlPublicationEqual(actual,(await originalControlApply(bound.get,bound.local,[STORAGE_KEY]))[STORAGE_KEY]))return pending();original();
   return this.repository.transaction(true,async t=>{
    original();const current=await snapshot(t);original();if(!controlPublicationEqual(before,current))return pending();
    // An undispatched owner must still pass its prepared-write CAS before SDK
@@ -503,7 +504,71 @@ const originalIndexedQueueRun=IndexedArchiveStore.prototype.run;
 export function queueOriginalIndexedStoreWork(store,repository,action){
  const bound=originalLocalControls.get(store),database=repository?.db;
  const current=()=>{if(!bound||bound.repository!==repository||settingsData(store,'repository')!==repository||settingsData(store,'local')!==bound.local||settingsMethod(bound.local,'get')!==bound.get||settingsMethod(bound.local,'set')!==bound.set||settingsData(store,'loaded')!==true||!database||repository.db!==database||typeof action!=='function')error('BNS_RECOVERY_BINDING');};
- current();return originalIndexedQueueRun.call(store,async()=>{current();const result=await action();current();return result;},originalQueueOnly);
+ current();return originalControlApply(originalIndexedQueueRun,store,[async()=>{current();const result=await action();current();return result;},originalQueueOnly]);
+}
+
+// An existing-only original control read, not public Store.run or recovery. A
+// preceding authentic settlement may retire its reservation after the old run
+// loaded it. Acquire a new coherent owner from the actual SDK and native fences;
+// never bless that old owner by replacing only its cached fence.
+// Consume only actual original Promise settlement. Chaining/species return
+// values and mutable public finally/race functions are not completion evidence.
+function originalControlReadRace(tasks){return new OriginalQueuePromise((resolve,reject)=>{for(const task of tasks)try{originalControlApply(originalQueueThen,task,[resolve,reject]);}catch(error){reject(error);}});}
+function originalControlReadCleanup(task,cleanup){return new OriginalQueuePromise((resolve,reject)=>{
+ const settle=(success,value)=>{try{cleanup();}catch(error){reject(error);return;}if(success)resolve(value);else reject(value);};
+ try{originalControlApply(originalQueueThen,task,[value=>settle(true,value),error=>settle(false,error)]);}catch(error){reject(error);}
+});}
+export async function readOriginalIndexedStoreControlScope(store,repository,action,work=null){
+ const bound=originalLocalControls.get(store),database=repository?.db,databaseId=settingsData(store,'databaseId');
+ let retired=false,installed=null;
+ const current=()=>{
+  if(retired||!bound||bound.repository!==repository||settingsData(store,'repository')!==repository||settingsData(store,'local')!==bound.local||settingsMethod(bound.local,'get')!==bound.get||settingsMethod(bound.local,'set')!==bound.set||settingsData(store,'loaded')!==true||!database||repository.db!==database||settingsData(store,'databaseId')!==databaseId||store.pendingControl||!originalRepositoryTransactionOwner(repository)||typeof action!=='function')error('CONTROL_PUBLICATION_CHANGED');
+  requireOriginalExistingRepositoryReadOwner(repository,database);originalControlSettingsRecord(store,null);
+ };
+ current();if(currentOriginalRecoveryWork(repository))error('BNS_GROUP_RESOURCE_LIMIT');
+ if(work!==null)checkOriginalRecoveryWork(repository,work);
+ const ticket=work??createOriginalRecoveryWork(repository,{isCurrent:current}),owned=work===null;
+ let timer;const interruption=new OriginalQueuePromise((_,reject)=>{timer=setTimeout(()=>{retired=true;if(installed&&localPublicationOwners.get(store)===installed){const observation=originalControlSettings.get(store);if(observation)observation.revoked=true;}reject(new ArchiveError('BNS_GROUP_RESOURCE_LIMIT'));},remainingOriginalRecoveryWork(repository,ticket));});
+ const check=()=>{current();checkOriginalRecoveryWork(repository,ticket);};
+ const charge=value=>{check();let length;try{length=measureSourceWorkingPhysicalTree(value).B;}catch{error('BNS_GROUP_RESOURCE_LIMIT');}chargeOriginalRecoveryWork(repository,ticket,length,0);};
+ const readFence=async terminal=>{check();const value=await originalExistingRepositoryRead(repository,async t=>{check();await requireConsumerPublicationSettled(t);const fence=await readControlPublicationFence(t);if(fence.reservation)error('CONTROL_PUBLICATION_PENDING');return terminal?terminal(t,fence):fence;},['meta']);check();return value;};
+ const readLocal=async()=>{
+  check();charge(STORAGE_KEY);chargeOriginalRecoveryWork(repository,ticket,0,1);
+  // SDK reads cannot be cancelled. A timeout retires this scope; a late SDK
+  // completion has no continuation that can install an owner or cache.
+  const result=await originalControlReadRace([originalControlApply(bound.get,bound.local,[STORAGE_KEY]),interruption]);check();charge(result);return result?.[STORAGE_KEY];
+ };
+ let queued;try{queued=originalControlReadCleanup(queueOriginalIndexedStoreWork(store,repository,async()=>{
+  const read=async()=>{
+   check();const before=await readFence(),local=await readLocal(),after=await readFence();check();
+   if(!controlPublicationEqual(before,after)||local?.schemaVersion!==6||local.databaseId!==databaseId||before.migration?.phase!=='active'||before.migration.databaseId!==databaseId||before.gate?.epoch!==local.settings?.epoch||before.gate?.enabled!==local.settings?.enabled)error('CONTROL_PUBLICATION_CHANGED');
+   if(Object.hasOwn(local,'controlPublication'))validateControlPublicationStamp(local.controlPublication);
+   const beforeDigest=await controlPublicationDigest(local);check();
+   const owner={before,beforeDigest,loadedStamp:local.controlPublication?structuredClone(local.controlPublication):null,nonce:crypto.randomUUID(),reservation:null,fences:null};
+   localPublicationOwners.set(store,owner);installed=owner;
+   store.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};rememberOriginalControlSettings(store);
+   if(localPublicationOwners.get(store)!==owner||!controlPublicationEqual(local,await readLocal()))error('CONTROL_PUBLICATION_CHANGED');
+   // The consumer predicate belongs to this last original readonly transaction,
+   // after every SDK await. Returning an earlier Context snapshot would leave
+   // the final SDK read as an unqualified canonical-data change window.
+   const result=await readFence(async(t,fence)=>{check();if(localPublicationOwners.get(store)!==owner||!controlPublicationEqual(before,fence))error('CONTROL_PUBLICATION_CHANGED');const value=await action(t);check();return value;});
+   check();return result;
+  };
+  // A supplied original ticket retains its cumulative budget but does not
+  // lend its window to unrelated work while queued or awaiting external SDK IO.
+  if(currentOriginalRecoveryWork(repository))error('BNS_GROUP_RESOURCE_LIMIT');
+  return withOriginalRecoveryWork(repository,ticket,read);
+ }),()=>{if(owned)finishOriginalRecoveryWork(repository,ticket);});}catch(error){retired=true;clearTimeout(timer);if(owned)finishOriginalRecoveryWork(repository,ticket);throw error;}
+ // Queue wait is part of the same deadline. The real queued task retains its
+ // place and cleanup; timeout cannot let its eventual callback enter a new scope.
+ try{return await originalControlReadRace([queued,interruption]);}catch(error){if(installed&&localPublicationOwners.get(store)===installed){const observation=originalControlSettings.get(store);if(observation)observation.revoked=true;}throw error;}
+ finally{
+  retired=true;clearTimeout(timer);
+  // A borrower may retire its ticket after this call. If this queued scope has
+  // entered its own native window, first observe that exact original cleanup.
+  // An unentered late queue task instead sees the retired scope and cannot run.
+  if(work!==null&&currentOriginalRecoveryWork(repository)===ticket)try{await originalControlReadRace([queued]);}catch{}
+ }
 }
 
 // Read-only source identity for optional Prompt work reuse. These descriptors

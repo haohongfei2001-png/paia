@@ -1,0 +1,102 @@
+TAP version 13
+# {"boundary":"final-control-read","resumed":{"ok":false,"error":"BNS_CONTEXT_BOOTSTRAP_REQUIRED"},"status":{"ok":true,"data":{"version":1,"scope":"source-working-prompt","wholeArchiveComplete":false,"contextCommands":true,"needsContextEnrollment":true,"purgeProtection":"original-journal-fail-closed","portablePreferences":true,"needsPreferenceEnrollment":false,"needsPromptEnrollment":false,"resumeAvailable":true,"unsupportedOwners":["human-library","automatic-context","topic","nonportable-settings","edited-source-purge"],"state":"not-started","busy":false,"task":null,"error":"BNS_CONTEXT_BOOTSTRAP_REQUIRED","productionActivation":false}},"savedEnrollment":null,"triggered":true,"changeOK":true,"beforeItems":0,"afterItems":1,"controlFenceUnchanged":true,"sdkUnchanged":true,"cloudRequests":0}
+# Subtest: final-control-read: changed original Context cannot settle enrollment or report the journal alone as enrolled
+ok 1 - final-control-read: changed original Context cannot settle enrollment or report the journal alone as enrolled
+  ---
+  duration_ms: 122.155084
+  type: 'test'
+  ...
+# {"boundary":"lifecycle-set","resumed":{"ok":false,"error":"BNS_CONTEXT_BOOTSTRAP_REQUIRED"},"status":{"ok":true,"data":{"version":1,"scope":"source-working-prompt","wholeArchiveComplete":false,"contextCommands":true,"needsContextEnrollment":true,"purgeProtection":"original-journal-fail-closed","portablePreferences":true,"needsPreferenceEnrollment":false,"needsPromptEnrollment":false,"resumeAvailable":false,"unsupportedOwners":["human-library","automatic-context","topic","nonportable-settings","edited-source-purge"],"state":"settlement-unknown","busy":false,"task":null,"error":"BNS_CONTEXT_BOOTSTRAP_REQUIRED","productionActivation":false}},"savedEnrollment":{"version":1,"databaseId":"c77747a1-5ef7-4a10-87c1-88d5b9d0dd8c","namespace":"initial","epoch":null},"triggered":true,"changeOK":true,"beforeItems":0,"afterItems":1,"controlFenceUnchanged":true,"sdkUnchanged":true,"cloudRequests":0}
+# Subtest: lifecycle-set: changed original Context cannot settle enrollment or report the journal alone as enrolled
+ok 2 - lifecycle-set: changed original Context cannot settle enrollment or report the journal alone as enrolled
+  ---
+  duration_ms: 66.890167
+  type: 'test'
+  ...
+# Subtest: STATUS demotes an empty enrollment after genuine unrepresented Context arrives, without enrolling or editing the receipt
+ok 3 - STATUS demotes an empty enrollment after genuine unrepresented Context arrives, without enrolling or editing the receipt
+  ---
+  duration_ms: 69.624958
+  type: 'test'
+  ...
+# Subtest: normal empty Resume uses one ticket without lending its active window to SDK persistence
+ok 4 - normal empty Resume uses one ticket without lending its active window to SDK persistence
+  ---
+  duration_ms: 65.189875
+  type: 'test'
+  ...
+# Subtest: successor external Resume refuses an unrelated active ticket before bootstrap or SDK persistence
+ok 5 - successor external Resume refuses an unrelated active ticket before bootstrap or SDK persistence
+  ---
+  duration_ms: 54.885417
+  type: 'test'
+  ...
+# Subtest: represented item and portable desired access remain enrolled, while stale same-head item changes demote status
+ok 6 - represented item and portable desired access remain enrolled, while stale same-head item changes demote status
+  ---
+  duration_ms: 89.177583
+  type: 'test'
+  ...
+# Subtest: a changed represented Context during SDK save remains uncertain even though both snapshots have genuine heads
+ok 7 - a changed represented Context during SDK save remains uncertain even though both snapshots have genuine heads
+  ---
+  duration_ms: 74.933
+  type: 'test'
+  ...
+# Subtest: exact durable lost SDK acknowledgement still settles once after bounded readback
+ok 8 - exact durable lost SDK acknowledgement still settles once after bounded readback
+  ---
+  duration_ms: 62.073167
+  type: 'test'
+  ...
+# Subtest: PAUSE during a committed SDK enrollment write retains the explicit durable stop
+ok 9 - PAUSE during a committed SDK enrollment write retains the explicit durable stop
+  ---
+  duration_ms: 63.025834
+  type: 'test'
+  ...
+# Subtest: DISCONNECT during a committed SDK enrollment write retains the explicit durable stop
+ok 10 - DISCONNECT during a committed SDK enrollment write retains the explicit durable stop
+  ---
+  duration_ms: 69.410959
+  type: 'test'
+  ...
+# Subtest: successor confirmed cold attachment requires a new explicit Resume and never replays the previous attempt
+ok 11 - successor confirmed cold attachment requires a new explicit Resume and never replays the previous attempt
+  ---
+  duration_ms: 117.939084
+  type: 'test'
+  ...
+# Subtest: successor SDK invocation ignores own call properties on the captured get and set functions
+ok 12 - successor SDK invocation ignores own call properties on the captured get and set functions
+  ---
+  duration_ms: 68.533583
+  type: 'test'
+  ...
+# Subtest: successor pending enrollment stays UNKNOWN across cold start and explicit stop does not clear it
+ok 13 - successor pending enrollment stays UNKNOWN across cold start and explicit stop does not clear it
+  ---
+  duration_ms: 104.503291
+  type: 'test'
+  ...
+# Subtest: successor legacy lifecycle receipt is preserved but cannot enable cold publication without a fresh Resume
+ok 14 - successor legacy lifecycle receipt is preserved but cannot enable cold publication without a fresh Resume
+  ---
+  duration_ms: 112.183209
+  type: 'test'
+  ...
+# Subtest: successor Context change during confirmed SDK write cannot become cold enrolled after restart
+ok 15 - successor Context change during confirmed SDK write cannot become cold enrolled after restart
+  ---
+  duration_ms: 96.738166
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1410.173167

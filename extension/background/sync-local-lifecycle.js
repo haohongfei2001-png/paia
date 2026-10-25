@@ -1,7 +1,8 @@
 import {assertSourceBootstrapUnionSelection} from '../core/browser-native-sync/source-bootstrap-union.js';
-import {currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork} from '../core/idb-repository.js';
+import {createOriginalRecoveryWork,currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,remainingOriginalRecoveryWork,finishOriginalRecoveryWork} from '../core/idb-repository.js';
 import {ContextCardsService,readContextCards} from '../core/context-cards.js';
 import {ContextMutationSyncJournal} from '../core/browser-native-sync/context-mutation-journal.js';
+import {readOriginalContextEnrollmentObservation} from '../core/browser-native-sync/context-mutation-journal-owner.js';
 import {OriginalApplicationGenerationSelection} from '../core/browser-native-sync/application-generation-selection.js';
 import {ConsumerPreferenceSyncJournal} from '../core/browser-native-sync/consumer-preference-journal.js';
 import {CONSUMER_PREFERENCE_KEYS} from '../core/browser-native-sync/consumer-preference-codec.js';
@@ -32,6 +33,10 @@ const safeError=error=>typeof error?.code==='string'&&/^(BNS_|STORAGE_|CONTROL_|
 export const syncLifecycleError=error=>typeof error?.code==='string'&&/^(BNS_|STORAGE_|CONTROL_|BACKUP_)[A-Z_]+$/.test(error.code)?error.code:safeErrorCode(error);
 const owners=new WeakMap();
 const originalCore=BrowserNativeSyncCore;
+const OriginalSettlementPromise=Promise,originalSettlementThen=Promise.prototype.then,settlementApply=Reflect.apply;
+// Observe only settlement of the original promises. A public race/finally or
+// species return value cannot shorten the enrollment invocation or bless it.
+const settlementRace=tasks=>new OriginalSettlementPromise((resolve,reject)=>{for(const task of tasks)try{settlementApply(originalSettlementThen,task,[resolve,reject]);}catch(error){reject(error);}});
 
 // The fixed source host, not an RPC or stored identity record, supplies current
 // authenticated binding and the existing bounded request capability. In this
@@ -69,33 +74,46 @@ function trusted(request,sender,api){
  if(!exact(request,['type'])||!['PAIA_SYNC_STATUS','PAIA_SYNC_NOW','PAIA_SYNC_RESTORE','PAIA_SYNC_CONTINUE','PAIA_SYNC_PAUSE','PAIA_SYNC_RESUME','PAIA_SYNC_DISCONNECT'].includes(request.type))fail('INVALID_REQUEST');
 }
 function checked(row){
- if(!exact(row,['version','bindingId','generation','revision','mode','task','error','contextEnrollment'])||row.version!==1||!hash(row.bindingId)||!hash(row.generation)||!Number.isSafeInteger(row.revision)||row.revision<1||!states.has(row.mode)||row.error!==null&&(typeof row.error!=='string'||!/^(BNS_|STORAGE_|CONTROL_|BACKUP_)[A-Z_]+$/.test(row.error)))fail('BNS_SYNC_STATE_CORRUPT');
+ if(!exact(row,['version','bindingId','generation','revision','mode','task','error','contextEnrollment','enrollmentSettlement'])||row.version!==1||!hash(row.bindingId)||!hash(row.generation)||!Number.isSafeInteger(row.revision)||row.revision<1||!states.has(row.mode)||row.error!==null&&(typeof row.error!=='string'||!/^(BNS_|STORAGE_|CONTROL_|BACKUP_)[A-Z_]+$/.test(row.error)))fail('BNS_SYNC_STATE_CORRUPT');
  if(row.contextEnrollment!==undefined&&row.contextEnrollment!==null){const value=row.contextEnrollment;if(!exact(value,['version','databaseId','namespace','epoch'])||Object.keys(value).length!==4||value.version!==1||!opaque(value.databaseId)||value.namespace!=='initial'&&!opaque(value.namespace)||value.epoch!==null&&!opaque(value.epoch))fail('BNS_SYNC_STATE_CORRUPT');}
+ if(row.enrollmentSettlement!==undefined&&row.enrollmentSettlement!==null){
+  const value=row.enrollmentSettlement;
+  if(!exact(value,['version','attempt','bindingId','generation','startRevision','phase','confirmedRevision'])||Object.keys(value).length!==7||value.version!==1||!opaque(value.attempt)||value.bindingId!==row.bindingId||value.generation!==row.generation||!Number.isSafeInteger(value.startRevision)||value.startRevision<1||value.startRevision>row.revision||!['pending','confirmed'].includes(value.phase)||value.phase==='pending'&&value.confirmedRevision!==null||value.phase==='confirmed'&&(!Number.isSafeInteger(value.confirmedRevision)||value.confirmedRevision!==value.startRevision+1||value.confirmedRevision>row.revision))fail('BNS_SYNC_STATE_CORRUPT');
+ }
  if(row.task!==null){const task=row.task;if(!exact(task,['kind','id','phase','reference'])||!['publication','checkpoint','restore'].includes(task.kind)||!opaque(task.id)||!['reserved','running','unknown','confirmed'].includes(task.phase))fail('BNS_SYNC_STATE_CORRUPT');if(task.kind==='publication'&&task.reference!==null)fail('BNS_SYNC_STATE_CORRUPT');if(task.reference!==null){if(task.kind==='restore'&&task.reference.kind==='source-bootstrap-union')assertSourceBootstrapUnionSelection(task.reference);else{assertProtocolObjectReference(task.reference);if(task.reference.kind!=='checkpoint-manifest')fail('BNS_SYNC_STATE_CORRUPT');}}}
  return row;
 }
 
 class SyncLifecycle {
- #taskFailure=null;#store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#continuationSaving=false;#busy=false;#suspended=false;#selectionHeld=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;#contextService=null;#contextJournal=null;
- constructor(store,api,config,binding,bindingId,generation,core){this.#store=store;this.#api=api;this.#config=config;this.#binding=binding;this.#bindingId=bindingId;this.#generation=generation;this.#core=core;this.#journal=new PreparedPublicationJournal(core,{checkpoint:()=>this.#allowed()});}
+ #taskFailure=null;#store;#api;#config;#binding;#bindingId;#generation;#core;#journal;#row=null;#write=Promise.resolve();#uncertain=false;#continuationSaving=false;#busy=false;#suspended=false;#selectionHeld=false;#blocked=false;#serial=0;#transport=null;#restore=null;#checkpoint=null;#promptService=null;#promptJournal=null;#preferenceJournal=null;#contextService=null;#contextJournal=null;#contextSettled=false;#contextFailure=null;#local;#localGet;#localSet;
+ constructor(store,api,config,binding,bindingId,generation,core){this.#store=store;this.#api=api;this.#local=api.storage.local;this.#localGet=this.#local.get;this.#localSet=this.#local.set;this.#config=config;this.#binding=binding;this.#bindingId=bindingId;this.#generation=generation;this.#core=core;this.#journal=new PreparedPublicationJournal(core,{checkpoint:()=>this.#allowed()});}
  #hostCurrent(){try{return this.#config.isCurrent(this.#binding)===true;}catch{return false;}}
- #allowed(){if(this.#suspended||this.#blocked||this.#uncertain||!this.#row||this.#row.mode!=='active'||this.#row.bindingId!==this.#bindingId||this.#row.generation!==this.#generation||!this.#hostCurrent())fail('BNS_SYNC_PAUSED');}
+ #allowed(){if(this.#suspended||this.#blocked||this.#uncertain||!this.#row||this.#row.mode!=='active'||this.#row.bindingId!==this.#bindingId||this.#row.generation!==this.#generation||!this.#hostCurrent())fail('BNS_SYNC_PAUSED');if(this.#contextService&&!this.#contextSettled)fail('BNS_CONTEXT_BOOTSTRAP_REQUIRED');}
  #invalidate(){if(this.#continuationSaving)this.#uncertain=true;++this.#serial;this.#transport?.close();this.#transport=null;this.#restore?.pause();this.#checkpoint?.pause();}
- async #read(work=null){if(work)chargeOriginalRecoveryWork(this.#store.repository,work,bytes(ROW).length,1);const value=(await this.#api.storage.local.get(ROW))?.[ROW];if(work)chargeOriginalRecoveryWork(this.#store.repository,work,bytes(value??null).length,0);return value===undefined?null:checked(clone(value));}
- async #save(update,work=null){
-  if(this.#uncertain||this.#suspended)fail('BNS_SYNC_OUTCOME_UNKNOWN');
-  const action=this.#write.then(async()=>{
-   if(this.#uncertain||this.#suspended)fail('BNS_SYNC_OUTCOME_UNKNOWN');const before=this.#row,current=await this.#read(work);if(!equal(current,before)){this.#uncertain=true;this.#invalidate();fail('BNS_SYNC_STATE_CHANGED');}
+ async #read(work=null,settlement=null){
+  if(settlement)settlement.check();if(work)chargeOriginalRecoveryWork(this.#store.repository,work,bytes(ROW).length,1);
+  const value=(await (settlement?settlementApply(this.#localGet,this.#local,[ROW]):this.#api.storage.local.get(ROW)))?.[ROW];
+  if(settlement)settlement.check();if(work)chargeOriginalRecoveryWork(this.#store.repository,work,bytes(value??null).length,0);return value===undefined?null:checked(clone(value));
+ }
+ async #save(update,work=null,settlement=null,allowUncertainStop=false){
+  if(this.#uncertain&&!allowUncertainStop||this.#suspended)fail('BNS_SYNC_OUTCOME_UNKNOWN');
+  const write=async()=>{
+   if(this.#uncertain&&!allowUncertainStop||this.#suspended)fail('BNS_SYNC_OUTCOME_UNKNOWN');const before=this.#row,current=await this.#read(work,settlement);if(!equal(current,before)){this.#uncertain=true;this.#invalidate();fail('BNS_SYNC_STATE_CHANGED');}
    const next=checked({...update(clone(before)),revision:(before?.revision??0)+1});
    // A rejected storage acknowledgement is not proof of rollback. Read the
    // exact durable row once; do not repeat the write or perform any transfer.
-   let writeError=null;try{if(work)chargeOriginalRecoveryWork(this.#store.repository,work,bytes({[ROW]:next}).length,1);await this.#api.storage.local.set({[ROW]:next});if(work)checkOriginalRecoveryWork(this.#store.repository,work);}catch(error){writeError=error;}
-   let observed;try{observed=await this.#read(work);}catch{this.#uncertain=true;this.#invalidate();fail('BNS_SYNC_OUTCOME_UNKNOWN');}
+   let writeError=null;try{if(work)chargeOriginalRecoveryWork(this.#store.repository,work,bytes({[ROW]:next}).length,1);if(settlement){settlement.check();settlement.dispatched();await settlementApply(this.#localSet,this.#local,[{[ROW]:next}]);settlement.check();}else await this.#api.storage.local.set({[ROW]:next});if(work)checkOriginalRecoveryWork(this.#store.repository,work);}catch(error){writeError=error;}
+   let observed;try{observed=await this.#read(work,settlement);}catch{this.#uncertain=true;this.#invalidate();fail('BNS_SYNC_OUTCOME_UNKNOWN');}
    if(!equal(observed,next)){this.#uncertain=true;this.#invalidate();fail(writeError?'BNS_SYNC_OUTCOME_UNKNOWN':'BNS_SYNC_STATE_CHANGED');}
-   this.#row=next;return next;
-  });this.#write=action.catch(()=>{});return action;
+   this.#row=next;if(settlement)settlement.confirmed(next);return next;
+  };
+  // Only the enrollment flow adds original-promise settlement provenance. The
+  // unrelated existing lifecycle save path keeps its prior queue semantics.
+  const action=settlement?new OriginalSettlementPromise((resolve,reject)=>{try{settlementApply(originalSettlementThen,this.#write,[()=>{try{settlementApply(originalSettlementThen,write(),[resolve,reject]);}catch(error){reject(error);}},reject]);}catch(error){reject(error);}}):this.#write.then(write);
+  this.#write=settlement?new OriginalSettlementPromise(resolve=>{settlementApply(originalSettlementThen,action,[()=>resolve(),()=>resolve()]);}):action.catch(()=>{});return action;
  }
- #view(){const recoveryError=this.#taskFailure?.revision===this.#row?.revision?this.#taskFailure?.error:null;return Object.freeze({version:1,scope:this.#promptService?'source-working-prompt':'source-working-only',wholeArchiveComplete:false,contextCommands:!!this.#contextService,needsContextEnrollment:!!this.#contextService&&this.#contextService.syncJournal!==this.#contextJournal,purgeProtection:'original-journal-fail-closed',portablePreferences:this.#store.consumerPreferenceJournal===this.#preferenceJournal,needsPreferenceEnrollment:this.#store.consumerPreferenceJournal!==this.#preferenceJournal,needsPromptEnrollment:!!this.#promptService&&this.#promptService.syncJournal!==this.#promptJournal,resumeAvailable:!this.#suspended&&!this.#uncertain&&!this.#busy&&this.#hostCurrent()&&(!this.#row||this.#row.bindingId===this.#bindingId&&(this.#row.mode!=='disconnected'||this.#row.generation!==this.#generation)),unsupportedOwners:this.#promptService?['human-library',this.#contextService?'automatic-context':'context','topic','nonportable-settings','edited-source-purge']:['human-library','prompt','context','topic','nonportable-settings','edited-source-purge'],state:this.#suspended?'suspended':this.#uncertain?'settlement-unknown':this.#row?.mode??'not-started',busy:this.#busy,task:this.#row?.task?{kind:this.#row.task.kind,phase:recoveryError&&this.#row.task.phase!=='confirmed'?'unknown':this.#row.task.phase}:null,error:recoveryError??this.#row?.error??null,productionActivation:false});}
+ #stopAvailable(){return this.#uncertain&&!this.#suspended&&this.#hostCurrent()&&this.#row?.bindingId===this.#bindingId&&this.#row?.generation===this.#generation&&this.#row?.enrollmentSettlement?.phase==='pending';}
+ #view(){const recoveryError=this.#taskFailure?.revision===this.#row?.revision?this.#taskFailure?.error:null;return Object.freeze({version:1,scope:this.#promptService?'source-working-prompt':'source-working-only',wholeArchiveComplete:false,contextCommands:!!this.#contextService,needsContextEnrollment:!!this.#contextService&&(!this.#contextSettled||this.#contextService.syncJournal!==this.#contextJournal),purgeProtection:'original-journal-fail-closed',portablePreferences:this.#store.consumerPreferenceJournal===this.#preferenceJournal,needsPreferenceEnrollment:this.#store.consumerPreferenceJournal!==this.#preferenceJournal,needsPromptEnrollment:!!this.#promptService&&this.#promptService.syncJournal!==this.#promptJournal,stopAvailable:this.#stopAvailable(),resumeAvailable:!this.#suspended&&!this.#uncertain&&!this.#busy&&this.#hostCurrent()&&(!this.#row||this.#row.bindingId===this.#bindingId&&(this.#row.mode!=='disconnected'||this.#row.generation!==this.#generation)),unsupportedOwners:this.#promptService?['human-library',this.#contextService?'automatic-context':'context','topic','nonportable-settings','edited-source-purge']:['human-library','prompt','context','topic','nonportable-settings','edited-source-purge'],state:this.#suspended?'suspended':this.#uncertain?'settlement-unknown':this.#row?.mode??'not-started',busy:this.#busy,task:this.#row?.task?{kind:this.#row.task.kind,phase:recoveryError&&this.#row.task.phase!=='confirmed'?'unknown':this.#row.task.phase}:null,error:this.#contextFailure??recoveryError??this.#row?.error??null,productionActivation:false});}
  async attachPreferences(){
   this.#preferenceJournal=new ConsumerPreferenceSyncJournal(this.#core);
   // Existing original intents/terminal receipts are recovered by the original
@@ -128,19 +146,13 @@ class SyncLifecycle {
  async attachContextService(service){
   if(this.#contextService||!(service instanceof ContextCardsService)||service.s!==this.#store||service.syncJournal!==null)fail('BNS_SYNC_OWNER_BUSY');
   this.#contextService=service;this.#contextJournal=new ContextMutationSyncJournal(this.#core,{store:this.#store});
-  // Startup only restores an already represented original owner. It never
-  // invents a bootstrap for content created before this device enrolled.
-  const row=await this.#store.repository.transaction(false,readContextCards,['meta']);
-  let represented=!!await this.#core.read('contextMutationState');
-  for(const key of ['info','rules','now','inputs'])if(await this.#core.read('head','contextDesired',key)){represented=true;break;}
-  for(const item of row.items)if(await this.#contextHead(item)){represented=true;break;}
-  // A prior explicit empty enrollment is local to this exact physical store,
-  // protocol namespace and restore epoch. Active mode alone is never proof.
-  if(!represented&&this.#row?.contextEnrollment&&this.#row.bindingId===this.#bindingId&&this.#row.generation===this.#generation&&this.#hostCurrent()){
-   const enrolled=this.#row,current=await this.#contextJournal.emptyEnrollment(service);
-   represented=this.#row===enrolled&&enrolled.bindingId===this.#bindingId&&enrolled.generation===this.#generation&&this.#hostCurrent()&&equal(enrolled.contextEnrollment,current);
-  }
-  if(represented)service.syncJournal=this.#contextJournal;
+  // A previous process cannot witness the terminal observation of an SDK
+  // enrollment write. Neither a legacy empty receipt nor a confirmed marker
+  // grants this process enrollment. Only a new explicit Resume can do so.
+  // Pending attempts remain UNKNOWN and are never replayed by attachment.
+  this.#contextSettled=false;
+  if(this.#row?.enrollmentSettlement?.phase==='pending'){this.#uncertain=true;this.#blocked=true;this.#contextFailure='BNS_SYNC_OUTCOME_UNKNOWN';}
+
  }
  async #contextHead(item){return await this.#core.read('head','contextMutationMember',item.id)??await this.#core.read('head',({info:'contextItem',rules:'contextRulesItem',now:'contextNowItem'})[item.card],item.id);}
  async #enrollContext(){
@@ -153,15 +165,24 @@ class SyncLifecycle {
   // transaction. Failure retains earlier exact receipts; no bulk rewrite.
   for(const item of row.items)if(!await this.#contextHead(item))await journal.bootstrapItem(service,item.id);
   for(const key of ['info','rules','now','inputs'])if(row.access[key].revision>0&&!await this.#core.read('head','contextDesired',key))await journal.bootstrapAccess(key);
-  return journal.emptyEnrollment(service);
+
  }
  applicationSelectionAvailable(){return !this.#busy&&!this.#uncertain&&!this.#suspended&&!this.#selectionHeld&&(!this.#row?.task||this.#row.task.phase==='confirmed');}
  reserveApplicationSelection(){if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');this.#busy=true;this.#selectionHeld=true;this.#invalidate();let released=false;return safeBeforeDispatch=>{if(!released){released=true;this.#busy=false;if(safeBeforeDispatch===true)this.#selectionHeld=false;else this.suspend();}};}
  applicationSelectionOwner(){if(!this.applicationSelectionAvailable())fail('BNS_SYNC_TASK_PENDING');return new OriginalApplicationGenerationSelection(this.#store,this.#core,this.#api.storage.local);}
- async snapshot(){return this.#view();}
+ async snapshot(){
+  // Status can withdraw a settled observation, never enroll, repair a receipt,
+  // or turn an unknown SDK outcome into a successful settlement.
+  if(this.#contextSettled&&!this.#busy&&!this.#suspended&&!this.#uncertain){
+   try{await readOriginalContextEnrollmentObservation(this.#contextJournal,this.#contextService);}
+   catch(error){this.#contextSettled=false;this.#contextFailure=safeError(error);}
+  }
+  return this.#view();
+ }
  async reconcile(){
   if(this.#busy)fail('BNS_SYNC_BUSY');if(this.#suspended)fail('BNS_SYNC_PAUSED');this.#row=await this.#read();
   if(!this.#row)return this.#view();
+  if(this.#row.enrollmentSettlement?.phase==='pending'){this.#uncertain=true;this.#blocked=true;this.#contextFailure='BNS_SYNC_OUTCOME_UNKNOWN';return this.#view();}
   if(this.#row.bindingId!==this.#bindingId||this.#row.generation!==this.#generation||!this.#hostCurrent()){
    this.#blocked=true;this.#invalidate();if(this.#row.mode!=='disconnected'&&this.#row.mode!=='account-changed')await this.#save(row=>({...row,mode:'account-changed',error:'BNS_PROVIDER_BINDING_CHANGED'}));return this.#view();
   }
@@ -177,22 +198,80 @@ class SyncLifecycle {
  }
  suspend(){if(this.#suspended)return;this.#suspended=true;this.#invalidate();if(owners.get(this.#api.storage.local)===this)owners.delete(this.#api.storage.local);}
  async resumeAfterSuspend(){if(this.#selectionHeld)return this.snapshot();if(!this.#suspended)return this.snapshot();if(owners.has(this.#api.storage.local))fail('BNS_SYNC_OWNER_BUSY');this.#suspended=false;owners.set(this.#api.storage.local,this);return this.reconcile();}
- async #stop(mode){this.#blocked=true;this.#invalidate();await this.#save(row=>({...this.#initial(row),mode,error:null}));return this.#view();}
+ async #stop(mode){
+  const check=()=>{if(!this.#stopAvailable())fail('BNS_SYNC_OUTCOME_UNKNOWN');if(this.#api.storage.local!==this.#local||this.#store.local!==this.#local||this.#local.get!==this.#localGet||this.#local.set!==this.#localSet)fail('BNS_SYNC_STATE_CHANGED');};
+  const pendingStop=this.#uncertain?{check,dispatched:check,confirmed:check}:null;if(pendingStop)check();
+  this.#blocked=true;this.#invalidate();await this.#save(row=>({...this.#initial(row),mode,error:null}),null,pendingStop,true);return this.#view();
+ }
  #initial(row){return row??{version:1,bindingId:this.#bindingId,generation:this.#generation,task:null};}
  async #resume(){
-  if(this.#busy)fail('BNS_SYNC_BUSY');if(this.#suspended||!this.#hostCurrent())fail('BNS_PROVIDER_BINDING_CHANGED');
+  if(this.#busy)fail('BNS_SYNC_BUSY');if(this.#uncertain)fail('BNS_SYNC_OUTCOME_UNKNOWN');if(this.#suspended||!this.#hostCurrent())fail('BNS_PROVIDER_BINDING_CHANGED');
   if(this.#row?.bindingId!==undefined&&this.#row.bindingId!==this.#bindingId)fail('BNS_SYNC_ACCOUNT_CHANGED');
   // Disconnect requires a new independently qualified source binding generation.
   // Resume is not a local credential cache or an implied account authorization.
   if(this.#row?.mode==='disconnected'&&this.#row.generation===this.#generation)fail('BNS_SYNC_REAUTHORIZATION_REQUIRED');
+  // Public Resume has no private nested-invocation binding. Temporal overlap
+  // with another repository window must never borrow its ticket.
+  if(currentOriginalRecoveryWork(this.#store.repository))fail('BNS_GROUP_RESOURCE_LIMIT');
   this.#busy=true;const serial=this.#serial;
   const current=()=>{if(serial!==this.#serial||this.#suspended||!this.#hostCurrent())fail('BNS_RECOVERY_INTERRUPTED');};
   try{
    await this.#enrollPreferences();current();
    await this.#enrollPrompt();current();
-   const contextEnrollment=await this.#enrollContext();current();
-   await this.#save(row=>{current();return {...this.#initial(row),generation:this.#generation,mode:'active',error:null,...(contextEnrollment?{contextEnrollment}:{})};});current();this.#blocked=false;return Object.freeze({...this.#view(),busy:false});
+   this.#contextSettled=false;this.#contextFailure=null;
+   await this.#enrollContext();current();
+   if(this.#contextService)await this.#settleEnrollment(current);else await this.#save(row=>{current();return {...this.#initial(row),generation:this.#generation,mode:'active',error:null};});current();this.#blocked=false;return Object.freeze({...this.#view(),busy:false});
   }finally{this.#busy=false;}
+ }
+ async #settleEnrollment(current){
+  const repository=this.#store.repository,database=repository.db;
+  let retired=false,dispatched=false,saved=false,savedRow=null,pendingObservation=null,timer;
+  const work=createOriginalRecoveryWork(repository,{isCurrent:()=>!retired&&repository.db===database});
+  const envelope=()=>{
+   const active=currentOriginalRecoveryWork(repository);
+   if(retired||repository.db!==database||(active!==null&&active!==work))fail('BNS_GROUP_RESOURCE_LIMIT');
+   if(this.#api.storage.local!==this.#local||this.#store.local!==this.#local||this.#local.get!==this.#localGet||this.#local.set!==this.#localSet)fail('BNS_SYNC_STATE_CHANGED');
+   checkOriginalRecoveryWork(repository,work);
+  };
+  const check=()=>{current();envelope();};
+  const observe=async()=>{
+   const pending=readOriginalContextEnrollmentObservation(this.#contextJournal,this.#contextService,work);pendingObservation=pending;
+   try{return await pending;}finally{if(pendingObservation===pending)pendingObservation=null;}
+  };
+  try{
+   const settle=async()=>{
+    envelope();const interruption=new OriginalSettlementPromise((_,reject)=>{timer=setTimeout(()=>{retired=true;reject(new ArchiveError('BNS_GROUP_RESOURCE_LIMIT'));},remainingOriginalRecoveryWork(repository,work));});
+    const action=(async()=>{
+     check();const before=this.#contextService?await observe():null;check();
+     const attempt=crypto.randomUUID();
+     await this.#save(row=>{check();return {...this.#initial(row),generation:this.#generation,mode:'active',error:null,...(before?{contextEnrollment:before.receipt}:{}),enrollmentSettlement:{version:1,attempt,bindingId:this.#bindingId,generation:this.#generation,startRevision:(row?.revision??0)+1,phase:'pending',confirmedRevision:null}};},work,{check:envelope,dispatched:()=>{check();dispatched=true;},confirmed:row=>{envelope();saved=true;savedRow=row;}});
+     check();if(!dispatched||!saved||this.#row!==savedRow)fail('BNS_SYNC_OUTCOME_UNKNOWN');
+     const after=this.#contextService?await observe():null;check();
+     if(!equal(before,after))fail('BNS_CONTEXT_OWNER_CHANGED');
+     await this.#save(row=>{check();if(row!==null&&(row.enrollmentSettlement?.attempt!==attempt||row.enrollmentSettlement?.phase!=='pending'))fail('BNS_SYNC_STATE_CHANGED');return {...row,enrollmentSettlement:{...row.enrollmentSettlement,phase:'confirmed',confirmedRevision:row.revision+1}};},work,{check:envelope,dispatched:()=>{check();saved=false;},confirmed:row=>{envelope();saved=true;savedRow=row;}});
+     check();if(!saved||this.#row!==savedRow)fail('BNS_SYNC_OUTCOME_UNKNOWN');
+     const terminal=this.#contextService?await observe():null;check();
+     if(!equal(after,terminal))fail('BNS_CONTEXT_OWNER_CHANGED');
+     this.#contextSettled=!!this.#contextService;
+    })();
+    await settlementRace([action,interruption]);
+   };
+   await settle();
+  }catch(error){
+   this.#contextSettled=false;this.#contextFailure=safeError(error);
+   // A real SDK write cannot be cancelled or presumed absent. Preserve its row
+   // and report unknown settlement, with no rollback, cleanup or second budget.
+   // A confirmed SDK row interrupted by the user's Pause/Disconnect still lets
+   // that queued stop retain its original ordering and durable mode.
+   if(dispatched&&(!saved||error?.code!=='BNS_RECOVERY_INTERRUPTED')){this.#uncertain=true;this.#blocked=true;this.#invalidate();}
+   throw error;
+  }finally{
+   retired=true;clearTimeout(timer);
+   {
+    if(pendingObservation&&currentOriginalRecoveryWork(repository)===work)try{await settlementRace([pendingObservation]);}catch{}
+    finishOriginalRecoveryWork(repository,work);
+   }
+  }
  }
  #openTransport(serial){
   const current=binding=>serial===this.#serial&&!this.#blocked&&!this.#suspended&&!this.#uncertain&&this.#row?.mode==='active'&&equal(binding,this.#binding)&&this.#hostCurrent();
@@ -206,7 +285,7 @@ class SyncLifecycle {
   this.#allowed();if(this.#busy)fail('BNS_SYNC_BUSY');const old=this.#row.task;
   if(old&&old.phase!=='confirmed'&&old.kind!=='checkpoint'){if(old.kind==='publication')return this.#task('publication');fail('BNS_SYNC_TASK_PENDING');}
   if(this.#promptService&&this.#promptService.syncJournal!==this.#promptJournal)fail('BNS_PROMPT_BINDING_REQUIRED');
-  if(this.#contextService&&this.#contextService.syncJournal!==this.#contextJournal)fail('BNS_CONTEXT_BOOTSTRAP_REQUIRED');
+  if(this.#contextService&&(!this.#contextSettled||this.#contextService.syncJournal!==this.#contextJournal))fail('BNS_CONTEXT_BOOTSTRAP_REQUIRED');
   this.#busy=true;const serial=this.#serial;this.#checkpoint=this.#checkpointOwner();
   const current=()=>{this.#allowed();if(serial!==this.#serial)fail('BNS_RECOVERY_INTERRUPTED');};
   try{

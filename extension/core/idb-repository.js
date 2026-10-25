@@ -114,6 +114,8 @@ export function chargeOriginalRecoveryWork(repository,ticket,length,references=1
  p.refs+=references;p.bytes+=length;recoveryWork(ticket,repository);
 }
 export function checkOriginalRecoveryWork(repository,ticket){recoveryWork(ticket,repository);}
+// Read-only time remaining on this exact original invocation; never a new clock.
+export function remainingOriginalRecoveryWork(repository,ticket){return Math.max(0,recoveryWork(ticket,repository).deadline-workClock());}
 export function tightenOriginalRecoveryWork(repository,ticket,ms){const p=recoveryWork(ticket,repository);if(!Number.isFinite(ms)||ms<=0||ms>30000){p.failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}p.deadline=Math.min(p.deadline,workClock()+ms);}
 export function currentOriginalRecoveryWork(repository){return ordinaryRecoveryWindows.get(repository)??null;}
 export function finishOriginalRecoveryWork(repository,ticket){const p=ordinaryRecoveryWork.get(ticket);if(!p||p.repository!==repository||p.window||p.scope||p.pending)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');p.closed=true;}
@@ -669,6 +671,21 @@ export function originalRepositoryTransactionOwner(repository){
  if(!repositoryWrites.has(repository)||originalPrototypeOf(promptTransactionPrototype)!==promptTransactionParent||!promptTransactionDescriptor(originalOwnDescriptor(promptTransactionPrototype,'transaction'),promptTransactionMethod))return false;
  for(let owner=repository;owner;owner=originalPrototypeOf(owner)){const descriptor=originalOwnDescriptor(owner,'transaction');if(descriptor)return promptTransactionDescriptor(descriptor,promptTransactionMethod);}
  return false;
+}
+
+// Existing-only original readonly entry. In particular, the public open method
+// cannot initialize/reopen or substitute a connection while a consumer is waiting.
+const existingReadOpenMethod=originalOwnDescriptor(promptTransactionPrototype,'open'),existingReadApply=Reflect.apply;
+export function requireOriginalExistingRepositoryReadOwner(repository,database){
+ if(!database||originalOwnDescriptor(repository,'db')?.value!==database||!originalRepositoryTransactionOwner(repository)||!promptTransactionDescriptor(originalOwnDescriptor(promptTransactionPrototype,'open'),existingReadOpenMethod))throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');
+ let found=false;for(let owner=repository;owner;owner=originalPrototypeOf(owner)){const descriptor=originalOwnDescriptor(owner,'open');if(descriptor){found=promptTransactionDescriptor(descriptor,existingReadOpenMethod);break;}}
+ if(!found)throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');return true;
+}
+export async function originalExistingRepositoryRead(repository,fn,stores=['meta']){
+ const database=originalOwnDescriptor(repository,'db')?.value;
+ const current=()=>{requireOriginalExistingRepositoryReadOwner(repository,database);if(typeof fn!=='function')throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');};
+ current();let scope;const result=await existingReadApply(promptTransactionMethod.value,repository,[false,async t=>{scope=t;current();requireRepositoryTransactionDataMethods(repository,t);if(requireRepositoryTransactionScope(repository,t).database!==database)throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');const value=await fn(t);current();return value;},stores]);
+ requireRepositoryTransactionSucceeded(repository,scope);current();return result;
 }
 
 // Fixed generation consumers bypass instance wrappers; the opaque authority is

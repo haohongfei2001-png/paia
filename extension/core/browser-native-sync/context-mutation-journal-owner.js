@@ -1,13 +1,13 @@
 import {requireOriginalContextMutationCore} from './core.js';
-import {originalContextDesiredConstructor} from './context-desired-journal-owner.js';
+import {originalContextDesiredConstructor,readOriginalContextDesiredOwner} from './context-desired-journal-owner.js';
 import {readContextCards,requireOriginalContextCardsService,CONTEXT_CARDS_ROW,emptyContextCards} from '../context-cards.js';
 import {requireOriginalLibraryDocumentsGenerationMethods} from '../library-documents-owner.js';
 import {readableContextItems,fenceContextLineage,releaseContextLineage} from '../context-item-lineage.js';
 import {prepareContextMutationDescription,verifyContextMutationDescription,prepareContextBootstrapDescription,contextMutationItemAtEpoch as localContextItem} from './context-mutation-codec.js';
-import {clone,digest,equal,fail} from './value.js';
+import {clone,digest,equal,fail,SyncError} from './value.js';
 import {hashText} from '../dedupe.js';
 import {registerRepositoryWorkLimit,registerRepositoryFinalReadFence,originalRepositoryTransactionOwner,requireRepositoryTransactionDataMethods,requireRepositoryTransactionSucceeded} from '../idb-repository.js';
-import {readOriginalControlSettings,assertOriginalControlSettingsFacts} from '../indexed-store.js';
+import {readOriginalIndexedStoreControlScope,readOriginalControlSettings,assertOriginalControlSettingsFacts} from '../indexed-store.js';
 import {readRestoreEpoch,requireOriginalJournalRestoreFence} from './prompt-journal.js';
 const originalJournals=new WeakMap(),localPreparations=new WeakMap(),localTransactions=new WeakMap(),applications=new WeakMap(),preparedContexts=new WeakMap(),releasedPreparations=new WeakSet();
 const legacy={info:'contextItem',rules:'contextRulesItem',now:'contextNowItem'};
@@ -38,23 +38,7 @@ export function originalContextMutationConstructor(){
  // Read-only qualification for a local lifecycle enrollment receipt. Empty
  // enrollment is not a Context mutation or a portable desired-access intent.
  // An unbound genuine service may be inspected, but receives no capability.
- async emptyEnrollment(service){
-  const {core,store}=binding(this,service,true),repository=core.repository,database=repository.db;
-  const current=()=>{binding(this,service,true);requireOriginalJournalRestoreFence(this.restoreFence,core);if(store.loaded!==true||!database||repository.db!==database||!originalRepositoryTransactionOwner(repository))fail('BNS_CONTEXT_OWNER_CHANGED');};
-  current();let scope,value,controls;
-  // Do not call public Store.run: it can initialize a fresh store and is not
-  // part of the original method-identity contract. This is an existing-only
-  // original readonly transaction; neither a wrapper result nor a clone is proof.
-  await core.transaction(false,async t=>{
-   current();requireRepositoryTransactionDataMethods(repository,t);scope=t;
-   controls=readOriginalControlSettings(store,t);await store.qualifyControlPublicationRead(t);await service.admitted(t);
-   const migration=await t.get('meta','migration'),fence=await this.restoreFence.snapshot(t);
-   if(migration?.phase!=='active'||migration.databaseId!==store.databaseId)fail('BNS_CONTEXT_OWNER_CHANGED');
-   value=equal(await readContextCards(t),emptyContextCards())?{version:1,databaseId:migration.databaseId,namespace:fence.namespace,epoch:fence.epoch}:null;
-   current();assertOriginalControlSettingsFacts(store,controls);
-  },['meta']);
-  requireRepositoryTransactionSucceeded(repository,scope);current();assertOriginalControlSettingsFacts(store,controls);return value;
- }
+ async emptyEnrollment(service){return (await readEnrollmentObservation(this,service,false)).receipt;}
  async prepare(before,after,command,owner){
   if(command.kind==='access')return super.prepare(before,after,command);
   const service=owner?.service,{core,store}=binding(this,service);
@@ -159,6 +143,54 @@ export function originalContextMutationConstructor(){
  return originalConstructor;
 }
 
+// Fixed source-owned dispatch enters binding before any observation is returned.
+// No replaceable journal method or caller DTO can supply settlement evidence.
+export async function readOriginalContextEnrollmentObservation(journal,service,work=null){return readEnrollmentObservation(journal,service,true,work);}
+
+async function readEnrollmentObservation(journal,service,represented,work=null){
+  const {core,store}=binding(journal,service,true),repository=core.repository,database=repository.db;
+  const current=()=>{binding(journal,service,true);requireOriginalJournalRestoreFence(journal.restoreFence,core);if(store.loaded!==true||!database||repository.db!==database||!originalRepositoryTransactionOwner(repository))fail('BNS_CONTEXT_OWNER_CHANGED');};
+  current();let scope,controls,semanticError;
+  // Do not call public Store.run or open an earlier independent transaction.
+  // The exact original Context predicate runs in the final readonly fence,
+  // after both SDK reads, with original Core/restore identity and one work ticket.
+  // Preserve Core.transaction's SyncError behavior without nesting a transaction.
+  try{
+   const value=await readOriginalIndexedStoreControlScope(store,repository,async t=>{try{
+    current();requireRepositoryTransactionDataMethods(repository,t);scope=t;
+    controls=readOriginalControlSettings(store,t);await store.qualifyControlPublicationRead(t);await service.admitted(t);
+    const migration=await t.get('meta','migration'),fence=await journal.restoreFence.snapshot(t);
+    if(migration?.phase!=='active'||migration.databaseId!==store.databaseId)fail('BNS_CONTEXT_OWNER_CHANGED');
+    const row=await readContextCards(t),receipt=equal(row,emptyContextCards())?{version:1,databaseId:migration.databaseId,namespace:fence.namespace,epoch:fence.epoch}:null;
+    const contextState=represented?await qualifyEnrollmentRow(t,core,row,fence.epoch??'initial'):null;
+    const result={receipt,row,contextState,databaseId:migration.databaseId,namespace:fence.namespace,epoch:fence.epoch};
+    current();assertOriginalControlSettingsFacts(store,controls);return result;
+   }catch(error){if(error instanceof SyncError)semanticError=error;throw error;}},work);
+   requireRepositoryTransactionSucceeded(repository,scope);current();assertOriginalControlSettingsFacts(store,controls);return value;
+  }catch(error){throw semanticError||error;}
+}
+
+async function qualifyEnrollmentRow(t,core,row,epoch){
+ // Reuse the original Item predicate, now with reads in this one original
+ // terminal transaction rather than independent Core.read transactions.
+ await qualifiedPortableRow(core,row,epoch,t);
+ const state=await core.get(t,'contextMutationState');
+ if(state&&state.sequence!==row.sequence)fail('BNS_CONTEXT_OWNER_CHANGED');
+ // Mirror the existing desired owner's current-value rule: an exact current
+ // owner proof can represent a restrictive conflict; otherwise a real current
+ // revision must equal the local portable value. Global access stays local.
+ for(const id of ['info','rules','now','inputs']){
+  const value={id,...row.access[id]},head=await core.get(t,'head','contextDesired',id);
+  if(!head){if(value.revision!==0||value.enabled!==false)fail('BNS_CONTEXT_BOOTSTRAP_REQUIRED');continue;}
+  if(head.purged||!Array.isArray(head.revisions)||!head.revisions.length)fail('BNS_CONTEXT_OWNER_CHANGED');
+  const {record:proof}=await readOriginalContextDesiredOwner(t,core,id),heads=[...head.revisions].sort();
+  const proven=!!proof&&equal(proof.heads,heads)&&equal(proof.value,value);
+  let matched=false;for(const revision of head.revisions){const operation=(await core.get(t,'revision',revision))?.operation;if(!operation||operation.type!=='contextDesired'||operation.entityId!==id||operation.kind!=='put')fail('BNS_CONTEXT_OWNER_CHANGED');if(equal(operation.value,value))matched=true;}
+  if(!proven&&!matched)fail('BNS_CONTEXT_OWNER_CHANGED');
+ }
+ return state??null;
+}
+
 export function requireContextMutationProtocolOwner(t,core,operation){const p=localTransactions.get(t);if(!p||p.core!==core||!p.prepared.operations.includes(operation))fail('BNS_CONTEXT_OWNER_REQUIRED');}
 export async function executeOriginalContextMutationApplication(t,core,protocol,ownerPlan){
  const p=applications.get(ownerPlan);if(!p||p.core!==core||p.protocol!==protocol)fail('BNS_CONTEXT_OWNER_REQUIRED');binding(p.journal,p.service);
@@ -177,18 +209,18 @@ export async function executeOriginalContextMutationApplication(t,core,protocol,
 }
 async function recordContextMutationCommand(t,core,operation){const d=operation.value;await core.put(t,'contextMutationState',[],{version:1,sequence:d.after.sequence});if(d.command.kind==='bootstrap')return;await core.put(t,'contextMutationCommand',[d.domainOperationId],{version:1,revisionId:operation.revisionId,receipt:{id:'context:'+d.domainOperationId,namespace:'context-cards',schemaVersion:1,ownerId:d.command.itemId,digest:d.requestDigest,epoch:d.command.epoch,result:d.result}});}
 
-async function qualifiedPortableRow(core,row,epoch){
- const before=clone(row);
+async function qualifiedPortableRow(core,row,epoch,t=null){
+ const read=(...key)=>t?core.get(t,...key):core.read(...key),before=clone(row);
  for(let index=0;index<before.items.length;index++){
-  const local=before.items[index],head=await core.read('head','contextMutationMember',local.id);
+  const local=before.items[index],head=await read('head','contextMutationMember',local.id);
   if(head){
    if(head.purged||head.revisions.length!==1)fail('BNS_CONTEXT_CONFLICT_UNSUPPORTED');
-   const op=(await core.read('revision',head.revisions[0]))?.operation,mapping=await core.read('contextMutationEpoch',local.id);
+   const op=(await read('revision',head.revisions[0]))?.operation,mapping=await read('contextMutationEpoch',local.id);
    if(!op||mapping?.revisionId!==op.revisionId||mapping.epoch!==epoch||!equal(local,localContextItem(op.value.item,epoch)))fail('BNS_CONTEXT_OWNER_CHANGED');
    before.items[index]=clone(op.value.item);
   }else{
    if(local.origin!=='manual')fail('BNS_CONTEXT_BOOTSTRAP_REQUIRED');
-   const type=legacy[local.card],old=await core.read('head',type,local.id),op=old?.revisions.length===1?(await core.read('revision',old.revisions[0]))?.operation:null;
+   const type=legacy[local.card],old=await read('head',type,local.id),op=old?.revisions.length===1?(await read('revision',old.revisions[0]))?.operation:null;
    if(old?.purged||!op||!equal(op.value,local))fail('BNS_CONTEXT_BOOTSTRAP_REQUIRED');
   }
  }

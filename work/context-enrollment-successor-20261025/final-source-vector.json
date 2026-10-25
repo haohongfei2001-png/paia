@@ -1,0 +1,12 @@
+{
+  "extension/background/sync-local-lifecycle.js": "4bba52ec4091ca1fa4957335b81c18a03cf818ac87aba250c927bacc599d32fe",
+  "extension/core/indexed-store.js": "b8ee5cef8a5833f4ff1cab857743af711a8788bb697d2804f145a4be460eeb97",
+  "extension/core/idb-repository.js": "671ab44f3cca6f63117a0735517c40b1f89347fb4ed2e226b6f47b5fb2abc6ca",
+  "extension/core/browser-native-sync/context-mutation-journal-owner.js": "bd4e816a5ee056ef9cc38cd7650d647741665929ccdbacf26eb57424e4c7d0ae",
+  "extension/core/browser-native-sync/context-desired-journal-owner.js": "e49ee8fc0ea05c2040b34210d210f52765b16b62ca787ce7fdbcc7c294a6150c",
+  "extension/tests/sync-cold-control-enrollment.test.mjs": "8526fde1716a413be430eb0543d4de2a73822bffe67a2905a6b5f155e8cf7e9d",
+  "extension/tests/sync-context-terminal-enrollment.test.mjs": "cce476a9941de23560b3671f1b6994dcd2ffe417141f59396322f08f9023b94a",
+  "extension/tests/sync-context-enrollment-settlement.test.mjs": "c71261e11adc6d3c4538c4ff244757dc3e9d43cdd477f33b7060982e1c5fcc74",
+  "extension/tests/sync-local-lifecycle.test.mjs": "3b5d9ef9fe5e75250a6dc72fc35f431e4f45b2e2b1629942f7d621fec4fcff29",
+  "extension/tests/sync-worker-context-consumer.test.mjs": "2fa9e710dc41cc1fe8124df85f2ba6173861afeadd1556a223ecb01ac1aad8a4"
+}

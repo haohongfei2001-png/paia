@@ -1,0 +1,662 @@
+TAP version 13
+# Subtest: shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+ok 1 - shipped configuration is unavailable and cannot be activated by command, extra parameters or content sender
+  ---
+  duration_ms: 2.116042
+  type: 'test'
+  ...
+# Subtest: pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+ok 2 - pause/disconnect before first start persist across cold opens; resume does not mint reauthorization
+  ---
+  duration_ms: 69.414125
+  type: 'test'
+  ...
+# Subtest: same actual store journals feed original durable publication; no whole archive completion claim
+ok 3 - same actual store journals feed original durable publication; no whole archive completion claim
+  ---
+  duration_ms: 249.120625
+  type: 'test'
+  ...
+# Subtest: lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+ok 4 - lost committed upload response preserves original task and reads original receipt after cold open without duplicate POST
+  ---
+  duration_ms: 216.240833
+  type: 'test'
+  ...
+# Subtest: pause during committed POST fences late response and explicit same task continuation first reconciles it
+ok 5 - pause during committed POST fences late response and explicit same task continuation first reconciles it
+  ---
+  duration_ms: 188.437208
+  type: 'test'
+  ...
+# Subtest: binding generation change and foreign account block old pending upload without retargeting it
+ok 6 - binding generation change and foreign account block old pending upload without retargeting it
+  ---
+  duration_ms: 102.139542
+  type: 'test'
+  ...
+# Subtest: durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+not ok 7 - durable local acknowledgement loss is read back once; unprovable outcome sends nothing
+  ---
+  duration_ms: 18.716167
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:93:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:94:407)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: second owner and state changes are refused, malformed provider binding never installs journals
+ok 8 - second owner and state changes are refused, malformed provider binding never installs journals
+  ---
+  duration_ms: 21.757375
+  type: 'test'
+  ...
+# Subtest: wrong task command does not mutate pending identity or conceal original failure
+ok 9 - wrong task command does not mutate pending identity or conceal original failure
+  ---
+  duration_ms: 86.935334
+  type: 'test'
+  ...
+# Subtest: existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+ok 10 - existing grouped checkpoint restores through original owner; cold continuation keeps same restore ID
+  ---
+  duration_ms: 109.374542
+  type: 'test'
+  ...
+# Subtest: suspend cancellation reconciles local state without IO or automatic continuation
+ok 11 - suspend cancellation reconciles local state without IO or automatic continuation
+  ---
+  duration_ms: 164.128375
+  type: 'test'
+  ...
+# Subtest: cold recovery of original confirmed publication receipt needs no remote request
+ok 12 - cold recovery of original confirmed publication receipt needs no remote request
+  ---
+  duration_ms: 164.916459
+  type: 'test'
+  ...
+# Subtest: remote loss after original verified cut never causes silently recreating it
+ok 13 - remote loss after original verified cut never causes silently recreating it
+  ---
+  duration_ms: 101.141875
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=false
+ok 14 - actual worker synchronous events and same-store command consumer, configured=false
+  ---
+  duration_ms: 80.971709
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=true
+ok 15 - actual worker synchronous events and same-store command consumer, configured=true
+  ---
+  duration_ms: 226.368542
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=restore
+ok 16 - actual worker synchronous events and same-store command consumer, configured=restore
+  ---
+  duration_ms: 143.410917
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge
+ok 17 - actual worker synchronous events and same-store command consumer, configured=purge
+  ---
+  duration_ms: 656.572083
+  type: 'test'
+  ...
+# Subtest: actual worker synchronous events and same-store command consumer, configured=purge-unknown
+ok 18 - actual worker synchronous events and same-store command consumer, configured=purge-unknown
+  ---
+  duration_ms: 287.296333
+  type: 'test'
+  ...
+# Subtest: OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+ok 19 - OneDrive unknown session creation survives cold owner and never repeats POST without receipt
+  ---
+  duration_ms: 94.786292
+  type: 'test'
+  ...
+# Subtest: interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+ok 20 - interrupted checkpoint stage retains exact reference and original restore task across cold continuation
+  ---
+  duration_ms: 92.354209
+  type: 'test'
+  ...
+# Subtest: configured capture owner always includes original permanent-denial journal
+ok 21 - configured capture owner always includes original permanent-denial journal
+  ---
+  duration_ms: 15.988417
+  type: 'test'
+  ...
+# Subtest: Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+ok 22 - Sync sender accepts canonical Topic arrival only and rejects query, arbitrary hash, incognito and nested frames
+  ---
+  duration_ms: 0.249667
+  type: 'test'
+  ...
+# Subtest: configured actions still require original consent; status and stop remain non-transferring
+ok 23 - configured actions still require original consent; status and stop remain non-transferring
+  ---
+  duration_ms: 15.575
+  type: 'test'
+  ...
+# Subtest: explicit pause during original preparation fences its transaction checkpoint before any transfer
+ok 24 - explicit pause during original preparation fences its transaction checkpoint before any transfer
+  ---
+  duration_ms: 28.6565
+  type: 'test'
+  ...
+# Subtest: explicit pause during enrollment wins over an earlier Resume and refuses simultaneous enrollment
+ok 25 - explicit pause during enrollment wins over an earlier Resume and refuses simultaneous enrollment
+  ---
+  duration_ms: 17.543375
+  type: 'test'
+  ...
+# Subtest: trusted CONTINUE advances the same validated negative task to its real second-purge descendant
+ok 26 - trusted CONTINUE advances the same validated negative task to its real second-purge descendant
+  ---
+  duration_ms: 1776.080791
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE preserves two-store outcome through candidate-saved and cold retry
+ok 27 - trusted negative CONTINUE preserves two-store outcome through candidate-saved and cold retry
+  ---
+  duration_ms: 1771.406708
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE preserves two-store outcome through candidate-not-saved and cold retry
+ok 28 - trusted negative CONTINUE preserves two-store outcome through candidate-not-saved and cold retry
+  ---
+  duration_ms: 1797.510042
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE preserves two-store outcome through tail-ack-lost and cold retry
+ok 29 - trusted negative CONTINUE preserves two-store outcome through tail-ack-lost and cold retry
+  ---
+  duration_ms: 1766.212709
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE preserves two-store outcome through confirmation-not-saved and cold retry
+ok 30 - trusted negative CONTINUE preserves two-store outcome through confirmation-not-saved and cold retry
+  ---
+  duration_ms: 1798.471833
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE preserves two-store outcome through confirmation-ack-lost and cold retry
+ok 31 - trusted negative CONTINUE preserves two-store outcome through confirmation-ack-lost and cold retry
+  ---
+  duration_ms: 1735.447625
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE refuses an authenticated unsupported positive addition before replacing either binding
+ok 32 - trusted negative CONTINUE refuses an authenticated unsupported positive addition before replacing either binding
+  ---
+  duration_ms: 1827.182542
+  type: 'test'
+  ...
+# Subtest: trusted negative CONTINUE and PAUSE settle promptly when candidate storage acknowledgement is held
+ok 33 - trusted negative CONTINUE and PAUSE settle promptly when candidate storage acknowledgement is held
+  ---
+  duration_ms: 1912.477292
+  type: 'test'
+  ...
+# Subtest: cold empty Context enrollment refuses absent without enrolling from active mode or repairing its receipt
+not ok 34 - cold empty Context enrollment refuses absent without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 25.471333
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:261:146'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: BNS_SYNC_PAUSED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:273:50)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cold empty Context enrollment refuses database without enrolling from active mode or repairing its receipt
+not ok 35 - cold empty Context enrollment refuses database without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 23.644834
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:261:146'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: BNS_SYNC_PAUSED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:273:50)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cold empty Context enrollment refuses namespace without enrolling from active mode or repairing its receipt
+not ok 36 - cold empty Context enrollment refuses namespace without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 23.352958
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:261:146'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: BNS_SYNC_PAUSED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:273:50)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cold empty Context enrollment refuses epoch without enrolling from active mode or repairing its receipt
+not ok 37 - cold empty Context enrollment refuses epoch without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 23.318459
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:261:146'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: BNS_SYNC_PAUSED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:273:50)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cold empty Context enrollment refuses physical-namespace without enrolling from active mode or repairing its receipt
+not ok 38 - cold empty Context enrollment refuses physical-namespace without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 23.95175
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:261:146'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: BNS_SYNC_PAUSED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:273:50)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cold empty Context enrollment refuses physical-epoch without enrolling from active mode or repairing its receipt
+not ok 39 - cold empty Context enrollment refuses physical-epoch without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 23.895458
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:261:146'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: BNS_SYNC_PAUSED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:273:50)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cold empty Context enrollment refuses nonempty without enrolling from active mode or repairing its receipt
+not ok 40 - cold empty Context enrollment refuses nonempty without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 25.011166
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:261:146'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: BNS_SYNC_PAUSED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:273:50)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cold empty Context enrollment refuses access without enrolling from active mode or repairing its receipt
+not ok 41 - cold empty Context enrollment refuses access without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 24.608333
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:261:146'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: BNS_SYNC_PAUSED
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:273:50)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cold empty Context enrollment refuses binding without enrolling from active mode or repairing its receipt
+not ok 42 - cold empty Context enrollment refuses binding without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 20.515667
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:261:146'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SYNC_STATE_CORRUPT'
+  code: 'BNS_SYNC_STATE_CORRUPT'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/sync-lifecycle-test-fixtures/fixture-tOW2tk/background/sync-local-lifecycle.js:29:25)
+    checked (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/sync-lifecycle-test-fixtures/fixture-tOW2tk/background/sync-local-lifecycle.js:81:623)
+    #read (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/sync-lifecycle-test-fixtures/fixture-tOW2tk/background/sync-local-lifecycle.js:96:158)
+    async SyncLifecycle.reconcile (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/sync-lifecycle-test-fixtures/fixture-tOW2tk/background/sync-local-lifecycle.js:182:92)
+    async createConfiguredSyncLifecycle (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/sync-lifecycle-test-fixtures/fixture-tOW2tk/background/sync-local-lifecycle.js:62:3)
+    async Object.open (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:64:244)
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:272:47)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cold empty Context enrollment refuses generation without enrolling from active mode or repairing its receipt
+not ok 43 - cold empty Context enrollment refuses generation without enrolling from active mode or repairing its receipt
+  ---
+  duration_ms: 21.786666
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:261:146'
+  failureType: 'testCodeFailure'
+  error: 'BNS_SYNC_STATE_CORRUPT'
+  code: 'BNS_SYNC_STATE_CORRUPT'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/sync-lifecycle-test-fixtures/fixture-D3A9tU/background/sync-local-lifecycle.js:29:25)
+    checked (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/sync-lifecycle-test-fixtures/fixture-D3A9tU/background/sync-local-lifecycle.js:81:623)
+    #read (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/sync-lifecycle-test-fixtures/fixture-D3A9tU/background/sync-local-lifecycle.js:96:158)
+    async SyncLifecycle.reconcile (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/sync-lifecycle-test-fixtures/fixture-D3A9tU/background/sync-local-lifecycle.js:182:92)
+    async createConfiguredSyncLifecycle (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/sync-lifecycle-test-fixtures/fixture-D3A9tU/background/sync-local-lifecycle.js:62:3)
+    async Object.open (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:64:244)
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:272:47)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: malformed empty Context enrollment version fails closed before cold attachment
+ok 44 - malformed empty Context enrollment version fails closed before cold attachment
+  ---
+  duration_ms: 23.721125
+  type: 'test'
+  ...
+# Subtest: malformed empty Context enrollment extra fails closed before cold attachment
+ok 45 - malformed empty Context enrollment extra fails closed before cold attachment
+  ---
+  duration_ms: 23.917625
+  type: 'test'
+  ...
+# Subtest: malformed empty Context enrollment missing fails closed before cold attachment
+ok 46 - malformed empty Context enrollment missing fails closed before cold attachment
+  ---
+  duration_ms: 24.741625
+  type: 'test'
+  ...
+# Subtest: malformed empty Context enrollment epoch-type fails closed before cold attachment
+ok 47 - malformed empty Context enrollment epoch-type fails closed before cold attachment
+  ---
+  duration_ms: 23.354333
+  type: 'test'
+  ...
+# Subtest: empty enrollment ignores substituted public Store.run rather than accepting forged or delayed snapshots
+ok 48 - empty enrollment ignores substituted public Store.run rather than accepting forged or delayed snapshots
+  ---
+  duration_ms: 23.234791
+  type: 'test'
+  ...
+# Subtest: held original readonly empty proof cannot attach after host changes
+not ok 49 - held original readonly empty proof cannot attach after host changes
+  ---
+  duration_ms: 20.932834
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:291:42'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: held original readonly empty proof cannot attach after lifecycle changes
+not ok 50 - held original readonly empty proof cannot attach after lifecycle changes
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:291:42'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: original v1 reader fails closed; explicit paused rollback removes only the local optional receipt and preserves original data/tasks
+not ok 51 - original v1 reader fails closed; explicit paused rollback removes only the local optional receipt and preserves original data/tasks
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:300:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: mounted Settings PAUSE stops held original publication with no extra transfer or task replacement
+not ok 52 - mounted Settings PAUSE stops held original publication with no extra transfer or task replacement
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:318:42'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: mounted Settings DISCONNECT stops held original publication with no extra transfer or task replacement
+not ok 53 - mounted Settings DISCONNECT stops held original publication with no extra transfer or task replacement
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:318:42'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: mounted Settings stop does not grant consent and explicit resume still needs the original consent owner
+not ok 54 - mounted Settings stop does not grant consent and explicit resume still needs the original consent owner
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:332:1'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: mounted Settings PAUSE stops held original restore without applying data or replacing its task
+not ok 55 - mounted Settings PAUSE stops held original restore without applying data or replacing its task
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:337:42'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: mounted Settings DISCONNECT stops held original restore without applying data or replacing its task
+not ok 56 - mounted Settings DISCONNECT stops held original restore without applying data or replacing its task
+  ---
+  duration_ms: 0
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-local-lifecycle.test.mjs:337:42'
+  failureType: 'cancelledByParent'
+  error: 'Promise resolution is still pending but the event loop has already resolved'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    process.emit (node:events:519:28)
+  ...
+# Subtest: google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 57 - google actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 1285.280458
+  type: 'test'
+  ...
+# Subtest: onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+ok 58 - onedrive actual Settings and unique worker Prompt: existing work → explicit enrollment → A checkpoint → fresh B restore/edit → fresh C
+  ---
+  duration_ms: 1200.713875
+  type: 'test'
+  ...
+# Subtest: actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+ok 59 - actual worker cold-start settles original lost Settings ACK without repeating write, intent or transfer
+  ---
+  duration_ms: 109.766875
+  type: 'test'
+  ...
+# Subtest: unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+ok 60 - unsupported original AI preference is retained and refuses whole-cut publication, never copied by scope claim
+  ---
+  duration_ms: 91.029125
+  type: 'test'
+  ...
+# Subtest: google original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+not ok 61 - google original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+  ---
+  duration_ms: 212.950625
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-worker-context-consumer.test.mjs:10:41'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-worker-context-consumer.test.mjs:16:126)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: onedrive original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+not ok 62 - onedrive original Context worker enrollment is explicit, cold owner retains manual edit and checkpoint restore
+  ---
+  duration_ms: 133.870792
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-worker-context-consumer.test.mjs:10:41'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-worker-context-consumer.test.mjs:16:126)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: google explicit empty Context enrollment survives the original cold worker without manufacturing content or access
+not ok 63 - google explicit empty Context enrollment survives the original cold worker without manufacturing content or access
+  ---
+  duration_ms: 116.721583
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-worker-context-consumer.test.mjs:24:41'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-worker-context-consumer.test.mjs:29:104)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: onedrive explicit empty Context enrollment survives the original cold worker without manufacturing content or access
+not ok 64 - onedrive explicit empty Context enrollment survives the original cold worker without manufacturing content or access
+  ---
+  duration_ms: 120.70175
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-worker-context-consumer.test.mjs:24:41'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-worker-context-consumer.test.mjs:29:104)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..64
+# tests 64
+# suites 0
+# pass 41
+# fail 15
+# cancelled 8
+# skipped 0
+# todo 0
+# duration_ms 18107.367084

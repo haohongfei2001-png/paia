@@ -269,7 +269,9 @@ for(const mutation of ['absent','database','namespace','epoch','physical-namespa
  if(mutation==='physical-namespace')await x.core.transaction(true,t=>t.put('meta',{id:x.core.prefix+'active',namespace:'SYNTHETIC_next_namespace'}),['meta']);
  if(mutation==='physical-epoch')await x.core.transaction(true,async t=>{await t.put('meta',{id:'recovery-restore-epoch',value:'SYNTHETIC_next_restore_epoch'});await x.core.put(t,'ownerRecoveryEpoch',[],{version:1,epoch:'SYNTHETIC_next_restore_epoch'});},['meta']);
  if(mutation==='nonempty'||mutation==='access'){const plain=new ContextCardsService(x.store);await plain.change(mutation==='access'?{kind:'access',operationId:crypto.randomUUID(),epoch:'initial',key:'global',enabled:true,expectedRevision:0}:{kind:'put',operationId:crypto.randomUUID(),epoch:'initial',itemId:crypto.randomUUID(),expectedRevision:0,body:'SYNTHETIC unmanaged item',section:'SYNTHETIC',card:'info'});}
- await f.storage.set({[ROW]:changed});const y=await cold(f,x),before=await enrollmentTables(y),saved=await row(f),service=await attachContext(y);assert.equal(service.syncJournal,null);assert.equal((await command(y.owner,'STATUS')).needsContextEnrollment,true);assert.deepEqual(await row(f),saved);assert.deepEqual(await enrollmentTables(y),before);assert.equal(f.cloud.requests.length,0);
+ await f.storage.set({[ROW]:changed});
+ if(['binding','generation'].includes(mutation)){const before=await enrollmentTables(x);await assert.rejects(cold(f,x),{code:'BNS_SYNC_STATE_CORRUPT'});assert.deepEqual(await row(f),changed);const store=new LibraryFoundationStore(f.storage,{indexedDB:f.factory});await store.finishFoundation();assert.deepEqual(await enrollmentTables({store}),before);await store.repository.close();assert.equal(f.cloud.requests.length,0);return;}
+ const y=await cold(f,x),before=await enrollmentTables(y),saved=await row(f),service=await attachContext(y);assert.equal(service.syncJournal,null);assert.equal((await command(y.owner,'STATUS')).needsContextEnrollment,true);assert.deepEqual(await row(f),saved);assert.deepEqual(await enrollmentTables(y),before);assert.equal(f.cloud.requests.length,0);
  if(!['binding','generation'].includes(mutation))await assert.rejects(command(y.owner,'NOW'),e=>e.code==='BNS_CONTEXT_BOOTSTRAP_REQUIRED');
 });
 for(const corruption of ['version','extra','missing','epoch-type'])test('malformed empty Context enrollment '+corruption+' fails closed before cold attachment',async t=>{
@@ -288,11 +290,12 @@ test('empty enrollment ignores substituted public Store.run rather than acceptin
 });
 
 import {IDBObjectStore} from './vendor/fake-indexeddb/build/esm/index.js';
-for(const during of ['host','lifecycle'])test('held original readonly empty proof cannot attach after '+during+' changes',async t=>{
+for(const during of ['host','lifecycle'])test('cold attach stays unenrolled and held explicit Resume proof refuses after '+during+' changes',async t=>{
  const f=await configured(t),x=await f.open();await attachContext(x);await command(x.owner,'RESUME');const y=await cold(f,x),service=new ContextCardsService(y.store),get=IDBObjectStore.prototype.get;let reads=0,enter,release,released=false;
+ await y.owner.attachContextService(service);assert.equal(service.syncJournal,null);assert.equal((await y.owner.snapshot()).needsContextEnrollment,true);
  const entered=new Promise(r=>enter=r),held=new Promise(r=>release=()=>{released=true;r();});
  IDBObjectStore.prototype.get=function(key){const request=get.call(this,key);if(this.name==='meta'&&key==='context-cards:v1'&&++reads===2){const store=this;Object.defineProperty(request,'onsuccess',{configurable:true,set(callback){request.addEventListener('success',event=>{const keepAlive=()=>{if(released)return;const next=get.call(store,'SYNTHETIC_readonly_hold');next.onsuccess=keepAlive;};keepAlive();enter();void held.then(()=>callback.call(request,event));},{once:true});}});}return request;};
- try{const attaching=y.owner.attachContextService(service);await entered;if(during==='host')f.setCurrent(false);else await command(y.owner,'PAUSE');release();await attaching;assert.equal(service.syncJournal,null);assert.equal((await y.owner.snapshot()).needsContextEnrollment,true);assert.equal(f.cloud.requests.length,0);}finally{release();IDBObjectStore.prototype.get=get;}
+ try{const resuming=command(y.owner,'RESUME').then(value=>({value}),error=>({error}));await entered;if(during==='host')f.setCurrent(false);else await command(y.owner,'PAUSE');release();assert.ok((await resuming).error);assert.equal((await y.owner.snapshot()).needsContextEnrollment,true);await assert.rejects(command(y.owner,'NOW'));assert.equal(f.cloud.requests.length,0);}finally{release();IDBObjectStore.prototype.get=get;}
 });
 
 
@@ -300,8 +303,8 @@ import {readOriginalLifecycleV1} from './fixtures/sync-lifecycle-v1-reader.mjs';
 test('original v1 reader fails closed; explicit paused rollback removes only the local optional receipt and preserves original data/tasks',async t=>{
  const f=await configured(t),x=await f.open();await attachContext(x);await command(x.owner,'RESUME');await command(x.owner,'PAUSE');const paused=await row(f),before=await enrollmentTables(x);assert.ok(paused.contextEnrollment);assert.throws(()=>readOriginalLifecycleV1(paused),e=>e.code==='BNS_SYNC_STATE_CORRUPT');
  // Model an explicitly requested paused rollback, never startup/status repair.
- const rollback=structuredClone(paused);delete rollback.contextEnrollment;assert.deepEqual(readOriginalLifecycleV1(rollback),rollback);await f.storage.set({[ROW]:rollback});const y=await cold(f,x),service=await attachContext(y);assert.equal(service.syncJournal,null);assert.equal((await command(y.owner,'STATUS')).state,'paused');assert.equal((await y.owner.snapshot()).needsContextEnrollment,true);assert.deepEqual(await row(f),rollback);assert.deepEqual(await enrollmentTables(y),before);assert.equal(f.cloud.requests.length,0);
- assert.deepEqual({...rollback,contextEnrollment:paused.contextEnrollment},paused);
+ const rollback=structuredClone(paused);delete rollback.contextEnrollment;delete rollback.enrollmentSettlement;assert.deepEqual(readOriginalLifecycleV1(rollback),rollback);await f.storage.set({[ROW]:rollback});const y=await cold(f,x),service=await attachContext(y);assert.equal(service.syncJournal,null);assert.equal((await command(y.owner,'STATUS')).state,'paused');assert.equal((await y.owner.snapshot()).needsContextEnrollment,true);assert.deepEqual(await row(f),rollback);assert.deepEqual(await enrollmentTables(y),before);assert.equal(f.cloud.requests.length,0);
+ assert.deepEqual({...rollback,contextEnrollment:paused.contextEnrollment,enrollmentSettlement:paused.enrollmentSettlement},paused);
 });
 
 // Exercise the mounted Settings handlers against the original lifecycle owner,

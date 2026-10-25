@@ -1,0 +1,27 @@
+[
+  {
+    "path": "extension/background/sync-local-lifecycle.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/indexed-store.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/idb-repository.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/browser-native-sync/context-mutation-journal-owner.js",
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "path": "extension/core/browser-native-sync/context-desired-journal-owner.js",
+    "exit": 0,
+    "output": ""
+  }
+]

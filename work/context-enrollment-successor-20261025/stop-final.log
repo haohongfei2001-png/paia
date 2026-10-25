@@ -1,0 +1,50 @@
+TAP version 13
+# Subtest: successor pending enrollment stays UNKNOWN across cold start and explicit PAUSE does not clear it
+ok 1 - successor pending enrollment stays UNKNOWN across cold start and explicit PAUSE does not clear it
+  ---
+  duration_ms: 155.641
+  type: 'test'
+  ...
+# Subtest: successor pending enrollment stays UNKNOWN across cold start and explicit DISCONNECT does not clear it
+ok 2 - successor pending enrollment stays UNKNOWN across cold start and explicit DISCONNECT does not clear it
+  ---
+  duration_ms: 99.257917
+  type: 'test'
+  ...
+# Subtest: successor Context change during confirmed SDK write cannot become cold enrolled after restart
+ok 3 - successor Context change during confirmed SDK write cannot become cold enrolled after restart
+  ---
+  duration_ms: 97.562333
+  type: 'test'
+  ...
+# Subtest: successor pending stop refuses SDK replacement across its original read and keeps UNKNOWN
+not ok 4 - successor pending stop refuses SDK replacement across its original read and keeps UNKNOWN
+  ---
+  duration_ms: 59.813958
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-context-enrollment-settlement.test.mjs:120:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/sync-context-enrollment-settlement.test.mjs:126:13)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 589.80675
