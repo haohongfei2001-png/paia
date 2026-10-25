@@ -3,6 +3,19 @@ import {assertPromptStatusClearance,assertPromptStatusFlow} from './harness/prom
 const css=await readFile(new URL('../ui/prompt-surface.css',import.meta.url),'utf8');
 const value=()=>({viewport:{width:334,height:216},status:{x:6,y:178,width:322,height:34},target:{x:250,y:130,width:70,height:44},quiet:false,statusContainsTarget:false,hit:true});
 test('actual persistent status occupies card flow while quiet feedback retains its old geometry',()=>assertPromptStatusFlow(css));
+test('non-semantic CSS comments neither hide the in-flow rule nor rescue an overlay',()=>{
+ const plain=css.replace(/\/\*[\s\S]*?\*\//g,'');
+ const commented=plain.replace('#status:not(:empty){position:relative','/* Plain R3 notice.\n   Preserve the original flow. */\n#status:not(:empty){position:/* in flow */relative');
+ assert.notEqual(commented,plain);assertPromptStatusFlow(commented);
+ for(const position of ['absolute','fixed']){
+  const overlay=commented.replace('position:/* in flow */relative','position:/* out of flow */'+position);
+  assert.notEqual(overlay,commented);
+  assert.throws(()=>assertPromptStatusFlow(overlay+'\n/* #status:not(:empty){position:relative} */'));
+ }
+ const missing=plain.replace(/#status:not\(:empty\)\{[^}]*\}/,'');
+ assert.notEqual(missing,plain);
+ assert.throws(()=>assertPromptStatusFlow(missing+'\n/* #status:not(:empty){position:relative} */'));
+});
 test('original bottom overlay is rejected, not repaired by ignoring pointer events',()=>{
  for(const mutated of [css.replace('#status:not(:empty){position:relative','#status:not(:empty){position:absolute'),css+'#status{pointer-events:none}'])assert.throws(()=>assertPromptStatusFlow(mutated));
 });

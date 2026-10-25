@@ -49,7 +49,7 @@ function present(f,reader,run){
  body.append(root,revision);title.append(presentation);toolbar.append(menu,history);menu.append(menuList);controls.append(order);
  for(const edge of ['before','after']){const node=make('topic-continuous-'+edge);node.append(make('topic-continuous-'+edge+'-status','span'),make('topic-continuous-'+edge+'-retry','button'));}
  const before=nodes.get('topic-continuous-before'),after=nodes.get('topic-continuous-after');root.append(title,toolbar,tabs,controls,outline,before,prose,after);
- globalThis.document={body,activeElement:body,documentElement:{lang:'zh-CN'},createElement:tag=>new Node(tag),getElementById:id=>nodes.get(id)||null,addEventListener(){},removeEventListener(){}};
+ globalThis.document={body,activeElement:body,documentElement:{lang:'zh-CN'},createElement:tag=>new Node(tag),querySelector:selector=>body.querySelector(selector),getElementById:id=>nodes.get(id)||null,addEventListener(){},removeEventListener(){}};
  const owner={id:f.topic.id,view:'original',sectionDirectory:[...reader.sections.values()],topicReader:reader,topicNextYear:make('topic-next-year','button'),topicContinuousVisible:()=>true,updateTopicSearchCount(){},mountSectionEndWriter:async()=>{}};
  const view=new TopicWorkspacePresentation(owner);owner.desktopPresentation=view;
  try{TopicController.prototype.updateTopicContinuous.call(owner);return run({before,status:nodes.get('topic-continuous-before-status'),view,owner});}

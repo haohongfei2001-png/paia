@@ -27,7 +27,7 @@
 #thought-document.dvn-topic-composition .dvn-topic-options>summary{min-height:24px;align-content:center;cursor:pointer;color:var(--muted)}
 #thought-document.dvn-topic-composition .dvn-topic-options[open]{padding:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg)}
 #thought-document.dvn-topic-composition .dvn-topic-options #topic-reading-controls{margin:0;padding:0;max-width:360px}
-#thought-document.dvn-topic-composition .dvn-topic-options #revision-history{line-height:1.666666667}
+#thought-document.dvn-topic-composition .dvn-topic-options #revision-history{line-height:1.666666667;color:var(--muted)}
 #thought-document.dvn-topic-composition #original-reading-body,#thought-document.dvn-topic-composition #topic-timeline{margin:0;width:100%;max-width:936px}
 #thought-document.dvn-topic-composition #original-reading-body .topic-section{margin:24px 0 40px;width:min(100%,var(--paia-prose-width,680px));max-width:none}
 #thought-document.dvn-topic-composition :is(.section-heading h2,.topic-year-section h2){font:500 24px/33px var(--title-font);font-synthesis:weight;margin:0 0 16px}

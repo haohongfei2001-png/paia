@@ -32,7 +32,7 @@ test('independent Assist and Maintenance permission sheets retain bounded native
  assert.equal(sheet['scroll-padding'],'16px');
  assert.equal(rule(sheets+'::backdrop').background,'rgba(23,35,60,.32)');
  const heading=rule(sheets+'>h2');
- assert.equal(heading.font,'500 22px/1.455 var(--title-font)');
+ assert.equal(heading.font,'500 22px/1.455 var(--font)');
  assert.equal(heading.margin,'0 0 20px');
  assert.equal(rule(sheets+'>p')['line-height'],'1.8');
 });

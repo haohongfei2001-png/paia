@@ -78,3 +78,15 @@ test('scoped CSS uses the existing muted token and compact header controls, whil
  assert.doesNotMatch(composition,/addEventListener|matchMedia|replaceChildren|createElement|request\(/);
  assert.match(source,/presentTopicSectionNavigation\(\{active:false\}\);\s*this\.root\.classList\.remove/);
 });
+
+
+test('Thought Reading Options history uses existing theme ink without changing historical global colors',()=>{
+ const css=readFileSync(new URL('../ui/topic-workspace-presentation.css',import.meta.url),'utf8');
+ assert.match(css,/#thought-document\.dvn-topic-composition \.dvn-topic-options #revision-history\{line-height:1\.666666667;color:var\(--muted\)\}/);
+ const legacy=readFileSync(new URL('../ui/archive.css',import.meta.url),'utf8');
+ assert.match(legacy,/#revision-history\{font-size:12px;color:#788271\}/);
+ const theme=readFileSync(new URL('../ui/app-shell.css',import.meta.url),'utf8');
+ for(const token of ['--muted:#687381','--muted:#a9b6c7'])assert.ok(theme.includes(token));
+ const lum=hex=>hex.match(/[a-f0-9]{2}/gi).map(c=>parseInt(c,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);
+ for(const [ink,background]of [['687381','ffffff'],['a9b6c7','1a2028']]){const a=lum(ink),b=lum(background);assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5);}
+});

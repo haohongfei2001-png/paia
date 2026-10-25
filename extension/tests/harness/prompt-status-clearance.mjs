@@ -18,7 +18,9 @@ export function assertPromptStatusClearance(value,{withinStatus=false}={}){
  assert.equal(value.hit,true,'native hit test reaches the original action');
 }
 export function assertPromptStatusFlow(css){
- const rule=selector=>[...css.matchAll(/([^{}]+)\{([^{}]+)\}/g)].filter(m=>m[1].trim()===selector).map(m=>Object.fromEntries(m[2].split(';').filter(Boolean).map(d=>d.split(':').map(s=>s.trim())))).reduce((a,b)=>({...a,...b}),{});
+ // CSS comments are not selector or declaration tokens in this source check.
+ const source=css.replace(/\/\*[\s\S]*?\*\//g,'');
+ const rule=selector=>[...source.matchAll(/([^{}]+)\{([^{}]+)\}/g)].filter(m=>m[1].trim()===selector).map(m=>Object.fromEntries(m[2].split(';').filter(Boolean).map(d=>d.split(':').map(s=>s.trim())))).reduce((a,b)=>({...a,...b}),{});
  const persistent=rule('#status:not(:empty)'),quiet=rule('#status[data-quiet=true]');
  assert.ok(['relative','static'].includes(persistent.position),'persistent status participates in original card flow');
  for(const edge of ['left','right','top','bottom'])assert.ok(persistent[edge]===undefined||persistent[edge]==='auto','no persistent status overlay inset');
