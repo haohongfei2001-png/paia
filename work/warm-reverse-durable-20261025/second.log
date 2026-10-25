@@ -1,0 +1,27 @@
+TAP version 13
+# Subtest: same live selected owner durably returns the exact unchanged cut and cold opens original A
+not ok 1 - same live selected owner durably returns the exact unchanged cut and cold opens original A
+  ---
+  duration_ms: 1344.570416
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/tests/application-selection-reverse-durable.test.mjs:7:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  code: 'GENERATION_REPOSITORY_WRITE_DENIED'
+  stack: |-
+    prepareOriginalActiveRepositoryWrite (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/core/browser-native-sync/canonical-generation-publication.js:23:186)
+    ArchiveRepository.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/core/idb-repository.js:557:55)
+    originalApplicationSelectionTransaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/core/idb-repository.js:719:39)
+    returnScoped (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/core/browser-native-sync/application-generation-selection.js:411:103)
+    returnWrite (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/core/browser-native-sync/application-generation-selection.js:414:62)
+    runReturn.#busy (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/core/browser-native-sync/application-generation-selection.js:264:10)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1552.723

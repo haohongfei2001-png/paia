@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: known remaining CAS budget refuses before reverse SDK and cold inspection cannot replenish write work
+ok 1 - known remaining CAS budget refuses before reverse SDK and cold inspection cannot replenish write work
+  ---
+  duration_ms: 1987.637375
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2214.239125

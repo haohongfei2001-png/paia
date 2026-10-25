@@ -1,0 +1,11 @@
+{
+  "base": "54e15e911c297dd687d7162b7dcacb576c644c23",
+  "state": "NOT_INTEGRATABLE_FAILED_WIP",
+  "node": "v22.23.3",
+  "files": {
+    "extension/core/browser-native-sync/application-generation-selection.js": "8032e6875d6385ab52ad02edabf9bdf5dbe312a42d5f1bc5318bf5c86aadb636",
+    "extension/core/idb-repository.js": "37915a0c6e2095b59208f61a1e502d5dc084304959f21a9b9c2e098d3957fc4a",
+    "extension/core/browser-native-sync/canonical-generation-publication.js": "e4975a4761d8a70e4a89a9119073c872219756471d1dd39a44f00973b15f4714",
+    "extension/tests/application-selection-reverse-durable.test.mjs": "00f3b06dcfd2879a0d8c25d9917935809c85c803d0b4ad2ddf937cca0d5b8c17"
+  }
+}

@@ -1,3 +1,4 @@
+import {originalApplicationSelectionRelatedRead} from './application-generation-selection.js';
 import {abandonOriginalGenerationControl,originalGenerationControlReadWork,completeOriginalGenerationControlRead} from './canonical-generation-task-ledger.js';
 import * as phasedHuman from './canonical-generation-phased-human.js';
 import {requireOriginalLibraryDocumentsStore,originalLibraryDocumentsConstructor} from '../library-documents-owner.js';
@@ -20,7 +21,7 @@ export const CANONICAL_GENERATION_GATE='canonical-generation:gate:v1';
 const qualifiedGraph='canonical-generation:qualified-graph:v1';
 const receipts='canonical-generation:receipt:',deletions='canonical-generation:deletion:',invalidations='canonical-generation:invalidated:',catalog='canonical-generation:catalog:';
 const activeRepositories=new WeakMap(),activeSourceWorkingRows=new WeakMap();
-export async function prepareOriginalActiveRepositoryWrite(repository,ordinaryOnly=false){const binding=activeRepositories.get(repository);if(!binding)return null;if(ordinaryOnly)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');return binding.prepare();}
+export async function prepareOriginalActiveRepositoryWrite(repository,ordinaryOnly=false,selectionToken=null){const binding=activeRepositories.get(repository);if(!binding)return null;if(ordinaryOnly)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');return binding.prepare(selectionToken);}
 export function releaseOriginalActiveRepositoryWrite(token){const row=repositoryAuthorities.get(token);if(row?.authority.kind==='active-library')repositoryAuthorities.delete(token);}
 const handles=new WeakMap(),seals=new WeakMap(),bases=new WeakMap(),repositoryAuthorities=new WeakMap();
 const completionSecret=Object.freeze({}),completionSessions=new WeakMap();
@@ -231,14 +232,15 @@ export class CanonicalGenerationPublication {
  #originalStore(handle,store){requireOriginalLibraryDocumentsStore(store);const held=this.#held(handle),descriptor=Object.getOwnPropertyDescriptor(store,'repository');if(!descriptor||descriptor.value!==held.repository||descriptor.get||descriptor.set)fail('GENERATION_CAPABILITY');return held;}
  async #bindOriginalActiveStore(handle,store,isCurrent){
   const held=this.#originalStore(handle,store);
-  const prepare=async()=>{
+  const prepare=async(selectionToken=null)=>{
+   const read=(repository,fn,stores)=>selectionToken?originalApplicationSelectionRelatedRead(selectionToken,repository,fn,stores):originalGenerationRepositoryRead(repository,fn,stores);
    this.#held(handle);const property=Object.getOwnPropertyDescriptor(store,'repository');if(!property||property.value!==held.repository||property.get||property.set)fail('GENERATION_CAPABILITY');
-   const budget=createGroupPageBudget(),root=await originalGenerationRepositoryRead(this.#registry,rootRead,['meta']);chargeGroupPageValue(budget,root);
+   const budget=createGroupPageBudget(),root=await read(this.#registry,rootRead,['meta']);chargeGroupPageValue(budget,root);
    if(root.pending||!root.active||!equal(root.active.identity,held.identity))fail('GENERATION_NOT_ACTIVE');
-   const selected=await originalGenerationRepositoryRead(held.repository,async t=>({gate:await t.get('meta',CANONICAL_GENERATION_GATE),marker:await t.get('meta',CANONICAL_REPOSITORY_PROTECTION),qualification:await t.get('meta',qualifiedGraph)}),['meta']);chargeGroupPageValue(budget,selected);
+   const selected=await read(held.repository,async t=>({gate:await t.get('meta',CANONICAL_GENERATION_GATE),marker:await t.get('meta',CANONICAL_REPOSITORY_PROTECTION),qualification:await t.get('meta',qualifiedGraph)}),['meta']);chargeGroupPageValue(budget,selected);
    const gate=this.#gate(selected.gate,held.identity),q=data(selected.qualification,['id','version','kind','identity','seal','sourceBase']);originalGenerationProtection(selected.marker,gate,held.repository.name);
    if(gate.phase!=='active'||gate.publicationId!==root.active.publicationId||!equal(gate.seal,root.active.receipt.seal)||q.id!==qualifiedGraph||q.version!==1||!['original-human','original-group','original-phased-human'].includes(q.kind)||!equal(q.identity,held.identity)||!equal(q.seal,gate.seal))fail('GENERATION_GRAPH_QUALIFICATION_REQUIRED');
-   const last=await originalGenerationRepositoryRead(this.#registry,rootRead,['meta']);chargeGroupPageValue(budget,last);checkGroupPageBudget(budget);if(!equal(last,root))fail('GENERATION_CHANGED');
+   const last=await read(this.#registry,rootRead,['meta']);chargeGroupPageValue(budget,last);checkGroupPageBudget(budget);if(!equal(last,root))fail('GENERATION_CHANGED');
    const token=Object.freeze(Object.create(null));repositoryAuthorities.set(token,{repository:held.repository,name:held.repository.name,factory:held.repository.factory,scope:null,authority:Object.freeze({kind:'active-library',identity:held.identity,gate:copy(gate),marker:copy(selected.marker),qualification:copy(q)})});return token;
   };
   const token=await prepare();releaseOriginalActiveRepositoryWrite(token);if(!isCurrent())fail('GENERATION_COMPLETION_CANCELLED');const binding={prepare};activeRepositories.set(held.repository,binding);return binding;

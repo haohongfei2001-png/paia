@@ -1,0 +1,28 @@
+TAP version 13
+# SYNTHETIC_RETURN_WORK {"refs":1574,"bytes":2104221,"failed":true}
+# Subtest: same live selected owner durably returns the exact unchanged cut and cold opens original A
+not ok 1 - same live selected owner durably returns the exact unchanged cut and cold opens original A
+  ---
+  duration_ms: 2067.691667
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/tests/application-selection-reverse-durable.test.mjs:7:1'
+  failureType: 'testCodeFailure'
+  error: 'BNS_GROUP_RESOURCE_LIMIT'
+  code: 'BNS_GROUP_RESOURCE_LIMIT'
+  stack: |-
+    ArchiveRepository.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/core/idb-repository.js:592:1354)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    async returnScoped (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/core/browser-native-sync/application-generation-selection.js:413:13)
+    async settleReturn (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/core/browser-native-sync/application-generation-selection.js:460:3)
+    async runReturn.#busy (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/core/browser-native-sync/application-generation-selection.js:278:11)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2324.327167

@@ -1,4 +1,4 @@
-import {APPLICATION_SELECTION_MARKER,readOriginalApplicationSelectionAuthority,requireOriginalApplicationSelectionMutation} from './browser-native-sync/application-generation-selection.js';
+import {APPLICATION_SELECTION_MARKER,APPLICATION_RETURN_RECEIPT,readOriginalApplicationSelectionAuthority,requireOriginalApplicationSelectionMutation} from './browser-native-sync/application-generation-selection.js';
 import {readOriginalCheckpointCompileWork,settleOriginalCheckpointCompileWork} from './browser-native-sync/canonical-generation-checkpoint-stage.js';
 import {originalPhasedHumanReadWork,settleOriginalPhasedHumanReadWork,readOriginalPhasedHumanClosureWork} from './browser-native-sync/canonical-generation-phased-human.js';
 import {prepareOriginalActiveRepositoryWrite,releaseOriginalActiveRepositoryWrite,readOriginalPublicationClosureWork} from './browser-native-sync/canonical-generation-publication.js';
@@ -116,6 +116,13 @@ export function chargeOriginalRecoveryWork(repository,ticket,length,references=1
 export function checkOriginalRecoveryWork(repository,ticket){recoveryWork(ticket,repository);}
 // Read-only time remaining on this exact original invocation; never a new clock.
 export function remainingOriginalRecoveryWork(repository,ticket){return Math.max(0,recoveryWork(ticket,repository).deadline-workClock());}
+// Restriction-only preflight: known mandatory remaining work must fit BEFORE
+// an irreversible dispatch. It neither charges, refunds nor renews the ticket.
+export function requireOriginalRecoveryWorkCapacity(repository,ticket,references,bytes){
+ const p=recoveryWork(ticket,repository);
+ if(!Number.isSafeInteger(references)||references<0||!Number.isSafeInteger(bytes)||bytes<0||p.refs+references>4096||p.bytes+bytes>2*1024*1024){p.failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
+ return true;
+}
 export function tightenOriginalRecoveryWork(repository,ticket,ms){const p=recoveryWork(ticket,repository);if(!Number.isFinite(ms)||ms<=0||ms>30000){p.failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}p.deadline=Math.min(p.deadline,workClock()+ms);}
 export function currentOriginalRecoveryWork(repository){return ordinaryRecoveryWindows.get(repository)??null;}
 export function finishOriginalRecoveryWork(repository,ticket){const p=ordinaryRecoveryWork.get(ticket);if(!p||p.repository!==repository||p.window||p.scope||p.pending)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');p.closed=true;}
@@ -144,11 +151,11 @@ const repositoryNativeScopes=new WeakMap();
 const workClock=globalThis.performance.now.bind(globalThis.performance);
 function workAbort(record){if(record.recoveryWork)ordinaryRecoveryWork.get(record.recoveryWork).failed=true;if(record.workLimit)record.workLimit.failed=true;record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}}
 function workRefuse(record){workAbort(record);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
-function workCheck(record){if(record?.recoveryWork)try{recoveryWork(record.recoveryWork,record.repository);}catch{workRefuse(record);}const b=record?.workLimit;if(b&&(workClock()-b.started>=b.ms||b.refs>b.references||b.bytes>b.byteLimit))workRefuse(record);}
+function workCheck(record){if(record?.recoveryWork)try{recoveryWork(record.recoveryWork,record.recoveryRepository??record.repository);}catch{workRefuse(record);}const b=record?.workLimit;if(b&&(workClock()-b.started>=b.ms||b.refs>b.references||b.bytes>b.byteLimit))workRefuse(record);}
 function workCharge(scope,refs=0,value,hasValue=false){
  const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx),b=record?.workLimit;if(!b)return;if(record.scope!==scope||!sameScope(record))workRefuse(record);
- workCheck(record);b.refs+=refs;if(record.recoveryWork)try{chargeOriginalRecoveryWork(record.repository,record.recoveryWork,0,refs);}catch{workRefuse(record);}workCheck(record);
- if(hasValue){try{const length=measureSourceWorkingPhysicalTree(value,Math.min(2*1024*1024,b.byteLimit)).B;b.bytes+=length;if(record.recoveryWork)chargeOriginalRecoveryWork(record.repository,record.recoveryWork,length,0);}catch{workRefuse(record);}workCheck(record);}
+ workCheck(record);b.refs+=refs;if(record.recoveryWork)try{chargeOriginalRecoveryWork(record.recoveryRepository??record.repository,record.recoveryWork,0,refs);}catch{workRefuse(record);}workCheck(record);
+ if(hasValue){try{const length=measureSourceWorkingPhysicalTree(value,Math.min(2*1024*1024,b.byteLimit)).B;b.bytes+=length;if(record.recoveryWork)chargeOriginalRecoveryWork(record.recoveryRepository??record.repository,record.recoveryWork,length,0);}catch{workRefuse(record);}workCheck(record);}
 }
 function workResult(scope,value){workCharge(scope,0,value,true);return value;}
 function workRow(scope,value){workCharge(scope,1,value,true);return value;}
@@ -178,19 +185,20 @@ function requireWritableScope(scope){
 function requireShadowMutation(scope,table,key,method){
  const r=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);if(!r)return;
  if(r.selection?.authority&&!(r.activeGateFinalizer===true&&table==='meta'&&key===CANONICAL_REPOSITORY_GATE&&method==='put'))requireOriginalApplicationSelectionMutation(r.selection.authority,table,key,method);
- else if(table==='meta'&&key===APPLICATION_SELECTION_MARKER)throw new ArchiveError('GENERATION_SELECTION_WRITE_DENIED');
+ else if(table==='meta'&&[APPLICATION_SELECTION_MARKER,APPLICATION_RETURN_RECEIPT].includes(key))throw new ArchiveError('GENERATION_SELECTION_WRITE_DENIED');
  if(r.shadow){const current=readOriginalGenerationRepositoryAuthority(r.shadow.token,r.repository,scope);if(current!==r.shadow.authority)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');if(!(current.kind==='active-library'&&r.activeGateFinalizer===true&&table==='meta'&&key===CANONICAL_REPOSITORY_GATE&&method==='put'))originalGenerationRepositoryMutation(current,table,key,method);}
  else if(table==='meta'&&key===CANONICAL_REPOSITORY_PROTECTION)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
 }
 async function beginSelectionWrite(repository,scope,record,token){
  const authority=readOriginalApplicationSelectionAuthority(token,repository,scope),marker=await scope.get('meta',APPLICATION_SELECTION_MARKER);
  if(marker!=null&&!authority)throw new ArchiveError('GENERATION_SELECTION_PENDING');
- record.selection={token,authority,marker};
+ const receipt=await scope.get('meta',APPLICATION_RETURN_RECEIPT);record.selection={token,authority,marker,receipt};
 }
 async function finishSelectionWrite(repository,scope,record){
- const s=record.selection,marker=await scope.get('meta',APPLICATION_SELECTION_MARKER);
+ const s=record.selection,marker=await scope.get('meta',APPLICATION_SELECTION_MARKER),receipt=await scope.get('meta',APPLICATION_RETURN_RECEIPT);
+ if(!s.authority&&JSON.stringify(receipt)!==JSON.stringify(s.receipt))throw new ArchiveError('GENERATION_SELECTION_WRITE_DENIED');
  if(s.authority&&readOriginalApplicationSelectionAuthority(s.token,repository,scope)!==s.authority||!s.authority&&marker!=null)throw new ArchiveError('GENERATION_SELECTION_WRITE_DENIED');
- registerRepositoryFinalReadFence(repository,scope,{isCurrent:()=>!s.authority||readOriginalApplicationSelectionAuthority(s.token,repository,scope)===s.authority,plan:function*(){if(JSON.stringify(yield {method:'get',table:'meta',key:APPLICATION_SELECTION_MARKER})!==JSON.stringify(marker))throw new ArchiveError('GENERATION_SELECTION_CHANGED');return true;}});
+ registerRepositoryFinalReadFence(repository,scope,{isCurrent:()=>!s.authority||readOriginalApplicationSelectionAuthority(s.token,repository,scope)===s.authority,plan:function*(){if(JSON.stringify(yield {method:'get',table:'meta',key:APPLICATION_SELECTION_MARKER})!==JSON.stringify(marker)||JSON.stringify(yield {method:'get',table:'meta',key:APPLICATION_RETURN_RECEIPT})!==JSON.stringify(receipt))throw new ArchiveError('GENERATION_SELECTION_CHANGED');return true;}});
 }
 async function beginShadowWrite(repository,scope,record,token){
  const authority=readOriginalGenerationRepositoryAuthority(token,repository,scope);let marker,timer;try{marker=await Promise.race([scope.get('meta',CANONICAL_REPOSITORY_PROTECTION),new Promise((_,reject)=>{timer=setTimeout(()=>{record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}reject(new ArchiveError('BNS_GROUP_RESOURCE_LIMIT'));},30000);})]);}finally{clearTimeout(timer);}
@@ -548,16 +556,27 @@ export class ArchiveRepository {
   });
  }
  async transaction(write,fn,stores=this.stores,shadowAuthority=null,selectionAuthority=null,restrictionTicket=null){
-  const writeState=repositoryWrites.get(this);if(!writeState)throw fail();const ambientTicket=ordinaryRecoveryWindows.get(this);if(restrictionTicket!==null&&ambientTicket){recoveryWork(restrictionTicket,this).failed=true;recoveryWork(ambientTicket,this).failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}const recoveryTicket=restrictionTicket??ambientTicket,recovery=recoveryTicket?recoveryWork(recoveryTicket,this):null;if(recovery?.pending){recovery.failed=true;if(recovery.scope)workAbort(recovery.scope);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}let activeToken=null;let recoveryPending;if(recovery){let resolve;recoveryPending={settled:new Promise(r=>resolve=r),resolve:()=>resolve()};recovery.pending=recoveryPending;}try{
-  if(recovery&&(shadowAuthority!==null||selectionAuthority!==null))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
-  if(write&&shadowAuthority===null){activeToken=await prepareOriginalActiveRepositoryWrite(this,!!recovery);if(activeToken)shadowAuthority=activeToken;}
+  const writeState=repositoryWrites.get(this);if(!writeState)throw fail();
+  const ambientTicket=ordinaryRecoveryWindows.get(this);
+  if(restrictionTicket!==null&&ambientTicket){recoveryWork(restrictionTicket,this).failed=true;recoveryWork(ambientTicket,this).failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
+  const selectionBudget=selectionAuthority?readOriginalApplicationSelectionAuthority(selectionAuthority,this,null)?.budget:null;
+  if(selectionBudget&&(restrictionTicket!==null||ambientTicket||shadowAuthority!==null))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+  const recoveryRepository=selectionBudget?.repository??this,recoveryTicket=selectionBudget?.ticket??restrictionTicket??ambientTicket,recovery=recoveryTicket?recoveryWork(recoveryTicket,recoveryRepository):null;
+  const parent=selectionBudget?.parent?recovery?.pending:null;
+  if(recovery?.pending&&(!parent||parent.owner!==selectionBudget.parent||!parent.preparing||parent.child||recovery.scope||write)||selectionBudget?.parent&&!parent){if(recovery){recovery.failed=true;if(recovery.scope)workAbort(recovery.scope);}throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
+  let activeToken=null,recoveryPending;
+  if(recovery){let resolve;recoveryPending={owner:selectionAuthority,preparing:!!selectionBudget&&!parent,child:null,settled:new Promise(r=>resolve=r),resolve:()=>resolve()};if(parent)parent.child=recoveryPending;else recovery.pending=recoveryPending;}
+  try{
+  if(recovery&&!selectionBudget&&(shadowAuthority!==null||selectionAuthority!==null))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+  if(write&&shadowAuthority===null){activeToken=await prepareOriginalActiveRepositoryWrite(this,!!recovery&&!selectionBudget,selectionBudget?selectionAuthority:null);if(activeToken)shadowAuthority=activeToken;}
+  if(recoveryPending){if(recoveryPending.child)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');recoveryPending.preparing=false;}
   if(write){writeState.generation=Object.freeze({});writeState.active++;}
   try{
-  await this.open();if(recovery)recoveryWork(recoveryTicket,this);if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
+  await this.open();if(recovery)recoveryWork(recoveryTicket,recoveryRepository);if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
   const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
   const native=nativeTransactionEvidence(tx);
   let release;const record={scope,started:workClock(),phase:'callback',terminalFailed:false,finalReadFences:[],organizeAbortBindings:null,repository:this,transaction:tx,transactionAbort:native?nativeTransactionAbort:tx.abort,dataPrototype:originalPrototypeOf(scope),nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
-  repositoryScopes.set(scope,record);repositoryNativeScopes.set(tx,record);if(recovery){record.recoveryWork=recoveryTicket;recovery.scope=record;}
+  repositoryScopes.set(scope,record);repositoryNativeScopes.set(tx,record);if(selectionBudget&&readOriginalApplicationSelectionAuthority(selectionAuthority,this,scope)?.budget!==selectionBudget)throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');if(recovery){record.recoveryWork=recoveryTicket;record.recoveryRepository=recoveryRepository;recovery.scope=record;}
   const maybeRelease=()=>{if(record.nativeSettled&&record.unwound)release();};
   const done=new Promise((resolve,reject)=>{
    // False native events do not consume either listener or settle any state.
@@ -578,9 +597,9 @@ export class ArchiveRepository {
   });
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{if(recovery){recoveryWork(recoveryTicket,this);registerOriginalWorkLimit(this,scope,{references:4096-recovery.refs,bytes:2*1024*1024-recovery.bytes,ms:recovery.deadline-workClock()},!write);}if(write){await beginSelectionWrite(this,scope,record,selectionAuthority);await beginShadowWrite(this,scope,record,shadowAuthority);}else{const limits=originalPhasedHumanReadWork(this,scope)??readOriginalCheckpointCompileWork(this,scope);if(limits)registerOriginalWorkLimit(this,scope,limits,true);}const result=await fn(scope);if(write){await finishSelectionWrite(this,scope,record);await finishShadowWrite(this,scope,record);}record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){if(recovery)recovery.failed=true;try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{if(record.originalSuccess&&record.workLimit&&!record.workLimit.failed)record.committedWork=Object.freeze({references:record.workLimit.refs,bytes:record.workLimit.bytes,activeMs:Math.max(0,workClock()-record.workLimit.started)});clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;if(recovery?.scope===record)recovery.scope=null;maybeRelease();if(!write){settleOriginalPhasedHumanReadWork(this,scope);settleOriginalCheckpointCompileWork(this,scope);}}
+  try{if(recovery){recoveryWork(recoveryTicket,recoveryRepository);registerOriginalWorkLimit(this,scope,{references:4096-recovery.refs,bytes:2*1024*1024-recovery.bytes,ms:recovery.deadline-workClock()},!write);}if(write){await beginSelectionWrite(this,scope,record,selectionAuthority);await beginShadowWrite(this,scope,record,shadowAuthority);}else{const limits=originalPhasedHumanReadWork(this,scope)??readOriginalCheckpointCompileWork(this,scope);if(limits)registerOriginalWorkLimit(this,scope,limits,true);}const result=await fn(scope);if(write){await finishSelectionWrite(this,scope,record);await finishShadowWrite(this,scope,record);}record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){if(recovery)recovery.failed=true;try{tx.abort();}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{if(record.originalSuccess&&record.workLimit&&!record.workLimit.failed)record.committedWork=Object.freeze({references:record.workLimit.refs,bytes:record.workLimit.bytes,activeMs:Math.max(0,workClock()-record.workLimit.started)});clearTimeout(record.workLimit?.timer);clearOriginalOrganizeSelectionAborts(record);record.finalReadFences.length=0;record.unwound=true;if(recovery?.scope===record)recovery.scope=null;maybeRelease();if(!write){settleOriginalPhasedHumanReadWork(this,scope);settleOriginalCheckpointCompileWork(this,scope);}}
   }finally{if(activeToken)releaseOriginalActiveRepositoryWrite(activeToken);if(write)writeState.active--;}
-  }catch(error){if(recovery)recovery.failed=true;throw error;}finally{if(recoveryPending){if(recovery.pending===recoveryPending)recovery.pending=null;recoveryPending.resolve();}}
+  }catch(error){if(recovery)recovery.failed=true;throw error;}finally{if(recoveryPending){if(recoveryPending.child){recovery.failed=true;await recoveryPending.child.settled;}if(parent?.child===recoveryPending)parent.child=null;else if(recovery.pending===recoveryPending)recovery.pending=null;recoveryPending.resolve();}}
  }
  async initialize(){
   await this.open();let m=await this.transaction(false,t=>t.get('meta','migration'));
@@ -713,6 +732,14 @@ export function openOriginalExistingRepository(repository){if(!repositoryWrites.
 export function originalApplicationSelectionTransaction(repository,token,fn,stores){
  if(!repositoryWrites.has(repository)||!readOriginalApplicationSelectionAuthority(token,repository,null))throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');
  return promptTransactionMethod.value.call(repository,true,fn,stores,null,token);
+}
+
+// Readonly counterpart for the same private selection operation's shared work.
+// The original authority must carry no mutation keys; a DTO cannot enter here.
+export function originalApplicationSelectionRead(repository,token,fn,stores){
+ const authority=readOriginalApplicationSelectionAuthority(token,repository,null);
+ if(!repositoryWrites.has(repository)||!authority?.budget||authority.keys.length)throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');
+ return promptTransactionMethod.value.call(repository,false,fn,stores,null,token);
 }
 
 // Restriction-only explicit ordinary work attribution. It does not install an

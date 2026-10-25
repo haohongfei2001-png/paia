@@ -1,0 +1,26 @@
+[
+  {
+    "file": "extension/core/browser-native-sync/application-generation-selection.js",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "file": "extension/core/idb-repository.js",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "file": "extension/core/browser-native-sync/canonical-generation-publication.js",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "file": "extension/tests/application-selection-reverse-durable.test.mjs",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

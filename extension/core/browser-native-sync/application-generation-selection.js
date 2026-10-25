@@ -1,18 +1,20 @@
 import {equalSourceWorkingPhysicalTree as equal,measureSourceWorkingPhysicalTree} from './source-working-physical.js';
+import {hashText} from '../dedupe.js';
 import {ArchiveError,STORAGE_KEY} from '../constants.js';
-import {ArchiveRepository,DATABASE_NAME,openOriginalExistingRepository,originalGenerationRepositoryRead,originalApplicationSelectionTransaction,registerRepositoryWorkLimit,registerOriginalRepositoryReadWorkLimit,observeRepositoryWriteFence,requireRepositoryWriteFence,createOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,withOriginalRecoveryWork,finishOriginalRecoveryWork,remainingOriginalRecoveryWork} from '../idb-repository.js';
+import {ArchiveRepository,DATABASE_NAME,openOriginalExistingRepository,originalGenerationRepositoryRead,originalApplicationSelectionTransaction,originalApplicationSelectionRead,registerRepositoryWorkLimit,registerOriginalRepositoryReadWorkLimit,observeRepositoryWriteFence,requireRepositoryWriteFence,createOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,withOriginalRecoveryWork,finishOriginalRecoveryWork,remainingOriginalRecoveryWork,requireOriginalRecoveryWorkCapacity} from '../idb-repository.js';
 import {originalOrganizerConstructor} from '../organizer/store-owner.js';
 import {requireOriginalLibraryDocumentsGenerationMethods} from '../library-documents-owner.js';
 import {BrowserNativeSyncCore,requireOriginalGenerationCoreMethods} from './core.js';
 import {CanonicalGenerationPublication,openOriginalPublishedOrganizerForSelection,CANONICAL_GENERATION_GATE,CANONICAL_GENERATION_REGISTRY} from './canonical-generation-publication.js';
 import {prepareOriginalApplicationInheritanceCut,requireOriginalApplicationInheritanceCut,readOriginalApplicationInheritanceCut} from './group-checkpoint.js';
 import {readGroupRows} from './group-page-reader.js';
-import {controlPublicationDigest as digest,controlPublicationRow,readControlPublicationFence,reserveControlPublication,requireControlPublicationOwner,CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION} from '../local-control-publication.js';
+import {controlPublicationEncoding,controlPublicationDigest as digest,controlPublicationRow,readControlPublicationFence,reserveControlPublication,requireControlPublicationOwner,CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION} from '../local-control-publication.js';
 
 export const APPLICATION_SELECTION_MARKER='application-generation-selection:v1';
+export const APPLICATION_RETURN_RECEIPT='application-generation-return:v1';
 export const APPLICATION_SELECTION_REGISTRY='paia-canonical-generation-registry-v1';
 const originalSelectionApply=Reflect.apply,selectionReviews=new WeakMap(),selectionRestrictions=new WeakMap(),restrictionTokens=new WeakMap();
-const ReversePromise=Promise,reverseThen=Promise.prototype.then,reverseSetTimeout=setTimeout,reverseClearTimeout=clearTimeout;
+const ReversePromise=Promise,reverseResolve=Promise.resolve,reverseThen=Promise.prototype.then,reverseSetTimeout=setTimeout,reverseClearTimeout=clearTimeout;
 const authorities=new WeakMap(),cuts=new WeakMap(),reverseReviews=new WeakMap(),copy=value=>structuredClone(value);
 const fail=(code='GENERATION_SELECTION_CHANGED')=>{throw new ArchiveError(code);};
 const exact=(v,keys)=>v&&Object.getPrototypeOf(v)===Object.prototype&&Reflect.ownKeys(v).length===keys.length&&keys.every(k=>Object.hasOwn(Object.getOwnPropertyDescriptors(v)[k]??{},'value'));
@@ -23,10 +25,10 @@ function marker(value){
  if(value.phase!=='prepared'&&(!hash(value.afterDigest)||!value.reservation||!value.fences))fail();return value;
 }
 // A private original-owner writer token, not a caller boolean or marker DTO.
-export function readOriginalApplicationSelectionAuthority(token,repository,scope){const r=authorities.get(token);if(!r)return null;if(r.repository!==repository||r.name!==repository.name||r.factory!==repository.factory||scope&&scope.tx.db!==repository.db||scope&&r.scope&&r.scope!==scope)fail('GENERATION_SELECTION_CAPABILITY');if(scope)r.scope=scope;return r;}
+export function readOriginalApplicationSelectionAuthority(token,repository,scope){const r=authorities.get(token);if(!r)return null;if(r.repository!==repository||r.name!==repository.name||r.factory!==repository.factory||r.database!==repository.db||scope&&scope.tx.db!==repository.db||scope&&r.scope&&r.scope!==scope)fail('GENERATION_SELECTION_CAPABILITY');if(scope)r.scope=scope;return r;}
 export function requireOriginalApplicationSelectionMutation(authority,table,key,method){if(!authority||table!=='meta'||!authority.keys.includes(key)||!['put','delete'].includes(method))fail('GENERATION_SELECTION_WRITE_DENIED');}
 async function write(repository,fn,keys=[APPLICATION_SELECTION_MARKER],stores=['meta']){
- const token=Object.freeze(Object.create(null));authorities.set(token,{repository,name:repository.name,factory:repository.factory,scope:null,keys:Object.freeze([...keys])});
+ const token=Object.freeze(Object.create(null));authorities.set(token,{repository,name:repository.name,factory:repository.factory,database:repository.db,scope:null,keys:Object.freeze([...keys])});
  try{return await originalApplicationSelectionTransaction(repository,token,async t=>{registerRepositoryWorkLimit(repository,t);return fn(t);},stores);}finally{authorities.delete(token);}
 }
 async function rows(repository){return originalGenerationRepositoryRead(repository,async t=>{registerOriginalRepositoryReadWorkLimit(repository,t);const value={};for(const table of repository.stores)value[table]=await readGroupRows(t,table);return value;},repository.stores);}
@@ -235,6 +237,48 @@ export class OriginalApplicationGenerationSelection{
  }
  #finishReverse(r){if(r.ticket&&!r.finished&&!r.running){finishOriginalRecoveryWork(r.p.sourceRepository,r.ticket);r.finished=true;}}
  #discardReverse(){const r=this.#reverse;if(!r)return;r.invalid=true;this.#reverse=null;this.#finishReverse(r);}
+ // Actual low-level protocol on this same selected owner. This is not a
+ // production global-hold consumer, and accepts no caller review/ready token.
+ async activateReverse(){
+  if(arguments.length)fail('GENERATION_SELECTION_CAPABILITY');
+  if(this.#busy||this.#restriction)fail('GENERATION_SELECTION_BUSY');
+  const prepared=this.#prepared,p=cuts.get(prepared),lifetime=this.#lifetime;
+  if(!p||p.owner!==this||!p.attempted)fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');
+  this.#discardReverse();this.#busy=true;
+  const registryIdentity=[p.registry.db,p.registry.name,p.registry.factory],tails=[this.#source.tail,p.candidate.tail];
+  const current=()=>{if(this.#prepared!==prepared||cuts.get(prepared)!==p||this.#lifetime!==lifetime||this.#restriction||this.#source.repository!==p.sourceRepository||this.#core.repository!==p.sourceRepository||p.sourceRepository.db!==p.sourceDatabase||p.sourceRepository.name!==p.sourceName||p.sourceRepository.factory!==p.sourceFactory||this.#source.databaseId!==p.sourceReview.databaseId||this.#core.deviceId!==p.coreDeviceId||p.candidate.repository!==p.targetRepository||p.targetCore.repository!==p.targetRepository||p.targetRepository.db!==p.targetDatabase||p.targetRepository.name!==p.record.targetName||p.targetRepository.factory!==p.targetFactory||p.candidate.databaseId!==p.targetReview.databaseId||p.targetCore.deviceId!==p.targetDeviceId||p.registry.db!==registryIdentity[0]||p.registry.name!==registryIdentity[1]||p.registry.factory!==registryIdentity[2]||p.registry.name!==APPLICATION_SELECTION_REGISTRY||this.#source.tail!==tails[0]||p.candidate.tail!==tails[1]||this.#local.get!==this.#localGet||this.#local.set!==this.#localSet)fail('GENERATION_REVERSE_REVIEW_CHANGED');requireOriginalLibraryDocumentsGenerationMethods(this.#source);requireOriginalLibraryDocumentsGenerationMethods(p.candidate);requireOriginalGenerationCoreMethods(this.#core);requireOriginalGenerationCoreMethods(p.targetCore);};
+  let work;try{current();work=returnWork(p.sourceRepository,current,[p.sourceRepository,p.targetRepository,p.registry]);return await runReturn(work,async()=>{
+   const r={p,ticket:work.ticket,current:work.check};
+   const expected=await originalReverseExpected(p,r);work.check();
+   const source=expected.source,target=expected.target;
+   // Their first original full transaction compares every row before writing;
+   // a separate pre-read of these same retained operands supplies no authority.
+   returnEqual(work,await returnRoot(work,p.registry),p.record.registryRoot);
+   const before=await returnLocal(work,this.#local,this.#localGet);returnEqual(work,before,expected.after);
+   const prior=await returnRead(work,p.sourceRepository,readControlPublicationFence,['meta']);
+   if(prior.reservation||prior.migration?.databaseId!==p.record.sourceDatabaseId||prior.gate?.epoch!==before.settings.epoch||prior.gate?.enabled!==before.settings.enabled)fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');
+   const operationId=crypto.randomUUID(),beforeDigest=await returnDigest(work,before),fences={migration:prior.migration,gate:prior.gate,epoch:prior.epoch};
+   const reservation={id:CONTROL_PUBLICATION_RESERVATION,version:1,revision:prior.revision+1,nonce:operationId,databaseId:p.record.sourceDatabaseId,beforeDigest,afterDigest:null,fenceDigest:null};
+   const after=controlPublicationRow(control(before),p.record.sourceDatabaseId,reservation),afterDigest=await returnDigest(work,after),fenceDigest=await returnDigest(work,fences);
+   const record=reverseMarker({id:APPLICATION_SELECTION_MARKER,version:2,direction:'return',operationId,role:'source',phase:'prepared',forward:source.meta.find(row=>row.id===APPLICATION_SELECTION_MARKER),beforeDigest,afterDigest,reservation:{...reservation,afterDigest,fenceDigest},fences,sourceRevision:prior.revision,sourceHashes:await returnHashes(work,source),targetHashes:await returnHashes(work,target)});
+   await returnWrite(work,p.sourceRepository,async tx=>{await returnRequireRows(work,p.sourceRepository,tx,source);await tx.put('meta',record);},[APPLICATION_SELECTION_MARKER],p.sourceRepository.stores);
+   replaceReturnRow(source.meta,record);
+   await returnWrite(work,p.targetRepository,async tx=>{await returnRequireRows(work,p.targetRepository,tx,target);await tx.put('meta',{...record,role:'target'});},[APPLICATION_SELECTION_MARKER],p.targetRepository.stores);
+   replaceReturnRow(target.meta,{...record,role:'target'});advanceReturnGate(target,1);
+   const intent={...record,phase:'intent'};
+   await returnWrite(work,p.sourceRepository,async tx=>{await returnRequireRows(work,p.sourceRepository,tx,source);const actual=await reserveControlPublication(tx,prior,{nonce:operationId,databaseId:p.record.sourceDatabaseId,beforeDigest});returnEqual(work,actual,reservation);await tx.put('meta',intent.reservation);await tx.put('meta',intent);},[APPLICATION_SELECTION_MARKER,CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION],p.sourceRepository.stores);
+   replaceReturnRow(source.meta,intent);replaceReturnRow(source.meta,intent.reservation);replaceReturnRow(source.meta,{id:CONTROL_PUBLICATION_REVISION,version:1,revision:reservation.revision});
+   await returnWrite(work,p.targetRepository,async tx=>{await returnRequireRows(work,p.targetRepository,tx,target);await tx.put('meta',{...intent,role:'target'});},[APPLICATION_SELECTION_MARKER],p.targetRepository.stores);
+   replaceReturnRow(target.meta,{...intent,role:'target'});advanceReturnGate(target,1);
+   returnEqual(work,await returnRoot(work,p.registry),intent.forward.registryRoot);
+   returnEqual(work,await returnRows(work,p.sourceRepository),source);returnEqual(work,await returnRows(work,p.targetRepository),target);
+   returnEqual(work,await returnLocal(work,this.#local,this.#localGet),before);
+   // No await between final original identity check and the one SDK dispatch.
+   requireReturnMinimumCompletionCapacity(work,source,target);work.check();try{await originalSelectionApply(this.#localSet,this.#local,[{[STORAGE_KEY]:after}]);}catch{}
+   work.check();if(!equal(await returnLocal(work,this.#local,this.#localGet),after))return returnUnknown(intent);
+   return await settleReturn(work,p.sourceRepository,p.targetRepository,p.registry,this.#local,this.#localGet,intent,{a:source,b:target});
+  },()=>{this.#busy=false;});}catch(error){if(!work)this.#busy=false;throw error;}
+ }
  async rollback(){fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');}
  close(){this.#lifetime++;this.#discardPrepared(this.#prepared);}
 }
@@ -295,15 +339,15 @@ async function settleSelection(source,target,registry,local,s){
 }
 async function openSelection(local,factory,authority){
  const source=new (originalOrganizerConstructor())(local,{indexedDB:factory});let target,registry;
- try{await openOriginalExistingRepository(source.repository);const s=await point(source.repository,APPLICATION_SELECTION_MARKER);if(!s)return {source,record:null,close:()=>source.repository.db?.close()};marker(s);if(s.role!=='source'||(await point(source.repository,'migration'))?.databaseId!==s.sourceDatabaseId)fail();
-  registry=new ArchiveRepository(local,{indexedDB:factory,name:APPLICATION_SELECTION_REGISTRY});const p=new CanonicalGenerationPublication(registry);target=await openOriginalPublishedOrganizerForSelection(p,local,authority);if(target.repository.name!==s.targetName||(await point(target.repository,'migration'))?.databaseId!==s.targetDatabaseId)fail();await sameRegistry(registry,s);
-  return {source,target,registry,record:s,close:()=>{source.repository.db?.close();target.repository.db?.close();registry.db?.close();}};
+ try{await openOriginalExistingRepository(source.repository);const s=await point(source.repository,APPLICATION_SELECTION_MARKER),receipt=await point(source.repository,APPLICATION_RETURN_RECEIPT);if(!s&&!receipt)return {source,record:null,close:()=>source.repository.db?.close()};if(receipt){if(s)fail();requireOriginalApplicationReturnReceipt(receipt,(await point(source.repository,'migration'))?.databaseId);}const record=s??receipt.record,reverse=record.version===2;reverse?reverseMarker(record):marker(record);const f=reverse?record.forward:record;if(record.role!=='source'||(await point(source.repository,'migration'))?.databaseId!==f.sourceDatabaseId)fail();
+  registry=new ArchiveRepository(local,{indexedDB:factory,name:APPLICATION_SELECTION_REGISTRY});const p=new CanonicalGenerationPublication(registry);target=await openOriginalPublishedOrganizerForSelection(p,local,authority);if(target.repository.name!==f.targetName||(await point(target.repository,'migration'))?.databaseId!==f.targetDatabaseId)fail();await sameRegistry(registry,f);
+  return {source,target,registry,record,receipt,reverse,close:()=>{source.repository.db?.close();target.repository.db?.close();registry.db?.close();}};
  }catch(error){source.repository.db?.close();target?.repository.db?.close();registry?.db?.close();throw error;}
 }
-export async function inspectOriginalApplicationGenerationSelection(local,factory,authority=null){const o=await openSelection(local,factory,authority);try{if(!o.record)return {state:'not-prepared'};if(o.record.phase==='selected'){if(await point(o.target.repository,APPLICATION_SELECTION_MARKER))return {state:'finishing',operationId:o.record.operationId};return await settleSelection(o.source.repository,o.target.repository,o.registry,local,o.record);}return {state:o.record.phase==='dispatched'?'outcome-unknown':'prepared',operationId:o.record.operationId,retryAllowed:false};}finally{o.close();}}
-export async function continueOriginalApplicationGenerationSelection(local,factory,authority=null){const o=await openSelection(local,factory,authority);try{if(!o.record)return {state:'not-prepared'};return await finishSelection(o.source.repository,o.target.repository,o.registry,local,o.record,true);}finally{o.close();}}
+export async function inspectOriginalApplicationGenerationSelection(local,factory,authority=null){const o=await openSelection(local,factory,authority);try{if(!o.record)return {state:'not-prepared'};if(o.reverse)return await inspectReturn(o,local);if(o.record.phase==='selected'){if(await point(o.target.repository,APPLICATION_SELECTION_MARKER))return {state:'finishing',operationId:o.record.operationId};return await settleSelection(o.source.repository,o.target.repository,o.registry,local,o.record);}return {state:o.record.phase==='dispatched'?'outcome-unknown':'prepared',operationId:o.record.operationId,retryAllowed:false};}finally{o.close();}}
+export async function continueOriginalApplicationGenerationSelection(local,factory,authority=null){const o=await openSelection(local,factory,authority);try{if(!o.record)return {state:'not-prepared'};if(o.reverse)return await continueReturn(o,local);return await finishSelection(o.source.repository,o.target.repository,o.registry,local,o.record,true);}finally{o.close();}}
 export async function cancelOriginalApplicationGenerationSelection(local,factory,authority=null){
- const o=await openSelection(local,factory,authority);try{const s=o.record;if(!s)return {state:'not-prepared'};if(s.phase!=='prepared')fail('GENERATION_SELECTION_OUTCOME_UNKNOWN');if(await digest(await localRow(local))!==s.beforeDigest)fail();await sameRegistry(o.registry,s);
+ const o=await openSelection(local,factory,authority);try{const s=o.record;if(!s)return {state:'not-prepared'};if(o.reverse)return await cancelReturn(o,local);if(s.phase!=='prepared')fail('GENERATION_SELECTION_OUTCOME_UNKNOWN');if(await digest(await localRow(local))!==s.beforeDigest)fail();await sameRegistry(o.registry,s);
   const pending=await point(o.target.repository,APPLICATION_SELECTION_MARKER);if(pending){
    const reserved=pending.phase==='dispatched'&&equal({...pending,role:'source',phase:'prepared',afterDigest:null,reservation:null,fences:null},s);
    if(!reserved&&!equal(pending,{...s,role:'target'}))fail();
@@ -314,4 +358,159 @@ export async function cancelOriginalApplicationGenerationSelection(local,factory
 }
 // Cold application startup consumes only the durable original selected receipt;
 // it does not prepare, dispatch, cancel, repair or choose a caller database.
-export async function openOriginalSelectedExistingApplication(local,factory,authority=null){const o=await openSelection(local,factory,authority);try{if(!o.record){o.close();return null;}if(o.record.phase!=='selected'||await point(o.target.repository,APPLICATION_SELECTION_MARKER))fail('GENERATION_SELECTION_PENDING');await settleSelection(o.source.repository,o.target.repository,o.registry,local,o.record);const selected=o.target;o.source.repository.db?.close();return selected;}catch(error){o.close();throw error;}}
+export async function openOriginalSelectedExistingApplication(local,factory,authority=null){const o=await openSelection(local,factory,authority);try{if(!o.record){o.close();return null;}if(o.reverse){if(!o.receipt)fail('GENERATION_SELECTION_PENDING');await inspectReturn(o,local);o.target.repository.db?.close();o.registry.db?.close();return o.source;}if(o.record.phase!=='selected'||await point(o.target.repository,APPLICATION_SELECTION_MARKER))fail('GENERATION_SELECTION_PENDING');await settleSelection(o.source.repository,o.target.repository,o.registry,local,o.record);const selected=o.target;o.source.repository.db?.close();return selected;}catch(error){o.close();throw error;}}
+
+// Additive original return protocol. These records are receipts/restrictions,
+// never proof that other worker owners, host documents or connections are quiet.
+const activeReturns=new WeakMap();
+const reverseKeys=['id','version','direction','operationId','role','phase','forward','beforeDigest','afterDigest','reservation','fences','sourceRevision','sourceHashes','targetHashes'];
+function reverseMarker(value){
+ if(!exact(value,reverseKeys)||value.id!==APPLICATION_SELECTION_MARKER||value.version!==2||value.direction!=='return'||!tokenId(value.operationId)||!['source','target'].includes(value.role)||!['prepared','intent','returned'].includes(value.phase)||!hash(value.beforeDigest)||!hash(value.afterDigest)||!Number.isSafeInteger(value.sourceRevision)||value.sourceRevision<0)fail();
+ const f=marker(value.forward);if(f.role!=='source'||f.phase!=='selected'||f.sourceDatabaseId===f.targetDatabaseId||value.operationId===f.operationId||!exact(value.fences,['migration','gate','epoch'])||value.fences.migration?.databaseId!==f.sourceDatabaseId||!exact(value.reservation,['id','version','revision','nonce','databaseId','beforeDigest','afterDigest','fenceDigest'])||value.reservation.id!==CONTROL_PUBLICATION_RESERVATION||value.reservation.version!==1||value.reservation.revision!==value.sourceRevision+1||value.reservation.nonce!==value.operationId||value.reservation.databaseId!==f.sourceDatabaseId||value.reservation.beforeDigest!==value.beforeDigest||value.reservation.afterDigest!==value.afterDigest||!hash(value.reservation.fenceDigest))fail();
+ for(const hashes of [value.sourceHashes,value.targetHashes])if(!hashes||Object.getPrototypeOf(hashes)!==Object.prototype||!Object.keys(hashes).length||!Object.entries(hashes).every(([table,d])=>typeof table==='string'&&hash(d)))fail();
+ return value;
+}
+export function requireOriginalApplicationReturnReceipt(row,databaseId){
+ if(!exact(row,['id','version','databaseId','record'])||row.id!==APPLICATION_RETURN_RECEIPT||row.version!==1||row.databaseId!==databaseId)fail();
+ const r=reverseMarker(row.record);if(r.role!=='source'||r.phase!=='returned'||r.forward.sourceDatabaseId!==databaseId)fail();return true;
+}
+function returnReceipt(record){return {id:APPLICATION_RETURN_RECEIPT,version:1,databaseId:record.forward.sourceDatabaseId,record:{...record,role:'source',phase:'returned'}};}
+function returnUnknown(record){return {state:'outcome-unknown',operationId:record.operationId,retryAllowed:false};}
+function returnView(record){return {state:'returned',operationId:record.operationId,priorLibraryRetained:true,reloadRequired:true,rollbackAllowed:false,wholeArchiveComplete:false};}
+function returnWork(repository,current=()=>true,allowed=[repository]){
+ let active=activeReturns.get(repository.factory);if(!active){active=new Map();activeReturns.set(repository.factory,active);}if(active.has(repository.name))fail('GENERATION_SELECTION_BUSY');
+ const work={repository,allowed:Object.freeze([...allowed]),factory:repository.factory,name:repository.name,database:repository.db,invalid:false,ticket:null};
+ work.check=()=>{if(work.invalid||repository.factory!==work.factory||repository.name!==work.name||repository.db!==work.database)fail('GENERATION_REVERSE_REVIEW_CHANGED');current();if(work.ticket)checkOriginalRecoveryWork(repository,work.ticket);return true;};
+ // The ticket's identity check cannot recursively query itself.
+ work.ticket=createOriginalRecoveryWork(repository,{isCurrent:()=>{if(work.invalid||repository.factory!==work.factory||repository.name!==work.name||repository.db!==work.database)return false;return current();}});
+ active.set(repository.name,work);work.release=()=>{if(active.get(repository.name)===work)active.delete(repository.name);finishOriginalRecoveryWork(repository,work.ticket);};return work;
+}
+function runReturn(work,action,settled=()=>{}){
+ const ms=remainingOriginalRecoveryWork(work.repository,work.ticket);
+ return new ReversePromise((resolve,reject)=>{let ended=false,timer;
+  const report=(error,value)=>{if(ended)return;ended=true;reverseClearTimeout(timer);if(error)reject(error);else resolve(value);};
+  // Timeout rejects only the caller. Original raw SDK/native work remains in
+  // this operation and keeps both busy and the cold helper exclusion alive.
+  const operation=originalSelectionApply(reverseThen,originalSelectionApply(reverseResolve,ReversePromise,[]),[action]);
+  originalSelectionApply(reverseThen,operation,[value=>{try{work.check();report(null,value);}catch(error){report(error);}finally{work.release();settled();}},error=>{try{report(error);}finally{work.release();settled();}}]);
+  timer=reverseSetTimeout(()=>{work.invalid=true;report(new ArchiveError('BNS_GROUP_RESOURCE_LIMIT'));},ms);
+ });
+}
+function returnCharge(work,value,refs=0){work.check();chargeOriginalRecoveryWork(work.repository,work.ticket,measureSourceWorkingPhysicalTree(value).B,refs);}
+function returnEqual(work,actual,expected){returnCharge(work,expected);if(!equal(actual,expected))fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');}
+async function returnDigest(work,value){returnCharge(work,value);const encoded=controlPublicationEncoding(value);chargeOriginalRecoveryWork(work.repository,work.ticket,new TextEncoder().encode(encoded).length,0);const result=await digest(value);work.check();return result;}
+async function returnHashes(work,value){
+ const result={};for(const [table,values]of Object.entries(value)){
+  // Original physical equality is structural, including undefined and -0,
+  // without treating repeated references as cycles. Never JSON-normalize it.
+  returnCharge(work,values);
+  const encode=v=>v===undefined?'["u"]':v===null?'["null"]':typeof v==='string'?'["s",'+JSON.stringify(v)+']':typeof v==='boolean'?'["b",'+v+']':typeof v==='number'?'["n",'+JSON.stringify(Object.is(v,-0)?'-0':String(v))+']':Array.isArray(v)?'["a",['+v.map(encode).join(',')+']]':'["o",['+Object.keys(v).sort().map(k=>'['+JSON.stringify(k)+','+encode(v[k])+']').join(',')+']]';
+  const encoded=encode(values);chargeOriginalRecoveryWork(work.repository,work.ticket,new TextEncoder().encode(encoded).length,0);result[table]=await hashText(encoded);work.check();
+ }return result;
+}
+async function returnScoped(work,repository,writeMode,fn,keys,stores,parent=null){
+ work.check();const token=Object.freeze(Object.create(null));if(!work.allowed.includes(repository))fail('GENERATION_SELECTION_CAPABILITY');const budget=Object.freeze({repository:work.repository,ticket:work.ticket,parent,work});
+ authorities.set(token,{repository,name:repository.name,factory:repository.factory,database:repository.db,scope:null,keys:Object.freeze(keys),budget});
+ try{return await (writeMode?originalApplicationSelectionTransaction:originalApplicationSelectionRead)(repository,token,async tx=>{work.check();const result=await fn(tx);work.check();return result;},stores);}finally{authorities.delete(token);}
+}
+// Fixed original active-generation preparation only. It borrows restriction,
+// never mutation authority; IDB also requires the exact live parent preparation.
+export function originalApplicationSelectionRelatedRead(token,repository,fn,stores){
+ const r=authorities.get(token);if(!r?.budget||r.budget.parent||r.scope||!r.budget.work.allowed.includes(repository))fail('GENERATION_SELECTION_CAPABILITY');
+ readOriginalApplicationSelectionAuthority(token,r.repository,null);
+ return returnScoped(r.budget.work,repository,false,fn,[],stores,token);
+}
+const returnRead=(work,repository,fn,stores)=>returnScoped(work,repository,false,fn,[],stores);
+const returnWrite=(work,repository,fn,keys,stores=['meta'])=>returnScoped(work,repository,true,fn,keys,stores);
+const returnRows=(work,repository)=>returnRead(work,repository,async tx=>{const rows={};for(const table of repository.stores)rows[table]=await readGroupRows(tx,table);return rows;},repository.stores);
+const returnPoint=(work,repository,key)=>returnRead(work,repository,tx=>tx.get('meta',key),['meta']);
+const returnRoot=(work,repository)=>returnPoint(work,repository,CANONICAL_GENERATION_REGISTRY);
+async function returnRequireRows(work,repository,tx,expected){for(const table of repository.stores)returnEqual(work,await readGroupRows(tx,table),expected[table]);}
+async function returnLocal(work,local,get){returnCharge(work,STORAGE_KEY,1);const row=await localRow(local,get);work.check();returnCharge(work,row);return row;}
+function replaceReturnRow(list,row){const index=list.findIndex(value=>value.id===row.id);if(index<0)list.push(copy(row));else list[index]=copy(row);list.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);}
+function removeReturnRow(list,key){const index=list.findIndex(value=>value.id===key);if(index>=0)list.splice(index,1);}
+function advanceReturnGate(raw,by){const row=raw.meta.find(row=>row.id===CANONICAL_GENERATION_GATE);if(!row||!Number.isSafeInteger(row.writeRevision+by))fail();replaceReturnRow(raw.meta,{...row,writeRevision:row.writeRevision+by});}
+async function requireReturnRaw(work,repository,record){
+ const raw=await returnRows(work,repository),normalized=copy(raw);returnCharge(work,normalized);
+ const actual=raw.meta.find(row=>row.id===APPLICATION_SELECTION_MARKER);returnEqual(work,actual,record);
+ if(record.role==='source'){
+  replaceReturnRow(normalized.meta,record.forward);
+  const reservation=raw.meta.find(row=>row.id===CONTROL_PUBLICATION_RESERVATION),revision=raw.meta.find(row=>row.id===CONTROL_PUBLICATION_REVISION);
+  if(record.phase==='prepared'){if(reservation)fail();}
+  else{ returnEqual(work,reservation,record.reservation);returnEqual(work,revision,{id:CONTROL_PUBLICATION_REVISION,version:1,revision:record.reservation.revision});removeReturnRow(normalized.meta,CONTROL_PUBLICATION_RESERVATION);if(record.sourceRevision)replaceReturnRow(normalized.meta,{id:CONTROL_PUBLICATION_REVISION,version:1,revision:record.sourceRevision});else removeReturnRow(normalized.meta,CONTROL_PUBLICATION_REVISION); }
+ }else{
+  removeReturnRow(normalized.meta,APPLICATION_SELECTION_MARKER);
+  const writes={prepared:1,intent:2,returned:3}[record.phase];
+  const expected={...record.forward.targetGate,writeRevision:record.forward.targetGate.writeRevision+3+writes};returnEqual(work,raw.meta.find(row=>row.id===CANONICAL_GENERATION_GATE),expected);advanceReturnGate(normalized,-writes);
+ }
+ returnEqual(work,await returnHashes(work,normalized),record.role==='source'?record.sourceHashes:record.targetHashes);return raw;
+}
+async function requireReturnPair(work,source,target,registry,record){
+ returnEqual(work,await returnRoot(work,registry),record.forward.registryRoot);
+ const a=await requireReturnRaw(work,source,{...record,role:'source'}),b=await requireReturnRaw(work,target,{...record,role:'target'});
+ return {a,b};
+}
+async function settleReturn(work,source,target,registry,local,get,record,warm=null){
+ reverseMarker(record);if(record.phase!=='intent')fail();
+ returnEqual(work,await returnRoot(work,registry),record.forward.registryRoot);
+ const observed=await returnLocal(work,local,get);if(await returnDigest(work,observed)!==record.afterDigest)return returnUnknown(record);
+ const a=warm?.a??await requireReturnRaw(work,source,record),pending=await returnPoint(work,target,APPLICATION_SELECTION_MARKER);
+ const terminal={...record,role:'target',phase:'returned'};
+ if(equal(pending,{...record,role:'target'})){
+  const b=warm?.b??await requireReturnRaw(work,target,pending);
+  await returnWrite(work,target,async tx=>{await returnRequireRows(work,target,tx,b);await tx.put('meta',terminal);},[APPLICATION_SELECTION_MARKER],target.stores);
+ }else returnEqual(work,pending,terminal);
+ // This helper has no cold caller: unfinished cold observations cannot
+ // replenish the original write allowance. Warm retains the exact full cut.
+ if(!warm)await requireReturnRaw(work,target,terminal);
+ const row=await returnLocal(work,local,get);if(await returnDigest(work,row)!==record.afterDigest)return returnUnknown(record);
+ const receipt=returnReceipt(record);returnCharge(work,receipt);
+ await returnWrite(work,source,async tx=>{await returnRequireRows(work,source,tx,a);await requireControlPublicationOwner(tx,record.reservation,record.fences);await tx.put('meta',receipt);await tx.delete('meta',CONTROL_PUBLICATION_RESERVATION);await tx.delete('meta',APPLICATION_SELECTION_MARKER);},[APPLICATION_SELECTION_MARKER,APPLICATION_RETURN_RECEIPT,CONTROL_PUBLICATION_RESERVATION],source.stores);
+ return returnView(record);
+}
+
+function coldReturnWork(o,local){
+ const get=local.get,set=local.set,source=o.source.repository,target=o.target.repository,registry=o.registry,identities=[source,target,registry].map(r=>[r,r.db,r.name,r.factory]);
+ const check=()=>{if(local.get!==get||local.set!==set||identities.some(([r,db,name,factory])=>r.db!==db||r.name!==name||r.factory!==factory))fail('GENERATION_REVERSE_REVIEW_CHANGED');};
+ const work=returnWork(source,check,[source,target,registry]);return {work,get};
+}
+async function inspectReturn(o,local){
+ const {work,get}=coldReturnWork(o,local);return runReturn(work,async()=>{
+  const s=o.record;returnEqual(work,await returnRoot(work,o.registry),s.forward.registryRoot);
+  if(!o.receipt)return {state:s.phase==='prepared'?'prepared':'outcome-unknown',operationId:s.operationId,retryAllowed:false,cancelAvailable:false};
+  requireOriginalApplicationReturnReceipt(o.receipt,s.forward.sourceDatabaseId);
+  returnEqual(work,await returnPoint(work,o.source.repository,APPLICATION_RETURN_RECEIPT),o.receipt);
+  if(await returnPoint(work,o.source.repository,APPLICATION_SELECTION_MARKER)||await returnPoint(work,o.source.repository,CONTROL_PUBLICATION_RESERVATION)||await returnPoint(work,o.target.repository,CONTROL_PUBLICATION_RESERVATION))fail('GENERATION_SELECTION_PENDING');
+  const target={...s,role:'target',phase:'returned'};await requireReturnRaw(work,o.target.repository,target);
+  const migration=await returnPoint(work,o.source.repository,'migration'),row=await returnLocal(work,local,get);
+  if(migration?.phase!=='active'||migration.databaseId!==s.forward.sourceDatabaseId||row.databaseId!==s.forward.sourceDatabaseId)fail('GENERATION_SELECTION_PENDING');
+  // A may have legitimate later edits/control. The immutable receipt records
+  // the completed return, not an ongoing promise that the live library froze.
+  const revision=await returnPoint(work,o.source.repository,CONTROL_PUBLICATION_REVISION);if(!revision||revision.version!==1||!Number.isSafeInteger(revision.revision)||revision.revision<s.reservation.revision)fail();
+  return returnView(s);
+ });
+}
+async function continueReturn(o,local){
+ if(o.receipt)return inspectReturn(o,local);
+ const {work,get}=coldReturnWork(o,local);return runReturn(work,async()=>{
+  const record=o.record,row=await returnLocal(work,local,get),observed=await returnDigest(work,row);
+  returnEqual(work,await returnRoot(work,o.registry),record.forward.registryRoot);
+  // This fresh READ-ONLY inspection has no authority to replenish the failed
+  // operation's cumulative write allowance. A durable continuation accounting
+  // protocol is not implemented; do not silently finish with a new ticket.
+  return {...returnUnknown(record),readback:observed===record.afterDigest?'after-observed':observed===record.beforeDigest?'before-observed':'changed',completionRequired:'original-live-work'};
+ });
+}
+async function cancelReturn(){fail('GENERATION_REVERSE_CONTINUATION_REQUIRED');}
+function requireReturnMinimumCompletionCapacity(work,source,target){
+ let references=0,bytes=0;
+ for(const raw of [source,target])for(const values of Object.values(raw)){
+  // Each of the two final original full CAS transactions must read every
+  // physical row and compare its complete expected table operand. This is a
+  // mandatory lower bound, NOT a claim to bound all finalizers or late errors.
+  references+=values.length+1+2*Math.floor(values.length/64);
+  bytes+=measureSourceWorkingPhysicalTree(values).B;
+  for(const row of values)bytes+=measureSourceWorkingPhysicalTree(row).B;
+ }
+ requireOriginalRecoveryWorkCapacity(work.repository,work.ticket,references,bytes);
+}

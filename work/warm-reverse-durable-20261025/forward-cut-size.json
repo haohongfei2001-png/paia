@@ -1,0 +1,330 @@
+{
+  "scope": "Fresh synthetic forward-selected fixture only; NO reverse invocation. Sizes are calibration, not retrospectively captured failed-run phases.",
+  "source": {
+    "bytes": 98153,
+    "tables": {
+      "meta": {
+        "rows": 184,
+        "bytes": 81681
+      },
+      "records": {
+        "rows": 2,
+        "bytes": 1771
+      },
+      "recordIndex": {
+        "rows": 2,
+        "bytes": 1381
+      },
+      "blocks": {
+        "rows": 2,
+        "bytes": 1279
+      },
+      "blockIndex": {
+        "rows": 2,
+        "bytes": 1147
+      },
+      "documents": {
+        "rows": 1,
+        "bytes": 778
+      },
+      "libraryDocuments": {
+        "rows": 1,
+        "bytes": 413
+      },
+      "times": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "tombstones": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "migrationBackup": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "sourceCounts": {
+        "rows": 2,
+        "bytes": 2207
+      },
+      "operationReceipts": {
+        "rows": 2,
+        "bytes": 573
+      },
+      "importTasks": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "importBatches": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "importEvidence": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "importSources": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "inputStates": {
+        "rows": 2,
+        "bytes": 529
+      },
+      "inputRemovals": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "thoughts": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "categories": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "dependencies": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "revisions": {
+        "rows": 4,
+        "bytes": 3935
+      },
+      "invalidations": {
+        "rows": 2,
+        "bytes": 593
+      },
+      "filterInputs": {
+        "rows": 2,
+        "bytes": 947
+      },
+      "filterIntents": {
+        "rows": 2,
+        "bytes": 279
+      },
+      "topics": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "sections": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "placements": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "provenance": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "thoughtSuppressions": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "organizerJobs": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "organizerWorkItems": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "organizerSuggestions": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "entryRelations": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "librarySearchTerms": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "libraryMigrationItems": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "organizerUsage": {
+        "rows": 0,
+        "bytes": 2
+      }
+    },
+    "canonicalMetadata": [],
+    "forwardMarkerBytes": 2807
+  },
+  "target": {
+    "bytes": 97560,
+    "tables": {
+      "meta": {
+        "rows": 163,
+        "bytes": 81659
+      },
+      "records": {
+        "rows": 2,
+        "bytes": 1771
+      },
+      "recordIndex": {
+        "rows": 2,
+        "bytes": 1381
+      },
+      "blocks": {
+        "rows": 2,
+        "bytes": 1279
+      },
+      "blockIndex": {
+        "rows": 2,
+        "bytes": 1147
+      },
+      "documents": {
+        "rows": 1,
+        "bytes": 778
+      },
+      "libraryDocuments": {
+        "rows": 1,
+        "bytes": 413
+      },
+      "times": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "tombstones": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "migrationBackup": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "sourceCounts": {
+        "rows": 2,
+        "bytes": 2207
+      },
+      "operationReceipts": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "importTasks": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "importBatches": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "importEvidence": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "importSources": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "inputStates": {
+        "rows": 2,
+        "bytes": 529
+      },
+      "inputRemovals": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "thoughts": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "categories": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "dependencies": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "revisions": {
+        "rows": 4,
+        "bytes": 3935
+      },
+      "invalidations": {
+        "rows": 2,
+        "bytes": 593
+      },
+      "filterInputs": {
+        "rows": 2,
+        "bytes": 947
+      },
+      "filterIntents": {
+        "rows": 2,
+        "bytes": 279
+      },
+      "topics": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "sections": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "placements": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "provenance": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "thoughtSuppressions": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "organizerJobs": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "organizerWorkItems": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "organizerSuggestions": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "entryRelations": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "librarySearchTerms": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "libraryMigrationItems": {
+        "rows": 0,
+        "bytes": 2
+      },
+      "organizerUsage": {
+        "rows": 0,
+        "bytes": 2
+      }
+    },
+    "canonicalMetadata": [
+      {
+        "id": "canonical-generation:copy-retirement:v1",
+        "bytes": 560
+      },
+      {
+        "id": "canonical-generation:gate:v1",
+        "bytes": 554
+      },
+      {
+        "id": "canonical-generation:qualified-graph:v1",
+        "bytes": 562
+      },
+      {
+        "id": "canonical-generation:repository-protection:v1",
+        "bytes": 270
+      }
+    ],
+    "forwardMarkerBytes": 32
+  }
+}

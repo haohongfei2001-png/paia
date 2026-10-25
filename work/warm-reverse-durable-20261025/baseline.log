@@ -1,0 +1,25 @@
+TAP version 13
+# Subtest: same live selected owner durably returns the exact unchanged cut and cold opens original A
+not ok 1 - same live selected owner durably returns the exact unchanged cut and cold opens original A
+  ---
+  duration_ms: 582.092
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/tests/application-selection-reverse-durable.test.mjs:7:1'
+  failureType: 'testCodeFailure'
+  error: 'f.owner.activateReverse is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-durable/extension/tests/application-selection-reverse-durable.test.mjs:9:30)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 776.434708
