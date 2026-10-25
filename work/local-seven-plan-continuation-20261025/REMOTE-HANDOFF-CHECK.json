@@ -1,0 +1,20 @@
+{
+  "checkedAtUtc": "2026-10-25 11:11:23 UTC",
+  "source": "GitHub connector fetch_commit",
+  "repository": "haohongfei2001-png/paia",
+  "refs": [
+    {
+      "ref": "main",
+      "sha": "8522134ac23a8e563161b4e3633d56e858e01d5c",
+      "url": "https://github.com/haohongfei2001-png/paia/commit/8522134ac23a8e563161b4e3633d56e858e01d5c",
+      "subject": "website: optical PAIA presentation with layered native-scroll depth (#330)"
+    },
+    {
+      "ref": "codex/dot-cloud-integration-20261024",
+      "sha": "b7c6ecdc39f1010dfcf4736df08e5ac89385b0ac",
+      "url": "https://github.com/haohongfei2001-png/paia/commit/b7c6ecdc39f1010dfcf4736df08e5ac89385b0ac",
+      "subject": "docs: preserve final development handoff archive without applying pending patches"
+    }
+  ],
+  "mutations": false
+}

@@ -1,0 +1,18 @@
+{
+  "commit": "c7846285863e58f05a167673c4ab77f8a5f52bf4",
+  "parent": "d666783e37a9ba010085c7e69b53b006c8750485",
+  "path": "/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/assist-receipt-native-preparation",
+  "disposition": "HELD_NOT_INTEGRATED",
+  "changedNativeOwningFiles": 2,
+  "verifiedManifestEntries": 7,
+  "manifestSha256": "147064fb0676ae11694aeca5e2b994ac01335dacff8ba9d1535e4db28732bd05",
+  "validation": "two syntax checks only; no new tests/native/browser",
+  "remaining": [
+    "default runner service dependency",
+    "actual Context receipt route",
+    "bridge request-signal propagation",
+    "old bare replay non-equivalence",
+    "actual native qualification"
+  ],
+  "integratedServiceExtractionSeparate": "e9e387d /30a99ca from6bad910/d666783"
+}

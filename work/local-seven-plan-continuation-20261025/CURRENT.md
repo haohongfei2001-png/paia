@@ -1,28 +1,25 @@
-# Current local continuation entry
+# Current PAIA handoff entry — Codex → dot
 
-This is PAIA only, continuing the seven effective plans from the supplied verified final handoff. Dot is not a required coordinator. Read actual Git state first; never replace uncommitted files or blindly merge evidence ancestry.
+User now assigns remaining development to dot. Codex has completed and frozen its final local integration; no new development line is active. Read DOT-HANDOFF.md and actual Git/worktree state first. This continues the seven effective plans, not a redesign.
 
-## Integrated, not product accepted
+## Final integrated local milestone
 
-- Published Settings three fixes are retained from 27ddcd1/b7c6ecd; do not repeat them.
-- User-approved receipt-only compatibility and draft-preserving manual refresh guidance are implemented. Historical UNKNOWN, old constructors and unfinished operations remain; refresh is not completion proof.
-- Current-top exact document inventory integrated at a3359fd. Original 201/202 and corrected affected 51/51 are separate. This is not global/lifetime host coverage.
-- Retained Input Working tails integrated at b25daa6, following two-Input proof 397dad0. Original117/117 then separate4/6+2/2. Mixed Source/Working successor 7eabab1 is HELD after its one 15/16 matrix: four families completed publication/fresh/cold, fifth bootstrap/edit/append/edit hit original publication budget. It is not integrated and its failed original test remains unchanged.
-- Current offline package source a3359fd: 81 changed-script syntax checks, 24,886 static package guards, 708 files. See BUILD-a3359fd.md. It is not installed or native/browser certified.
+- Runtime source `afa087563b619de41fd8631f7f933b4084fefcec` integrates independently reviewed original `f16ac431b3719fd039dd1ca9fd637ba7bcd1da63` on parent2733036: exact three original transport owners consume current-top receipts; real acquisitions/fences/releases must settle before aggregate admission reopens. False/unknown/timeout cleanup remains closed; repeated close retains the actual failed result.
+- Original full three-file combination20/23, corrected three assertion expectations3/3 only. Four source hashes and19 evidence manifest entries independently matched. No runtime change between executions. Never call this a single23/23 or native acceptance. See work/current-top-transport-20261025/REPORT.md and current-top-transport-review.md.
+- Final tracked-only offline build sourceafa0875: exit0,87 changed-script syntax checks,24,886 package guardrails over684 runtime resources,708 release files, version0.55.9. Not installed, not native/browser/real-account accepted. Older builds and BUILD-RUNTIME-CONTINUITY.json are historical snapshots, superseded by this runtime change.
+- Final handoff commit and tree are recorded by CANDIDATES.json outside the source history. Subsequent root changes are documentation/evidence only. Local results are NOT_PUSHED; GitHub dev last verifiedb7c6ecd, main8522134. Exact full refs/time in REMOTE-HANDOFF-CHECK.json.
 
-## Current independent owners
+## Preserved completed work
 
-- Root owns exact integration and shared coordination. Primary checkout and its preserved untracked files/stashes stay untouched.
-- Source mixed successor is frozen HELD, not an active retry. The Source line is now auditing the exact remaining global original-owner selection dependencies against current-top inventory, without runtime changes or execution.
-- Assist signed service extraction and bounded test bridge integrated at e9e387d / cleanup30a99ca from6bad910/d666783; both independent-review P2 findings are closed. Five test/helper source paths only; default native owning files remain exactly unchanged. Evidence stays 82/83 +1/1, then11/12 +0/1 +1/1, not a fabricated full green aggregate. The native draft remains HELD; original assertion mapping is being completed without browser execution, fake receipts or new default service dependencies.
-- Independent review is deriving exact reverse accounting/deadline prerequisites from original code; no failed positive is rerun and no budget is expanded.
+Published three Settings fixes, receipt-only compatibility/manual-refresh guidance, original Context/Sync lifecycle and reservations, Source/two-Input/retained Working work, current-top inventory, and bounded Assist service/helper preparation remain integrated. QUEUE.md and SEVEN-PLAN-LOCAL-STATUS.md retain exact scope and separately reported failures/passes. Do not rerun old work merely to confirm it.
 
-## Held and external boundaries
+## Remaining work handed to dot
 
-Durable reverse f19171d3 remains excluded. Its small positive exhausted 2MiB after SDK dispatch, before both terminal transactions completed. Post-failure A/B snapshots were not collected for that positive. The 7069-byte observed excess is not the total shortfall; no repeated positive or hidden replenished cold ticket is allowed. See reverse-continuation-next-scope.md.
+1. Full host lifetime/global selection: trusted old/restorable-document universe, retirement proof, original owner consumption within reservation and final SDK exclusion. Current-top does not prove global coverage. ACTIVATE/CONTINUE/RESTART remain closed. See global-selection-next-implementation-scope.md.
+2. Mixed/N-head Source/Human/Context and durable reverse: exact complete budget/settlement protocol before further implementation/verification. See reverse-accounting-envelope-design.md. Do not infer cold write allowance or top up an old ticket.
+3. Production Topic/AI identity/data-field authorization contract and original consumer integration; do not replace it with another synthetic wrapper.
+4. Finish genuine Assist native Context/abort/runner/old assertion equivalence preparation; then group real service/account/native/visual/performance acceptance at an authorized meaningful milestone.
 
-Remaining full host lifetime/global selection, mixed/N-head causal recovery, qualified production Topic structural/identity permissions and genuine service/account/native/visual evidence remain separate. Missing native evidence is not synthesized by Node or VM passes.
+All seven plans remain NOT_COMPLETE. The mixed7eabab1, reversef19171d3 and native-preparationc7846285 candidates are separately HELD and excluded. Old received candidates retain their original classification. See DOT-HANDOFF.md and each candidate's exact delta/prerequisite.
 
-Ordinary4096references/2MiB/30seconds stays. Previous Full, Browser2,100k seed and129-group allowances remain spent. This local takeover adds no browser/native/cloud/paid/account/credentials/install/deployment/push/main authority. Preserve failures, held candidates, old stages and existing user work.
-
-QUEUE.md and SEVEN-PLAN-LOCAL-STATUS.md provide the detailed plan mapping; original per-slice reports retain exact invocation identities.
+Ordinary4096references/2MiB/30seconds stays. Previous Full, Browser2,100k seed and129-group allowances remain spent. No new browser/native/cloud/paid/account/credentials/install/deployment/push/main authority is conferred. Preserve UNKNOWN, original failures, all working directories, uncommitted files and stashes. No agents remain assigned new development after this handoff.

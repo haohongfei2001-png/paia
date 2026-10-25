@@ -4,7 +4,12 @@
   "originalExtensionUntrackedCount": 33,
   "originalExtensionStatusUnchanged": true,
   "stashUnchanged": true,
+  "stashFormat": "%H %gd %gs",
   "trackedDiff": "",
+  "stagedDiff": "",
   "note": "Inventory and tracked/stash identity only; no prior byte hashes exist for unknown untracked files.",
-  "verifierCorrection": "Previous refresh omitted quoted Git status paths and reported 0; bounded extension inventory with both quoted/unquoted forms confirms original 33 unchanged. No file altered."
+  "verifierCorrections": [
+    "Quoted/unquoted Git status paths both parsed; earlier zero count corrected to33.",
+    "Refresh initially compared default stash display against original explicit %H %gd %gs and stopped; same-format repeat confirms all4 identities unchanged. No mutation occurred."
+  ]
 }
