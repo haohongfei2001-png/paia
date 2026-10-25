@@ -1,0 +1,33 @@
+# Topic lifecycle: genuine prepared-owner local scope
+
+2026-10-25, read-only source audit against the root checkout at 031af6e and its unchanged Topic owners. No runtime edits, tests, native execution, network, or new verification queue.
+
+## Conclusion
+
+The default-off original-owner synthetic path already exists end to end. The remaining production gap is not a missing mechanical adapter: the real production field issuer deliberately qualifies Input-only work, while lifecycle preparation requires an actual structural/placement/bound selection and an independent Topic-identity grant. No fixed production owner currently supplies that pair; service configuration remains null. Adding another synthetic wrapper or caller-issued handle would duplicate completed work or manufacture permission. No new runtime package is justified within the stated no-new-issuer/no-expanded-field boundary.
+
+## Existing implementation that must not be repeated
+
+- `core/ai-usage/topic-identity-source-processing.js:9–11,63`: fixed personal policy (90 days, maximum 16 selected Topics), original source identity issuer, and dispatch from a private original Maintenance handle. The issuer binds original store/caller/grant owner/selection, checks independently revocable grant facts and exact metadata, and provides late/final source qualification. It does not manufacture the independent grant.
+- `core/ai-usage/local-maintenance-session.js:57–67,167–218`: private original handle lookup and exact mapped Topic/revision/Input selection, same job/budget/deadline, exclusive reserve, Foundation/job validation and per-action independent identity permits. `#captureIdentityLifecycleSelection` explicitly refuses remote sessions (193–195). No plain Input list can stand in for genuine Topic mapping.
+- `core/topic-lifecycle-dispatch.js`, `topic-lifecycle-consumer.js`, `topic-lifecycle.js`, `topic-processing-authority.js`: original dispatch/qualification/service owners already implement explicit selected-list activity actions, identity plus field qualification, restore/currentness/manual protections, original activity journal/receipt and final strict fence. No topic enumeration, new model call, arbitrary scheduler, merge or permission rewrite is introduced.
+- `core/ai-usage/structural-context-mapping.js`: exact human Section rename **and restore**, their original journals/receipts/revisions/current membership, and companion Topic mappings already exist. Restore is valid Context material but is not silently branded as rename-only Topic reconciliation. The old takeover §4.1 omissions are superseded; these must not be reimplemented.
+- `tests/harness/topic-identity-source-processing.mjs`: already constructs independently revocable synthetic grant and field owners, genuine human edit/mapping, original service/window/session preparation, opaque handle and dispatch. Another default-off synthetic handle factory would add no missing production proof.
+
+## Exact missing production chain
+
+1. `background/service-worker.js:83–84` obtains original maintenance configuration through `configureMaintenanceProcessingSource(... readMaintenanceServiceConfiguration(store))` and creates the original runner. `core/ai-usage/maintenance-service-configuration.js:4` still returns null.
+2. `background/maintenance-processing-commands.js:44` is the fixed source configuration route. It preserves an independently supplied issuer and can install the original Input field issuer. Its actual source consent is not independent Topic-identity consent.
+3. `core/ai-usage/maintenance-source-processing.js:28–46` requires original request items of kind Input and an exact original field scope. At line 42, entries, structures and journals must all be empty. Input body/note and Source originalText qualification cannot be silently extended to human structure/title/history or used as Topic-identity permission.
+4. `core/ai-usage/maintenance-qualification.js:148ff,219` derives genuine fields from the original selected mapping, including Entry fields, selected structural fields and before/after journal fields as applicable. Genuine structure preparation therefore needs its own exact authorized source path; it cannot be replaced by metadata-only identity observations.
+5. `core/ai-usage/configured-maintenance-session.js` supplies the original remote service options to LocalMaintenanceSession but no Topic-identity owner. The synthetic identity branch explicitly refuses that remote path. No background construction of a genuine production grant owner or lifecycle dispatch was found in the bounded chain.
+
+The issuer itself reads fixed metadata projections and final source facts; the separate field gate reads selected semantic content. Those are independent permissions, not interchangeable proofs. Existing capture access, Context admission, provider DTOs, a service login or a validated original handle alone is not the missing identity grant.
+
+## Authority and next decision
+
+`work/dot-cloud-takeover-20261024/QUEUE.md` explicitly records the integrated default-off dual qualification slice, while leaving genuine production structural preparation, consent, activation and native qualification unavailable/unaccepted. This supersedes the older proposal's claim that no issuer implementation exists; it does not remove its source/purpose boundaries. The current Topic architecture preserves identity, formation and human-intent safeguards. Routine local development authorization does not by itself identify new field access or grant semantics.
+
+A useful future package needs one coordinated, concrete decision: the exact structural/placement/bound field and history scope to qualify; the original source and relationship rules; the independent personal-topic-identity grant and revocation owner; and the explicit invocation/window semantics. These can be designed for local production owners and synthetic verification without real accounts, but choosing them changes the permission contract. If the intention is only the already-approved default-off synthetic scope, there is no further acquisition implementation to add.
+
+After that decision, the minimum ownership would be the fixed production source configuration/issuer and original LocalMaintenanceSession structural preparation connection, with exact original owning controls. It must retain default-off activation, 90 days/16 selected Topics, original human structure/keep/pin/lifecycle locks, shared 4096-reference/2 MiB/30-second bounds and genuine dual qualification. Do not begin this prospective package, create a new scheduler, or use mock grant facts as production acceptance now. Existing native/Full quota and real activation prerequisites remain separate.
