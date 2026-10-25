@@ -1,0 +1,470 @@
+#!/usr/bin/env python3
+"""Offline package guardrails; inspect source only, never Chrome or user data.
+
+This deliberately conservative static audit is a regression check, not proof of
+browser compatibility or the absence of every possible obfuscated behavior.
+"""
+
+from html.parser import HTMLParser
+import json
+from pathlib import Path
+import re
+import sys
+from urllib.parse import unquote, urlsplit
+
+
+ROOT = Path(__file__).resolve().parents[1]
+ERRORS = []
+CHECKS = 0
+RUNTIME_DIRS = ("adapter", "content", "background", "core", "ui", "icons", "assets")
+
+
+def require(condition, message):
+    global CHECKS
+    CHECKS += 1
+    if not condition:
+        ERRORS.append(message)
+
+
+def local_reference(reference, owner, label):
+    """Validate packaged paths without opening any path outside this project."""
+    if not isinstance(reference, str) or not reference:
+        require(False, f"{label}: missing local resource path")
+        return
+    parsed = urlsplit(reference)
+    require(not parsed.scheme and not parsed.netloc and not reference.startswith("//"),
+            f"{label}: resource must be local: {reference}")
+    if parsed.scheme or parsed.netloc:
+        return
+    candidate = (owner.parent / unquote(parsed.path)).resolve()
+    require(candidate.is_relative_to(ROOT), f"{label}: path escapes extension package")
+    if candidate.is_relative_to(ROOT):
+        require(candidate.is_file(), f"{label}: missing resource {reference}")
+
+
+def icon_references(value, owner, label):
+    if isinstance(value, str):
+        local_reference(value, owner, label)
+    elif isinstance(value, dict):
+        for size, reference in value.items():
+            local_reference(reference, owner, f"{label}[{size}]")
+    elif value is not None:
+        require(False, f"{label}: invalid icon declaration")
+
+
+def audit_manifest():
+    path = ROOT / "manifest.json"
+    require(path.is_file(), "manifest.json is missing")
+    if not path.is_file():
+        return
+    for required in ("ui/archive.html", "ui/popup.html"):
+        local_reference(required, path, "Required product entry point")
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        require(False, "manifest.json is not valid readable JSON")
+        return
+    require(manifest.get("manifest_version") == 3, "Manifest must be version 3")
+    require(manifest.get("permissions") == ["storage", "scripting"],
+            "Required permissions must remain storage plus reviewed capture recovery scripting")
+    require(manifest.get("optional_permissions") == ["nativeMessaging"],
+            "nativeMessaging must be the sole reviewed optional permission")
+    require(manifest.get("host_permissions") == ["https://chatgpt.com/*"],
+            "Only the existing ChatGPT capture origin is permitted")
+    for key in ("optional_host_permissions", "externally_connectable", "sandbox",
+                "update_url", "devtools_page", "chrome_url_overrides"):
+        require(not manifest.get(key), f"Unexpected manifest capability: {key}")
+    require(manifest.get("web_accessible_resources") == [{"resources": ["ui/prompt-surface.html"], "matches": ["https://chatgpt.com/*"]}],
+            "Only the reviewed cross-origin Prompt frame may be web accessible")
+    minimum_version = str(manifest.get("minimum_chrome_version", "0"))
+    major_version = minimum_version.split(".")[0]
+    require(major_version.isdigit() and int(major_version) >= 114,
+            "minimum_chrome_version must be at least 114")
+    background = manifest.get("background", {})
+    require(background.get("type") == "module", "Background must use a packaged ES module")
+    local_reference(background.get("service_worker"), path, "background.service_worker")
+    action = manifest.get("action", {})
+    if "default_popup" in action:
+        local_reference(action.get("default_popup"), path, "action.default_popup")
+    else:
+        # S4 replaces the action only through the reviewed local owner. This
+        # static wiring check supplements, not substitutes for, native tests.
+        require(background.get("service_worker") == "background/service-worker.js",
+                "Toolbar entry requires the original service worker")
+        local_reference("background/toolbar-entry.js", path, "Reviewed toolbar owner")
+        worker_path = ROOT / "background/service-worker.js"
+        worker_text = worker_path.read_text(encoding="utf-8") if worker_path.is_file() else ""
+        def executable_js(text):
+            # Keep quoted import paths and URL wildcards intact. Mask comments
+            # and whole template strings so inert hook text cannot qualify.
+            tokens = '\'(?:\\\\[\\s\\S]|[^\'\\\\])*\'|\\"(?:\\\\[\\s\\S]|[^\\"\\\\])*\\"|`(?:\\\\[\\s\\S]|[^`\\\\])*`|/\\*[\\s\\S]*?(?:\\*/|$)|//[^\\r\\n]*'
+            return re.sub(tokens, lambda match: re.sub(r"[^\r\n]", " ", match.group())
+                          if match.group().startswith(("/*", "//", "`")) else match.group(), text)
+        worker_text = executable_js(worker_text)
+        require(bool(re.search(r"^import\s*\{\s*installToolbarEntry\s*\}\s*from\s*['\"]\./toolbar-entry\.js['\"];[ \t]*$", worker_text, re.M)),
+                "Toolbar entry requires the reviewed packaged import")
+        require(bool(re.search(r"^installToolbarEntry\(chrome,\s*\{clients:globalThis\.clients\}\);[ \t]*$", worker_text, re.M)),
+                "Toolbar entry requires the original explicit worker installation")
+        archive_path = ROOT / "ui/archive.js"
+        archive_text = archive_path.read_text(encoding="utf-8") if archive_path.is_file() else ""
+        archive_text = executable_js(archive_text)
+        require(bool(re.search(r"^import\s*\{\s*installToolbarClient\s*\}\s*from\s*['\"]\.\./background/toolbar-entry\.js['\"];[ \t]*$", archive_text, re.M)),
+                "Toolbar entry requires the original Archive identity import")
+        require(bool(re.search(r"^installToolbarClient\(chrome\);[ \t]*$", archive_text, re.M)),
+                "Toolbar entry requires the original Archive identity listener")
+    icon_references(action.get("default_icon"), path, "action.default_icon")
+    icon_references(manifest.get("icons"), path, "icons")
+    if manifest.get("options_page"):
+        local_reference(manifest["options_page"], path, "options_page")
+    if manifest.get("options_ui"):
+        local_reference(manifest["options_ui"].get("page"), path, "options_ui.page")
+    scripts = manifest.get("content_scripts", [])
+    require(bool(scripts), "At least one packaged content script is required")
+    for index, script in enumerate(scripts):
+        label = f"content_scripts[{index}]"
+        require(script.get("matches") == ["https://chatgpt.com/*"],
+                f"{label}: matches must be exactly https://chatgpt.com/*")
+        require(script.get("world", "ISOLATED") == "ISOLATED" or (script.get("world") == "MAIN" and script.get("run_at") == "document_start" and script.get("js") == ["adapter/response-parser.js", "adapter/json-fingerprint.js", "adapter/history-contract.js", "content/response-observer.js"]), f"{label}: only reviewed passive observer may use MAIN")
+        require(script.get("all_frames", False) is False, f"{label}: top-level frame only")
+        require(script.get("match_about_blank", False) is False, f"{label}: about:blank injection forbidden")
+        require(script.get("match_origin_as_fallback", False) is False,
+                f"{label}: origin fallback injection forbidden")
+        for resource_type in ("js", "css"):
+            for reference in script.get(resource_type, []):
+                local_reference(reference, path, f"{label}.{resource_type}")
+    csp = manifest.get("content_security_policy", {}).get("extension_pages", "")
+    directives = {}
+    for rule in csp.split(";"):
+        parts = rule.split()
+        if parts:
+            require(parts[0] not in directives, f"Duplicate CSP directive: {parts[0]}")
+            directives[parts[0]] = parts[1:]
+    require(directives.get("default-src") in (["'self'"], ["'none'"]),
+            "CSP default-src must be self or none")
+    for name, expected in {
+        "script-src": ["'self'"],
+        "connect-src": ["'none'"], "object-src": ["'none'"],
+        "base-uri": ["'none'"], "form-action": ["'none'"],
+    }.items():
+        require(directives.get(name) == expected, f"CSP must declare {name} {' '.join(expected)}")
+    for name, values in directives.items():
+        require(all(value in {"'self'", "'none'", "data:", "blob:"} for value in values),
+                f"CSP {name}: unsafe or remote source")
+
+
+FORBIDDEN_JS = {
+    "network API": r"\b(?:fetch|XMLHttpRequest|WebSocket|WebTransport|EventSource|sendBeacon|RTCPeerConnection)\s*\(",
+    "network request property": r"\b(?:navigator\s*\.\s*sendBeacon|window\s*\.\s*open)\b",
+    "remote or injected script loader": r"\b(?:importScripts|eval|Function)\s*\(",
+    "credential, history or unrelated privileged API": r"\bchrome\s*\.\s*(?:cookies|history|webRequest|webNavigation|debugger|identity|browsingData|scripting)\b",
+    "native messaging": r"\b(?:connectNative|sendNativeMessage)\s*\(",
+    "website storage or nonlocal extension storage": r"\b(?:localStorage|sessionStorage|cookieStore)\b|\bchrome\s*\.\s*storage\s*\.\s*(?:sync|session|managed)\b",
+    "cookie access": r"\bdocument\s*\.\s*cookie\b",
+    "credentials API": r"\bnavigator\s*\.\s*credentials\b|\b(?:PasswordCredential|Credential)\s*\(",
+    "clipboard access": r"\bnavigator\s*\.\s*clipboard\b|\b(?:ClipboardItem|ClipboardEvent)\s*\(|\bexecCommand\s*\(",
+    "local file access": r"\b(?:FileReader|showOpenFilePicker|showSaveFilePicker|showDirectoryPicker|requestFileSystem|webkitRequestFileSystem|resolveLocalFileSystemURL)\b|\bfile://",
+    "system keychain": r"\b(?:keychain|keytar)\b",
+    "keyboard listener": r"(?:addEventListener\s*\(\s*['\"](?:keydown|keyup|keypress)['\"]|\.onkey(?:down|up|press)\s*=)",
+    "logging": r"\bconsole\s*(?:\.|\[)",
+    "dynamic HTML": r"\b(?:innerHTML|outerHTML|insertAdjacentHTML|createContextualFragment)\b|\bdocument\s*\.\s*(?:write|writeln)\s*\(",
+    "unsafe document parsing": r"\bDOMParser\s*\(",
+    "external source map": r"sourceMappingURL\s*=\s*(?:https?:)?//",
+}
+
+
+def audit_js(path, text):
+    for label, pattern in FORBIDDEN_JS.items():
+        scanned = text
+        if label == "credential, history or unrelated privileged API" and path == ROOT / "background/capture-recovery.js":
+            # Only this reviewed coordinator may inject bundled capture scripts.
+            # Exact host/manifest bounds and document pinning have owning tests.
+            # The live hold captures the exact scripting object and method so
+            # swapping the API cannot bless a different dispatch. Exempt only
+            # these reviewed declarations/checks, never arbitrary alias access.
+            captured = "const scripting = chrome.scripting, tabs = chrome.tabs, runtime = chrome.runtime;"
+            identity = "chrome.scripting === scripting && chrome.tabs === tabs && chrome.runtime === runtime &&"
+            method = "const execute = scripting.executeScript, get = tabs.get, query = tabs.query, getManifest = runtime.getManifest;"
+            stable = "scripting.executeScript === execute && tabs.get === get && tabs.query === query && runtime.getManifest === getManifest"
+            for exact in (captured, identity, method, stable):
+                require(text.count(exact) == 1, "Capture recovery must retain its exact captured API identity")
+                scanned = scanned.replace(exact, "APPROVED_CAPTURE_IDENTITY")
+            available = "chrome.scripting?.executeScript"
+            require(text.count(available) == 1, "Capture recovery must retain one scripting availability check")
+            scanned = scanned.replace(available, "APPROVED_CAPTURE_SCRIPTING_AVAILABLE")
+            require(text.count("apply(execute, scripting, [{") == 3,
+                    "Capture recovery must retain its three original pinned dispatch sites")
+            require(not re.search(r"\bscripting\s*(?:\.|\[)", scanned),
+                    "Capture recovery cannot add unreviewed scripting alias access")
+        if label == "network API" and path == ROOT / "core/organizer/deepseek.js":
+            scanned = scanned.replace("this.fetchImpl(", "APPROVED_DEEPSEEK_FETCH(")
+        if label == "website storage or nonlocal extension storage" and path in {ROOT / "background/service-worker.js"}:
+            scanned = scanned.replace("chrome.storage.session", "APPROVED_SESSION_CREDENTIAL_STORAGE")
+        if label == "native messaging" and path == ROOT / "background/context-connections.js":
+            exact = "this.#api.runtime.connectNative(HOST)"
+            require(text.count(exact) == 1, "Context read bridge must keep one private native call")
+            require(text.count("const HOST='com.paia.context_read'") == 1,
+                    "Context read bridge must retain its independent fixed host")
+            require(not re.search(r"\bHOST\s*=(?!'com\.paia\.context_read')", text),
+                    "Context read host must not be reassigned")
+            require("readContextConnectionConfiguration()" in text and
+                    "permissions?.contains?.({permissions:['nativeMessaging']})" in text,
+                    "Context bridge must retain qualification and permission gates")
+            scanned = scanned.replace(exact, "APPROVED_CONTEXT_READ_NATIVE_PORT(HOST)", 1)
+        if label == "clipboard access" and path == ROOT / "ui/context-connections-view.js":
+            exact = "navigator.clipboard.writeText(this.secret)"
+            require(text.count(exact) == 1 and
+                    "copyButton=button(copy('复制凭证','Copy credential'),async()=>" in text and
+                    "if(!this.active||!this.secret)return" in text,
+                    "Context credential copy must remain one explicit live user button")
+            scanned = scanned.replace(exact, "EXPLICIT_CONTEXT_CREDENTIAL_COPY(this.secret)", 1)
+        if label == "native messaging" and path == ROOT / "core/macos-native-secure-store.js":
+            scanned = scanned.replace("runtime.sendNativeMessage(", "APPROVED_MACOS_SECURE_STORE_MESSAGE(")
+        if label == "clipboard access" and path == ROOT / "adapter/chatgpt-composer.js":
+            exact = "this.document.execCommand('insertText',false,insertion)"
+            require(text.count(exact) == 1, "ChatGPT composer must retain one native insertText call")
+            scanned = scanned.replace(exact, "REVIEWED_CHATGPT_INSERT_TEXT", 1)
+        if label == "clipboard access" and path == ROOT / "core/prompt-clipboard.js":
+            scanned = scanned.replace("globalThis.navigator.clipboard", "EXPLICIT_PROMPT_CLIPBOARD")
+            require("clipboard.writeText(text)" in text and "readText" not in text,
+                    "Prompt fallback may only write the explicitly selected text")
+        if label == "clipboard access" and path == ROOT / "ui/reading-actions.js":
+            scanned = scanned.replace("navigator.clipboard.writeText(text)", "EXPLICIT_READING_COPY(text)")
+        if label == "clipboard access" and path in (ROOT / "ui/context-workspace.js",):
+            scanned = scanned.replace("navigator.clipboard.writeText(result.text)", "EXPLICIT_MEMORY_CONTEXT_COPY(result.text)")
+        if label == "keyboard listener" and path in (ROOT / "ui/library.js", ROOT / "ui/library-entry-editor.js"):
+            scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_EDITOR_SHORTCUT(")
+        if label == "keyboard listener" and path == ROOT / "ui/context-cards.js":
+            # Local Context textbox/menu only; no document/content-script capture.
+            for reviewed in ("this.menu.addEventListener('keydown',", "this.field.addEventListener('keydown',"):
+                require(text.count(reviewed) == 1, "Context keyboard handlers stay scoped to one menu/textbox")
+                scanned = scanned.replace(reviewed, "SCOPED_CONTEXT_EDITOR_KEYS(")
+            require("this.composing||e.isComposing||e.keyCode===229" in text,
+                    "Context shortcuts must defer to native IME composition")
+            require("document.addEventListener('keydown'," not in text and "window.addEventListener('keydown'," not in text,
+                    "Context must not install global keyboard capture")
+        if label == "keyboard listener" and path == ROOT / "ui/settings-details.js":
+            # Exact local modal Tab loop: no text collection or global listener.
+            exact = " dialog.addEventListener('keydown',event=>{\n  if(event.key!=='Tab'||event.altKey||event.ctrlKey||event.metaKey)return;\n  const visible=[...dialog.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].filter(node=>!node.disabled&&node.tabIndex>=0&&node.getClientRects().length);\n  const stops=visible.filter(node=>node.type!=='radio'||!node.name||node===(visible.find(other=>other.type==='radio'&&other.name===node.name&&other.checked)||visible.find(other=>other.type==='radio'&&other.name===node.name)));\n  const first=stops[0],last=stops.at(-1),active=document.activeElement;\n  if(!first)return;\n  if(event.shiftKey?(active===first||!dialog.contains(active)):(active===last||!dialog.contains(active))){event.preventDefault();(event.shiftKey?last:first).focus();}\n });"
+            require(text.count(exact) == 1, "settings details retains reviewed modal Tab-only focus loop")
+            scanned = scanned.replace(exact, "SCOPED_SETTINGS_DIALOG_TAB_LOOP")
+        if label == "keyboard listener" and path == ROOT / "ui/context-topics.js":
+            reviewed = "this.field.addEventListener('keydown',"
+            exact = "this.field.addEventListener('keydown',event=>this.move(event));"
+            boundary = "this.field=element('div','topic-field');this.field.setAttribute('role','group');"
+            require(text.count(reviewed) == 1 and exact in text and boundary in text,
+                    "Context Topic keys stay on one reviewed capsule group")
+            require("event.isComposing||event.keyCode===229" in text,
+                    "Context Topic navigation must defer to native composition")
+            scanned = scanned.replace(reviewed, "SCOPED_CONTEXT_TOPIC_NAVIGATION(", 1)
+        if label == "keyboard listener" and path == ROOT / "ui/ai-presentation.js":
+            scanned = scanned.replace("root.addEventListener('keydown',", "SCOPED_AI_EDITOR_SHORTCUT(")
+        if label == "keyboard listener" and path == ROOT / "ui/search-experience.js":
+            scanned = scanned.replace("input.addEventListener('keydown',", "SCOPED_SEARCH_INPUT(").replace("results.addEventListener('keydown',", "SCOPED_SEARCH_RESULTS(")
+        if label == "keyboard listener" and path == ROOT / "ui/universal-search.js":
+            scanned = scanned.replace("input.addEventListener('keydown',", "SCOPED_UNIVERSAL_INPUT(").replace("root.addEventListener('keydown',", "SCOPED_UNIVERSAL_RESULTS(")
+        if label == "keyboard listener" and path == ROOT / "ui/archive.js":
+            scanned = scanned.replace("document.addEventListener('keydown',", "TRUSTED_ARCHIVE_FIND_ESCAPE(")
+        if label == "keyboard listener" and path == ROOT / "ui/topic-actions.js":
+            scanned = scanned.replace("draft.onkeydown=", "SCOPED_TODAY_THOUGHT_SHORTCUT=")
+        if label == "keyboard listener" and path == ROOT / "ui/topic-workspace.js":
+            reviewed = "menu.addEventListener('keydown',"
+            exact = "menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;trigger.focus({preventScroll:true});}});"
+            require(text.count(reviewed) == 1 and exact in text,
+                    "ui/topic-workspace.js: reviewed Library menu Escape listener changed or duplicated")
+            scanned = scanned.replace(reviewed, "SCOPED_LIBRARY_MENU_ESCAPE(", 1)
+        if label == "keyboard listener" and path == ROOT / "ui/app-shell.js":
+            reviewed = "menu.addEventListener('keydown',"
+            exact = "menu.addEventListener('keydown',event=>{if(event.key==='Escape'&&menu.open){event.preventDefault();event.stopPropagation();menu.open=false;label.focus({preventScroll:true});}});"
+            require(text.count(reviewed) == 1 and exact in text,
+                    "ui/app-shell.js: reviewed compact navigation Escape listener changed or duplicated")
+            scanned = scanned.replace(reviewed, "SCOPED_COMPACT_NAV_ESCAPE(", 1)
+        if label == "keyboard listener" and path == ROOT / "ui/components/scope-search.js":
+            reviewed = "host.addEventListener('keydown',"
+            exact = "host.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&((event.key.toLowerCase()==='z'&&!event.altKey)||event.key.toLowerCase()==='y'))isolated(event);});"
+            boundary = "const isolated=event=>{if(host.closest('#document-page'))event.stopPropagation();};"
+            require(text.count(reviewed) == 1 and exact in text and boundary in text,
+                    "ui/components/scope-search.js: reviewed native search history boundary changed or duplicated")
+            scanned = scanned.replace(reviewed, "SCOPED_SEARCH_NATIVE_HISTORY(", 1)
+        if label == "keyboard listener" and path == ROOT / "content/prompt-surface.js":
+            require("listen(orb,'keydown'," in text and "listen(document,'keydown'," not in text,
+                    "Prompt movement keys must be orb scoped")
+        if label == "keyboard listener" and path == ROOT / "content/prompt-reuse.js":
+            # Reviewed effect-safety fence only: trusted Enter/Space autorepeat
+            # until physical release; it never collects text or any other key.
+            exact = " const guardActivation=key=>{\n  releaseActivation?.();if(!['Enter',' '].includes(key))return;\n  const release=()=>{document.removeEventListener('keydown',down,true);document.removeEventListener('keyup',up,true);window.removeEventListener('blur',release,true);if(releaseActivation===release)releaseActivation=null;};\n  const down=e=>{if(!e.isTrusted||e.key!==key)return;if(!e.repeat){release();return;}e.preventDefault();e.stopImmediatePropagation();};\n  const up=e=>{if(!e.isTrusted||e.key!==key)return;e.preventDefault();e.stopImmediatePropagation();release();};\n  document.addEventListener('keydown',down,true);document.addEventListener('keyup',up,true);window.addEventListener('blur',release,true);releaseActivation=release;\n };"
+            require(text.count(exact) == 1,
+                    "Prompt receiver retains the exact reviewed activation-release fence")
+            scanned = scanned.replace(exact, "REVIEWED_PROMPT_ACTIVATION_RELEASE", 1)
+        if label == "keyboard listener" and path == ROOT / "ui/prompt-surface.js":
+            # Private control-local activation metadata; no document/host keys.
+            exact = "function trackActivation(button){\n if(button?.tagName!=='BUTTON')throw Error('INVALID_ACTIVATION_CONTROL');\n button.addEventListener('keydown',event=>{if(!event.isTrusted||event.isComposing||event.keyCode===229||!['Enter',' '].includes(event.key))return;if(event.repeat){event.preventDefault();event.stopImmediatePropagation();return;}heldActivationKey=event.key;});\n button.addEventListener('keyup',event=>{if(event.isTrusted&&event.key===heldActivationKey)heldActivationKey=null;});\n}"
+            require(text.count(exact) == 1,
+                    "Prompt activation keys stay on exact trusted local buttons")
+            scanned = scanned.replace(exact, "REVIEWED_PRIVATE_BUTTON_ACTIVATION", 1)
+            scanned = scanned.replace("document.getElementById('card').addEventListener('keydown',", "SCOPED_PROMPT_CARD_KEYS(")
+            # Original-text range selection stays inside the private check body;
+            # no global/host key capture and no key values are consumed.
+            reviewed = "body.addEventListener('keyup',selected);"
+            require(text.count(reviewed) == 1 and "body.className='check-body'" in text
+                    and "body.contains(range.startContainer)" in text and "body.contains(range.endContainer)" in text,
+                    "Prompt range selection must remain exact private-body scoped")
+            scanned = scanned.replace(reviewed, "SCOPED_PROMPT_RANGE_SELECTION();", 1)
+        if label == "keyboard listener" and path == ROOT / "ui/prompt-next.js":
+            reviewed = "capsule.addEventListener('keydown',"
+            require(text.count(reviewed) == 1 and "e.key==='Escape'" in text,
+                    "Suggestion keys remain private-capsule Escape only")
+            scanned = scanned.replace(reviewed, "SCOPED_NEXT_PROMPT_ESCAPE(")
+        match = re.search(pattern, scanned, re.I if label == "system keychain" else 0)
+        line = text.count("\n", 0, match.start()) + 1 if match else 0
+        require(not match, f"{path.relative_to(ROOT)}:{line}: forbidden {label}")
+    if path == ROOT / "core/macos-native-secure-store.js":
+        require("const HOST_NAME='com.paia.secure_store';" in text,
+                "macOS secure-store adapter must pin the reviewed native host name")
+        require(text.count("sendNativeMessage(") == 1,
+                "macOS secure-store adapter must keep one audited native messaging call site")
+        require("connectNative(" not in text,
+                "macOS secure-store adapter must use one-shot native messages, not a long-lived port")
+        require("SECURE_NATIVE_MESSAGING_PERMISSION_REQUIRED" in text and "requestMacOSNativeSecureStorePermission" in text,
+                "macOS secure-store adapter must fail closed before optional permission and expose only explicit request")
+    remote_literals = list(re.finditer(r"['\"`](https?://[^'\"`\s]+)", text))
+    about_links = path == ROOT / "ui/settings-about.js"
+    if about_links:
+        # Reviewed SET2-04 public document links only. This does not admit a
+        # network API, remote resource, permission, or automatic navigation.
+        require(text.count("const SITE='https://inputarchive.com';") == 1 and
+                len(remote_literals) == 1 and
+                text.count("document.createElement('a')") == 1 and
+                "link.href=item.href;" in text and
+                "link.target='_blank';link.rel='noopener noreferrer';" in text,
+                "About must retain its single verified native-anchor origin")
+        require(not re.search(r"\b(?:location|window|chrome|globalThis)\s*(?:\.|\[)|\bopen\s*\(|\.\s*(?:click|submit)\s*\(|\.\s*(?:src|srcset|action)\s*=|setAttribute\s*\(\s*['\"](?:src|srcset|action)['\"]", text),
+                "About links must not navigate, load resources, or invoke privileged actions automatically")
+    # Inert, injected Sync transports only. Exact module/literal pairs do not
+    # grant host permissions or authorize OAuth, default fetch or activation.
+    sync_literals = {
+        "core/browser-native-sync/providers/google-drive.js": {
+            "https://www.googleapis.com/auth/drive.appdata",
+            "https://www.googleapis.com/drive/v3/files",
+            "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
+        },
+        "core/browser-native-sync/providers/google-drive-http.js": {
+            "https://www.googleapis.com",
+        },
+        "core/browser-native-sync/providers/onedrive.js": {
+            "https://graph.microsoft.com/v1.0/me/drive",
+            "https://graph.microsoft.com",
+        },
+        "core/browser-native-sync/providers/onedrive-http.js": {
+            "https://graph.microsoft.com",
+        },
+    }.get(path.relative_to(ROOT).as_posix(), set())
+    if sync_literals:
+        require(sorted(m.group(1) for m in remote_literals) == sorted(sync_literals),
+                f"{path.relative_to(ROOT)}: reviewed Sync URL set changed or duplicated")
+    for match in remote_literals:
+        parsed = urlsplit(match.group(1))
+        approved_document_origin = about_links and match.group(1) == "https://inputarchive.com"
+        require(parsed.scheme == "https" and (parsed.netloc == "chatgpt.com" or approved_document_origin or match.group(1) in sync_literals),
+                f"{path.relative_to(ROOT)}: unexpected remote URL literal")
+    for match in re.finditer(r"\b(?:chrome\s*\.\s*)?runtime\s*\.\s*getURL\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
+        local_reference(match.group(1), ROOT / "manifest.json",
+                        f"{path.relative_to(ROOT)} runtime.getURL")
+    # A quoted schema key such as 'from','to' is not a module keyword.
+    # Keep zero-space legal syntax (from"./module.js") covered.
+    for match in re.finditer(r"(?<!['\"`])(?:\bfrom\s*|\bimport\s*)['\"]([^'\"]+)['\"]", text):
+        local_reference(match.group(1), path, f"{path.relative_to(ROOT)} import")
+    for match in re.finditer(r"\bimport\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
+        local_reference(match.group(1), path, f"{path.relative_to(ROOT)} dynamic import")
+    require(not re.search(r"\bimport\s*\(\s*[^'\"\s]", text),
+            f"{path.relative_to(ROOT)}: nonliteral dynamic import")
+
+
+class PackageHTML(HTMLParser):
+    def __init__(self, path):
+        super().__init__()
+        self.path = path
+        self.in_inline_script = False
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        for name, value in attrs.items():
+            require(not name.lower().startswith("on"),
+                    f"{self.path.relative_to(ROOT)}: inline event handler {name}")
+            require(not (value or "").strip().lower().startswith("javascript:"),
+                    f"{self.path.relative_to(ROOT)}: javascript URL")
+        require(not (tag == "input" and (attrs.get("type", "").lower() == "password" or (attrs.get("type", "").lower() == "file" and not (self.path == ROOT / "ui/archive.html" and ((attrs.get("id") == "history-file" and attrs.get("accept") == ".zip,.json,application/zip,application/json") or (attrs.get("id") == "backup-file" and attrs.get("accept") == ".paia-backup,.jsonl,application/x-ndjson")))))),
+                f"{self.path.relative_to(ROOT)}: file/password input forbidden")
+        require(tag not in {"iframe", "object", "embed"},
+                f"{self.path.relative_to(ROOT)}: embedded browsing context forbidden")
+        require(not (tag == "meta" and attrs.get("http-equiv", "").lower() == "refresh"),
+                f"{self.path.relative_to(ROOT)}: meta refresh forbidden")
+        for name in ("src", "poster", "data"):
+            if attrs.get(name):
+                local_reference(attrs[name], self.path, f"{self.path.relative_to(ROOT)} {tag}.{name}")
+        if tag in {"link", "use", "image"} and attrs.get("href"):
+            local_reference(attrs["href"], self.path, f"{self.path.relative_to(ROOT)} {tag}.href")
+        if attrs.get("srcset"):
+            for source in attrs["srcset"].split(","):
+                local_reference(source.strip().split()[0], self.path,
+                                f"{self.path.relative_to(ROOT)} srcset")
+        if tag == "script":
+            self.in_inline_script = not attrs.get("src")
+        if tag == "style":
+            require(False, f"{self.path.relative_to(ROOT)}: keep styles in packaged CSS files")
+
+    def handle_endtag(self, tag):
+        if tag == "script":
+            self.in_inline_script = False
+
+    def handle_data(self, data):
+        if self.in_inline_script and data.strip():
+            require(False, f"{self.path.relative_to(ROOT)}: inline JavaScript forbidden")
+
+
+def audit_resources():
+    paths = set()
+    for dirname in RUNTIME_DIRS:
+        directory = ROOT / dirname
+        if directory.exists():
+            paths.update(path for path in directory.rglob("*") if path.is_file())
+    paths.update(path for path in ROOT.iterdir() if path.suffix in {".js", ".mjs", ".html", ".css", ".svg"})
+    require(bool(paths), "No runtime resources found")
+    for path in sorted(paths):
+        require(path.resolve().is_relative_to(ROOT), f"{path.relative_to(ROOT)}: symlink escapes package")
+        if not path.resolve().is_relative_to(ROOT):
+            continue
+        if path.suffix not in {".js", ".mjs", ".html", ".css", ".svg"}:
+            continue
+        text = path.read_text(encoding="utf-8")
+        if path.suffix in {".js", ".mjs"}:
+            audit_js(path, text)
+        elif path.suffix in {".html", ".svg"}:
+            parser = PackageHTML(path)
+            parser.feed(text)
+            parser.close()
+        if path.suffix in {".css", ".svg"}:
+            for match in re.finditer(r"url\(\s*['\"]?([^)'\"]+)['\"]?\s*\)", text):
+                reference = match.group(1).strip()
+                if reference.startswith("#"):
+                    continue
+                local_reference(reference, path, f"{path.relative_to(ROOT)} CSS URL")
+            require(not re.search(r"@import\b", text, re.I),
+                    f"{path.relative_to(ROOT)}: CSS imports forbidden")
+    return len(paths)
+
+
+def main():
+    audit_manifest()
+    count = audit_resources()
+    if ERRORS:
+        print(f"FAIL: {len(ERRORS)} package guardrail issue(s), {CHECKS} checks")
+        for error in ERRORS:
+            print(f"- {error}")
+        return 1
+    print(f"PASS: {CHECKS} package guardrails across {count} runtime resources")
+    print("Static audit only; actual logged-in Chrome verification requires separate recorded evidence.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,4 @@
+Unpublished build retained: /Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/work/local-seven-plan-continuation-20261025/.release-ca04053.building-tgo0w5zi
+FAIL: 1 package guardrail issue(s), 24757 checks
+- background/capture-recovery.js:31: forbidden credential, history or unrelated privileged API
+Current release failed package guardrails
