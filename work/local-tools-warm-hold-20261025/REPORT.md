@@ -1,5 +1,7 @@
 # Original local tools warm hold — local candidate
 
+**Current successor:** read REVIEW-FOLLOWUP.md for the independent review corrections and final 43/43 result. The initial d9ee08a candidate and its results remain recorded below.
+
 Base: `bf7e5cb1dce4c99f0d77d0466370862e6728eaff`. Branch `codex/local-tools-warm-hold-20261025`.
 
 ## Scope and behavior
@@ -14,7 +16,7 @@ Import preserves grants, tasks and evidence; it never pauses/cancels to manufact
 
 Backup keeps staged session items. An already admitted staging validator can finish while hold drains it. A queued restore/settings write is refused after hold; an already-issued settings SDK publication is awaited. A subsequent blocked marker cleanup leaves `backup-recovery-settings` intact and hold returns OUTCOME_UNKNOWN. It must be explicitly recovered after release. No transaction-success claim is substituted for the full restore/settings outcome. Retired export methods still reject FEATURE_UNAVAILABLE before argument/storage access. Historical encoder subclasses remain usable in ordinary tests but cannot acquire an original production hold.
 
-Integrity stays strictly read-only, RPC-driven pagination. Original pending scan/result continuation drains; static sessions and counts remain. A nonempty session map is not an active writer and is not deleted to fake completion. Explicit cancel/revoke/expiry mutation is rejected while held for all owners, rather than silently changing the lease snapshot.
+Integrity stays strictly read-only, RPC-driven pagination. Original pending scan/result continuation drains; static sessions and counts remain. A nonempty session map is not an active writer and is not deleted to fake completion. Explicit cancel/expiry mutation is rejected while held. Genuine Import disconnect/revoke remains immediate: it revokes the original grant and invalidates the original hold (corrected in REVIEW-FOLLOWUP.md).
 
 The read-only proof includes gate, restore epoch, backup generation, recovery-settings marker, control-publication reservation and revision; Import additionally reads original bounded task pages. Canonical control encoding preserves exact stored shapes. Pending settings/control reservation refuse. Repeated fences consume the same ticket. This is **only warm local owner coverage**: it proves neither historical external insertion, remote provider termination, cold legacy closure nor global selection qualification. Activation remains disabled elsewhere.
 

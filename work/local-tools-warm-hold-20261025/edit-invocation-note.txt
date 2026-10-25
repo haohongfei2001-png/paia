@@ -1,0 +1,1 @@
+A Python edit invoked from extension cwd used extension/core/... and failed FileNotFoundError before editing. The following three-file Node invocation still executed and is preserved as review-owning-pre-polish.log. The edit was corrected from worktree root; no source was overwritten or state reset.

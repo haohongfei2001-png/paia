@@ -233,7 +233,7 @@ export class ImportLedger {
    await t.put('blockIndex',blockIndex(b,ix.sequence,records));await this.store.trackBlock(t,b);if(oldDocumentId!==b.documentId)await this.store.refreshDoc(t,oldDocumentId);await this.store.refreshDoc(t,b.documentId);return {id:b.id,revision:b.revision,documentId:b.documentId,action};
   });
  }
- revokeOwner(owner){this.#selection.admit();for(const [key,g]of this.grants)if(g.owner===owner)this.grants.delete(key);}
+ revokeOwner(owner){this.#selection.invalidate();for(const [key,g]of this.grants)if(g.owner===owner)this.grants.delete(key);}
 }
 
 const originalPrototype=ImportLedger.prototype;

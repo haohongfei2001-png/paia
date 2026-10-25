@@ -1,0 +1,268 @@
+TAP version 13
+# Subtest: production ledger has no verified adapter and refuses writes despite synthetic adapter claims
+ok 1 - production ledger has no verified adapter and refuses writes despite synthetic adapter claims
+  ---
+  duration_ms: 22.178625
+  type: 'test'
+  ...
+# Subtest: preflight persists no text/title, commits exact text/time once, retries do not double counters
+ok 2 - preflight persists no text/title, commits exact text/time once, retries do not double counters
+  ---
+  duration_ms: 20.135209
+  type: 'test'
+  ...
+# Subtest: batch digest mismatch and wrong owner cannot commit
+ok 3 - batch digest mismatch and wrong owner cannot commit
+  ---
+  duration_ms: 8.541542
+  type: 'test'
+  ...
+# Subtest: pause and worker restart require fresh consent and whole content fingerprint for resume
+ok 4 - pause and worker restart require fresh consent and whole content fingerprint for resume
+  ---
+  duration_ms: 15.603
+  type: 'test'
+  ...
+# Subtest: cross-batch conflicting times are known before first record commit
+ok 5 - cross-batch conflicting times are known before first record commit
+  ---
+  duration_ms: 12.9685
+  type: 'test'
+  ...
+# Subtest: import protects authored library text, title, note, exclusion, revisions and capturedAt
+ok 6 - import protects authored library text, title, note, exclusion, revisions and capturedAt
+  ---
+  duration_ms: 19.181708
+  type: 'test'
+  ...
+# Subtest: permanent ignore after preflight wins and purge removes import source evidence
+ok 7 - permanent ignore after preflight wins and purge removes import source evidence
+  ---
+  duration_ms: 23.02625
+  type: 'test'
+  ...
+# Subtest: transaction abort rolls records, default blocks, facts and checkpoint back together
+ok 8 - transaction abort rolls records, default blocks, facts and checkpoint back together
+  ---
+  duration_ms: 16.654334
+  type: 'test'
+  ...
+# Subtest: same text distinct sources stay distinct and ambiguous sources are not active library text
+ok 9 - same text distinct sources stay distinct and ambiguous sources are not active library text
+  ---
+  duration_ms: 13.860916
+  type: 'test'
+  ...
+# Subtest: capture and import dedupe together, later empty response evidence cannot erase official time
+ok 10 - capture and import dedupe together, later empty response evidence cannot erase official time
+  ---
+  duration_ms: 17.14525
+  type: 'test'
+  ...
+# Subtest: existing reliable response time is preserved and contradictory export is explicitly partial
+ok 11 - existing reliable response time is preserved and contradictory export is explicitly partial
+  ---
+  duration_ms: 15.519208
+  type: 'test'
+  ...
+# Subtest: quota-style abort does not advance checkpoint and resume status marks missing in-memory grant
+ok 12 - quota-style abort does not advance checkpoint and resume status marks missing in-memory grant
+  ---
+  duration_ms: 8.9575
+  type: 'test'
+  ...
+# Subtest: all projected fields are allowlisted and only exact sent text user messages are admitted
+ok 13 - all projected fields are allowlisted and only exact sent text user messages are admitted
+  ---
+  duration_ms: 4.258125
+  type: 'test'
+  ...
+# Subtest: all resumable tasks remain reachable through bounded task pages
+ok 14 - all resumable tasks remain reachable through bounded task pages
+  ---
+  duration_ms: 19.400875
+  type: 'test'
+  ...
+# Subtest: legacy snapshot tombstones exclude all import facts both before and after preflight
+ok 15 - legacy snapshot tombstones exclude all import facts both before and after preflight
+  ---
+  duration_ms: 13.246
+  type: 'test'
+  ...
+# Subtest: conflicting branch evidence across preflight batches never creates an active linear block
+ok 16 - conflicting branch evidence across preflight batches never creates an active linear block
+  ---
+  duration_ms: 11.772875
+  type: 'test'
+  ...
+# Subtest: too many legacy candidates fail before an unbounded legacy record materialization
+ok 17 - too many legacy candidates fail before an unbounded legacy record materialization
+  ---
+  duration_ms: 129.73125
+  type: 'test'
+  ...
+# Subtest: import capability requires exact own archive page, not popup/content/subframe/foreign origin
+ok 18 - import capability requires exact own archive page, not popup/content/subframe/foreign origin
+  ---
+  duration_ms: 1.045542
+  type: 'test'
+  ...
+# Subtest: backend cannot be enabled with a client schema flag, fixture name, or unbound grant
+ok 19 - backend cannot be enabled with a client schema flag, fixture name, or unbound grant
+  ---
+  duration_ms: 0.200083
+  type: 'test'
+  ...
+# Subtest: production import registry stays empty; native messaging is optional rather than ambient authority
+ok 20 - production import registry stays empty; native messaging is optional rather than ambient authority
+  ---
+  duration_ms: 3.862459
+  type: 'test'
+  ...
+# Subtest: Import: original warm hold is readonly and exact token release does not replay
+ok 21 - Import: original warm hold is readonly and exact token release does not replay
+  ---
+  duration_ms: 66.950291
+  type: 'test'
+  ...
+# Subtest: Import: identity substitution and original snapshot change refuse
+ok 22 - Import: identity substitution and original snapshot change refuse
+  ---
+  duration_ms: 32.961166
+  type: 'test'
+  ...
+# Subtest: Backup: original warm hold is readonly and exact token release does not replay
+ok 23 - Backup: original warm hold is readonly and exact token release does not replay
+  ---
+  duration_ms: 33.543
+  type: 'test'
+  ...
+# Subtest: Backup: identity substitution and original snapshot change refuse
+ok 24 - Backup: identity substitution and original snapshot change refuse
+  ---
+  duration_ms: 33.301125
+  type: 'test'
+  ...
+# Subtest: Integrity: original warm hold is readonly and exact token release does not replay
+ok 25 - Integrity: original warm hold is readonly and exact token release does not replay
+  ---
+  duration_ms: 31.8915
+  type: 'test'
+  ...
+# Subtest: Integrity: identity substitution and original snapshot change refuse
+ok 26 - Integrity: identity substitution and original snapshot change refuse
+  ---
+  duration_ms: 29.534792
+  type: 'test'
+  ...
+# Subtest: Import queued begin cannot issue its first write once hold closes admission
+ok 27 - Import queued begin cannot issue its first write once hold closes admission
+  ---
+  duration_ms: 24.182083
+  type: 'test'
+  ...
+# Subtest: Import nonterminal durable task refuses without clearing original grant or task
+ok 28 - Import nonterminal durable task refuses without clearing original grant or task
+  ---
+  duration_ms: 32.285625
+  type: 'test'
+  ...
+# Subtest: Backup stage validator remains an actual drain task and session items are preserved
+ok 29 - Backup stage validator remains an actual drain task and session items are preserved
+  ---
+  duration_ms: 21.072417
+  type: 'test'
+  ...
+# Subtest: Backup pending settings recovery is UNKNOWN, not an empty task-set proof
+ok 30 - Backup pending settings recovery is UNKNOWN, not an empty task-set proof
+  ---
+  duration_ms: 20.314375
+  type: 'test'
+  ...
+# Subtest: timeout retains real stage pending and prevents late acquire from reviving lease
+ok 31 - timeout retains real stage pending and prevents late acquire from reviving lease
+  ---
+  duration_ms: 22.028834
+  type: 'test'
+  ...
+# Subtest: Import handler is bound to exact original ledger and runtime
+ok 32 - Import handler is bound to exact original ledger and runtime
+  ---
+  duration_ms: 19.428125
+  type: 'test'
+  ...
+# Subtest: Integrity retains static session and original counts while held
+ok 33 - Integrity retains static session and original counts while held
+  ---
+  duration_ms: 24.718042
+  type: 'test'
+  ...
+# Subtest: issued Import cancel transaction is drained through original commit and grant removal
+ok 34 - issued Import cancel transaction is drained through original commit and grant removal
+  ---
+  duration_ms: 21.484083
+  type: 'test'
+  ...
+# Subtest: Integrity actual native read stays in drain through its result continuation
+ok 35 - Integrity actual native read stays in drain through its result continuation
+  ---
+  duration_ms: 18.341667
+  type: 'test'
+  ...
+# Subtest: ordinary cumulative 2 MiB hold proof budget refuses without modifying evidence
+ok 36 - ordinary cumulative 2 MiB hold proof budget refuses without modifying evidence
+  ---
+  duration_ms: 20.152459
+  type: 'test'
+  ...
+# Subtest: queued settings recovery cannot begin a control write after hold
+ok 37 - queued settings recovery cannot begin a control write after hold
+  ---
+  duration_ms: 20.291041
+  type: 'test'
+  ...
+# Subtest: issued Backup SDK publication remains tracked; blocked cleanup leaves its recovery marker
+ok 38 - issued Backup SDK publication remains tracked; blocked cleanup leaves its recovery marker
+  ---
+  duration_ms: 22.011541
+  type: 'test'
+  ...
+# Subtest: fences consume the same cumulative proof budget, never renew per call
+ok 39 - fences consume the same cumulative proof budget, never renew per call
+  ---
+  duration_ms: 34.424625
+  type: 'test'
+  ...
+# Subtest: second holds and foreign releases never clear the existing owner lease
+ok 40 - second holds and foreign releases never clear the existing owner lease
+  ---
+  duration_ms: 26.807167
+  type: 'test'
+  ...
+# Subtest: review: fence deadline bounds a blocked queue and late probe cannot revive an old hold
+ok 41 - review: fence deadline bounds a blocked queue and late probe cannot revive an old hold
+  ---
+  duration_ms: 26.902583
+  type: 'test'
+  ...
+# Subtest: review: real Import disconnect revokes original grant while acquiring
+ok 42 - review: real Import disconnect revokes original grant while acquiring
+  ---
+  duration_ms: 15.004084
+  type: 'test'
+  ...
+# Subtest: review: real Import disconnect revokes original grant while held
+ok 43 - review: real Import disconnect revokes original grant while held
+  ---
+  duration_ms: 19.867916
+  type: 'test'
+  ...
+1..43
+# tests 43
+# suites 0
+# pass 43
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 832.676125

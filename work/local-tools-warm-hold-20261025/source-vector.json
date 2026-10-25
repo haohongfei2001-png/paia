@@ -1,8 +1,8 @@
 {
   "extension/background/import-handler.js": "fa84692fcfe8085b66ca7e93b97b7ce508a3e48f0f982eaf64bc7a3f7f05b39a",
-  "extension/core/import/ledger.js": "6c52b653a197165589d0d7bf4cfe35bcefe46508e45cf8131b12e4019120d7cd",
+  "extension/core/import/ledger.js": "ffda43c4b9f38870b3db197ea00127908ed1d9d8eaecfc01b3c343ce572e295a",
   "extension/core/backup-service.js": "1f383e6b21c70988b21174667071e257108ddebb086b1bfa85d95db3170e7150",
   "extension/core/integrity-checker.js": "cef9c6de5c65fe5c305a6bc2542d6cc2e8cfef6a8a10a45dd15226f54b5b0d51",
-  "extension/core/local-tool-selection-hold.js": "7110bc5bee68652c3dfd878ee1f084b0bfda6fb7a59fa03a0959ff7847984153",
-  "extension/tests/local-tools-selection-hold.test.mjs": "3b5be67d5e9740d00b72a48683e6a373d381f8ccefe287ad635d3a241d8f4c69"
+  "extension/core/local-tool-selection-hold.js": "648744cbe2a90552cba5834537d571014ca6f046274f569800b37984b4041695",
+  "extension/tests/local-tools-selection-hold.test.mjs": "2aab1a19c87e1e5ea703c158120bcb1fd2504f0b7fa402bda25a5d7941a5f0cc"
 }

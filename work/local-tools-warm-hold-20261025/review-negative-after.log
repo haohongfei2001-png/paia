@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: review: fence deadline bounds a blocked queue and late probe cannot revive an old hold
+ok 1 - review: fence deadline bounds a blocked queue and late probe cannot revive an old hold
+  ---
+  duration_ms: 78.630584
+  type: 'test'
+  ...
+# Subtest: review: real Import disconnect revokes original grant while acquiring
+ok 2 - review: real Import disconnect revokes original grant while acquiring
+  ---
+  duration_ms: 20.681625
+  type: 'test'
+  ...
+# Subtest: review: real Import disconnect revokes original grant while held
+ok 3 - review: real Import disconnect revokes original grant while held
+  ---
+  duration_ms: 25.444792
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 348.353792
