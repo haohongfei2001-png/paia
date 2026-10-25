@@ -53,7 +53,9 @@ header #search-query{height:40px;min-height:40px;padding:8px 4px;font-size:13px}
 .more{opacity:0;flex-basis:36px;min-width:36px;width:36px;border-radius:9px}
 #surface-tools{position:relative;inset:auto;flex:1 1 auto;min-height:0;z-index:4;max-height:none;align-content:flex-start;background:var(--panel);overflow:auto}
 #surface-tools button{flex:0 0 auto}
-#status:not(:empty){position:relative;margin:0 6px 4px;padding:6px 9px;background:var(--panel);border-radius:8px;box-shadow:0 2px 9px #17243b12}
+/* R3's plain persistent notice stays in the original measured flow. The 12px
+   normal type role remains proportional to the existing 14px root for zoom. */
+#status:not(:empty){position:relative;margin:0;padding:5px 15px;max-height:72px;font-size:calc(12rem / 14);line-height:1.6;background:transparent;border-radius:0;box-shadow:none}
 #status[data-quiet=true]{position:absolute;left:6px;right:6px;bottom:52px;clip-path:inset(50%);width:1px;height:1px;overflow:hidden}
 .row[data-inserted=true],#capsule-use[data-inserted=true]{background:var(--inserted);color:var(--inserted-text)}
 .row[data-inserted=true] .text{padding-right:20px}.row[data-inserted=true]:after,#capsule-use[data-inserted=true]:after{content:"✓";display:block;position:absolute;left:auto;bottom:auto;right:12px;top:50%;transform:translateY(-50%);width:auto;height:auto;background:none;color:var(--inserted-text)}
