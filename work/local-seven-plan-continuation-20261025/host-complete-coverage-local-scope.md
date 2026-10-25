@@ -103,3 +103,9 @@ No additional test run is authorized or claimed by this design. Existing quotas 
 - `extension/background/application-selection-commands.js`: `2b3832cf41564b3430c0ca354a2f152ad63307557e3a96b697f14d172aa553fd`
 - `extension/background/context-connections.js`: `93d1a8b633d5e773621679e8deb96d9b907968dd86576f1b8f10e55bef2db961`
 - `extension/core/browser-native-sync/group-checkpoint-scope.js`: `97182bb9edf560d8a5bf6100b2103584341972bba2a0bda9f824b38e016ac981`
+
+## Superseding user decision and implemented scope
+
+The user explicitly approved local receipt-only admission and manual refresh guidance for old pages. Core 5416962 and UI cb20d29 implement that decision: a new constructor refuses unsigned native entry, exact document protocol/known holds require receipt-only-v1, and old protocol pages receive draft-preserving manual refresh guidance. Historical pending/UNKNOWN, legacyCoverageUnknown and already-loaded old constructors remain unchanged. This supersedes only the earlier compatibility-approval blocker, not the historical/lifetime/global proof requirements. The actual paired 5/5 seam and core/UI 158/158 are local synthetic evidence; they are not real-browser evidence.
+
+Current-top inventory implementation is the next separately owned local slice. The design uses only the existing origin query and scripting metadata capability, exact private registration and the same original cumulative ticket, without injection/reload, caller supplied map, new permissions or global activation. See current-host-inventory-design.md. It remains unable to reconstruct destroyed historical witnesses.
