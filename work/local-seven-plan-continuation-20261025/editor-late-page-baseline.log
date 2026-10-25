@@ -1,0 +1,27 @@
+TAP version 13
+# Subtest: a released page prepare completing late cannot deny a newer successful freeze
+not ok 1 - a released page prepare completing late cannot deny a newer successful freeze
+  ---
+  duration_ms: 14.944208
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/application-editor-guard.test.mjs:88:1'
+  failureType: 'testCodeFailure'
+  error: 'GENERATION_EDITOR_PROTECTION_REQUIRED'
+  code: 'GENERATION_EDITOR_PROTECTION_REQUIRED'
+  stack: |-
+    fail (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/background/application-editor-guard.js?late-page-prepare:6:23)
+    checked (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/background/application-editor-guard.js?late-page-prepare:65:255)
+    Object.assertFrozenExtensionPages (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/background/application-editor-guard.js?late-page-prepare:80:37)
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/checkout/extension/tests/application-editor-guard.test.mjs:95:117)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 82.183

@@ -24,7 +24,10 @@ export function installApplicationEditorGuard({prepare,current,release},{api=glo
   if(value.type!=='PREPARE'||held||!registered)return disconnected();
   held=value.nonce;const claim=++serial;let safe=false;
   try{safe=await prepare()===true&&current()===true;}catch{}
-  if(disposed||claim!==serial||held!==value.nonce||!registered)safe=false;
+  // A released or superseded preparation belongs to its original request.
+  // Its late completion must not send a denial into a newer freeze lifetime.
+  if(disposed||claim!==serial||held!==value.nonce)return;
+  if(!registered)safe=false;
   send({type:safe?'FROZEN':'DENIED',nonce:value.nonce});
  });
  const leave=()=>{disconnected();try{port.disconnect();}catch{}};target.addEventListener('pagehide',leave);send({type:'READY',version:1});

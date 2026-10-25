@@ -1,0 +1,190 @@
+TAP version 13
+# Subtest: all original extension pages must freeze and recheck; unacknowledged owner can flush before global fence
+ok 1 - all original extension pages must freeze and recheck; unacknowledged owner can flush before global fence
+  ---
+  duration_ms: 15.092917
+  type: 'test'
+  ...
+# Subtest: original owner refusing dirty never issues a freeze proof
+ok 2 - original owner refusing dirty never issues a freeze proof
+  ---
+  duration_ms: 1.961542
+  type: 'test'
+  ...
+# Subtest: original owner refusing ime never issues a freeze proof
+ok 3 - original owner refusing ime never issues a freeze proof
+  ---
+  duration_ms: 0.478959
+  type: 'test'
+  ...
+# Subtest: original owner refusing unknown never issues a freeze proof
+ok 4 - original owner refusing unknown never issues a freeze proof
+  ---
+  duration_ms: 0.925666
+  type: 'test'
+  ...
+# Subtest: original owner refusing save-failed never issues a freeze proof
+ok 5 - original owner refusing save-failed never issues a freeze proof
+  ---
+  duration_ms: 0.540042
+  type: 'test'
+  ...
+# Subtest: missing or unregistered page, duplicate/unknown document and unavailable inventory refuse
+ok 6 - missing or unregistered page, duplicate/unknown document and unavailable inventory refuse
+  ---
+  duration_ms: 0.53825
+  type: 'test'
+  ...
+# Subtest: disconnect while owner flush is pending rejects instead of treating missing page as saved
+ok 7 - disconnect while owner flush is pending rejects instead of treating missing page as saved
+  ---
+  duration_ms: 0.361459
+  type: 'test'
+  ...
+# Subtest: new document or changed inventory invalidates the held freeze
+ok 8 - new document or changed inventory invalidates the held freeze
+  ---
+  duration_ms: 0.54725
+  type: 'test'
+  ...
+# Subtest: fresh challenge rechecks original owner and input invalidation revokes the old ACK
+ok 9 - fresh challenge rechecks original owner and input invalidation revokes the old ACK
+  ---
+  duration_ms: 0.59575
+  type: 'test'
+  ...
+# Subtest: page blocks interaction during freeze and after an active disconnect without clearing text
+ok 10 - page blocks interaction during freeze and after an active disconnect without clearing text
+  ---
+  duration_ms: 0.550375
+  type: 'test'
+  ...
+# Subtest: caller objects and another issuer cannot substitute for a private extension-only freeze proof
+ok 11 - caller objects and another issuer cannot substitute for a private extension-only freeze proof
+  ---
+  duration_ms: 0.435625
+  type: 'test'
+  ...
+# Subtest: an in-flight repeated fence cannot be used as a completed private proof
+ok 12 - an in-flight repeated fence cannot be used as a completed private proof
+  ---
+  duration_ms: 0.680541
+  type: 'test'
+  ...
+# Subtest: registration unavailable or idle disconnect does not freeze ordinary editing
+ok 13 - registration unavailable or idle disconnect does not freeze ordinary editing
+  ---
+  duration_ms: 0.121958
+  type: 'test'
+  ...
+# Subtest: initial inventory synchronously blocks new mutations and concurrent freeze cannot overwrite it
+ok 14 - initial inventory synchronously blocks new mutations and concurrent freeze cannot overwrite it
+  ---
+  duration_ms: 0.414958
+  type: 'test'
+  ...
+# Subtest: original editor freeze deadline covers later checks without extending the lease
+ok 15 - original editor freeze deadline covers later checks without extending the lease
+  ---
+  duration_ms: 1.268375
+  type: 'test'
+  ...
+# Subtest: late timed-out inventory cannot release or authorize a new private freeze
+ok 16 - late timed-out inventory cannot release or authorize a new private freeze
+  ---
+  duration_ms: 1.789542
+  type: 'test'
+  ...
+# Subtest: old fence inventory released before settlement cannot invalidate a newer freeze
+ok 17 - old fence inventory released before settlement cannot invalidate a newer freeze
+  ---
+  duration_ms: 0.507334
+  type: 'test'
+  ...
+# Subtest: without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+ok 18 - without an original cross-page editor proof, preparation stays read-only and direct activation cannot write a marker
+  ---
+  duration_ms: 751.656458
+  type: 'test'
+  ...
+# Subtest: a prepared interrupted operation cannot bypass the editor gate through continue before ready
+ok 19 - a prepared interrupted operation cannot bypass the editor gate through continue before ready
+  ---
+  duration_ms: 589.383625
+  type: 'test'
+  ...
+# Subtest: even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+ok 20 - even a completed original selected receipt is not a cross-page editor proof and cannot reload the extension
+  ---
+  duration_ms: 554.338125
+  type: 'test'
+  ...
+# Subtest: actual worker page hold covers early Prompt, Import, Sync, settings and capture ingress
+ok 21 - actual worker page hold covers early Prompt, Import, Sync, settings and capture ingress
+  ---
+  duration_ms: 134.310417
+  type: 'test'
+  ...
+# Subtest: original page save remains admitted before its FROZEN acknowledgement and denied afterward
+ok 22 - original page save remains admitted before its FROZEN acknowledgement and denied afterward
+  ---
+  duration_ms: 88.831542
+  type: 'test'
+  ...
+# Subtest: actual post-response host notification remains in the worker drain until physical settlement
+ok 23 - actual post-response host notification remains in the worker drain until physical settlement
+  ---
+  duration_ms: 95.700833
+  type: 'test'
+  ...
+# Subtest: original delayed Import notification remains tracked through coalesced replacement
+ok 24 - original delayed Import notification remains tracked through coalesced replacement
+  ---
+  duration_ms: 70.626333
+  type: 'test'
+  ...
+# Subtest: fixed admission exceptions preserve restrictions but never grant a prefix bypass
+ok 25 - fixed admission exceptions preserve restrictions but never grant a prefix bypass
+  ---
+  duration_ms: 0.411958
+  type: 'test'
+  ...
+# Subtest: worker activity observes original nested tails and subsequent local drains without issuing a receipt
+ok 26 - worker activity observes original nested tails and subsequent local drains without issuing a receipt
+  ---
+  duration_ms: 0.500042
+  type: 'test'
+  ...
+# Subtest: actual local maintenance successor remains in worker drain after its first wake settles
+ok 27 - actual local maintenance successor remains in worker drain after its first wake settles
+  ---
+  duration_ms: 80.439458
+  type: 'test'
+  ...
+# Subtest: actual Import notification timer drains only after its original publication settles
+ok 28 - actual Import notification timer drains only after its original publication settles
+  ---
+  duration_ms: 583.090416
+  type: 'test'
+  ...
+# Subtest: actual default unopened Store is initialized before original owners bind their lifetime identity
+ok 29 - actual default unopened Store is initialized before original owners bind their lifetime identity
+  ---
+  duration_ms: 90.062708
+  type: 'test'
+  ...
+# Subtest: synthetic worker tab lookup remains unavailable and emits no receiver message
+ok 30 - synthetic worker tab lookup remains unavailable and emits no receiver message
+  ---
+  duration_ms: 79.967917
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 30
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2078.129209

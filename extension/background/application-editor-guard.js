@@ -2,6 +2,7 @@ import {ArchiveError} from '../core/constants.js';
 import {topicRootTarget} from '../core/topic-root-target.js';
 export const APPLICATION_EDITOR_PORT='paia-application-editor-guard:v1';
 const records=new WeakMap(),limit=64;
+const clock=performance.now.bind(performance),Timer=setTimeout,clearTimer=clearTimeout;
 const fail=()=>{throw new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED');};
 const exact=(value,keys)=>value&&Object.getPrototypeOf(value)===Object.prototype&&Reflect.ownKeys(value).length===keys.length&&keys.every(key=>Object.hasOwn(Object.getOwnPropertyDescriptors(value)[key]??{},'value'));
 const validId=id=>typeof id==='string'&&id.length>0&&id.length<=128;
@@ -16,7 +17,19 @@ function page(api,url){
 export function createApplicationEditorGuard(api){
  const members=new Map();let generation=0,active=null,closed=false;
  const post=(member,message)=>{try{member.port.postMessage(message);}catch{invalidate();}};
- function invalidate(){generation++;if(active){active.valid=false;for(const member of active.members)member.reject?.(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));}}
+ function invalidate(expected=active){
+  if(!expected||active===expected)generation++;
+  if(expected){expected.valid=false;for(const entry of [...expected.waiters])entry.reject(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));}
+ }
+ function acknowledgements(r,field){
+  return Promise.all(r.members.map(member=>new Promise((resolve,reject)=>{
+   const entry={owner:r,settled:false,timer:null,resolve:null,reject:null};
+   const finish=(fn,value)=>{if(entry.settled)return;entry.settled=true;clearTimer(entry.timer);r.waiters.delete(entry);fn(value);};
+   entry.resolve=()=>finish(resolve);entry.reject=error=>finish(reject,error);
+   entry.timer=Timer(()=>{invalidate(r);entry.reject(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));},Math.max(0,r.deadline-clock()));
+   r.waiters.add(entry);member[field]=null;member.wait=entry;member.resolve=entry.resolve;member.reject=entry.reject;
+  })));
+ }
  function connect(port){
   if(port?.name!==APPLICATION_EDITOR_PORT)return false;
   const s=port.sender;
@@ -43,21 +56,31 @@ export function createApplicationEditorGuard(api){
   result.sort((a,b)=>a.documentId.localeCompare(b.documentId));if(result.length!==members.size||!result.length)fail();
   for(const c of result){const m=members.get(c.documentId);if(!m?.ready||m.url!==c.url||m.frameId!==c.frameId)fail();}return result;
  }
- const checked=(token,allowChecking=false)=>{const r=records.get(token);if(!r||r.owner!==owner||r!==active||!r.valid||r.checking&&!allowChecking||r.generation!==generation||r.members.some(m=>members.get(m.id)!==m||m.ack!==r.nonce))fail();return r;};
+ const live=r=>!closed&&active===r&&r.valid&&r.generation===generation&&clock()<r.deadline;
+ const wait=(r,pending)=>new Promise((resolve,reject)=>{
+  // Always observe already issued work; timeout never cancels its late result.
+  const timer=Timer(()=>{r.valid=false;reject(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));},Math.max(0,r.deadline-clock()));
+  Promise.resolve(pending).then(value=>{clearTimer(timer);if(!live(r))reject(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));else resolve(value);},error=>{clearTimer(timer);reject(error);});
+ });
+ const checked=(token,allowChecking=false)=>{const r=records.get(token);if(!r||r.owner!==owner||r!==active||!live(r)||r.phase==='inventory'||r.checking&&!allowChecking||r.generation!==generation||r.members.some(m=>members.get(m.id)!==m||m.ack!==r.nonce))fail();return r;};
  const owner=Object.freeze({connect,
   async freezeExtensionPages(senderDocumentId){
-   if(active||closed||!validId(senderDocumentId))fail();const first=await inventory();if(active||closed||!first.some(c=>c.documentId===senderDocumentId))fail();
-   const token=Object.freeze(Object.create(null)),r={owner,valid:true,generation,nonce:crypto.randomUUID(),members:[...members.values()],inventory:first,fenced:false,challenge:null,checking:false};active=r;records.set(token,r);
+   if(active||closed||!validId(senderDocumentId))fail();
+   // Reserve synchronously before the first inventory await. Only the original
+   // registered pages regain their save path during PREPARE, until their ACK.
+   const token=Object.freeze(Object.create(null)),r={owner,valid:true,generation,nonce:crypto.randomUUID(),members:[],waiters:new Set(),inventory:null,phase:'inventory',deadline:clock()+30000,fenced:false,challenge:null,checking:false};active=r;records.set(token,r);
    try{
-    const waiting=Promise.all(r.members.map(member=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>{invalidate();reject(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));},30000);member.ack=null;member.resolve=()=>{clearTimeout(timer);resolve();};member.reject=error=>{clearTimeout(timer);reject(error);};})));
-    for(const member of r.members)post(member,{type:'PREPARE',nonce:r.nonce});await waiting;
+    const first=await wait(r,inventory());if(!live(r)||!first.some(c=>c.documentId===senderDocumentId))fail();
+    r.inventory=first;r.members=[...members.values()];r.phase='preparing';
+    const waiting=acknowledgements(r,'ack');
+    for(const member of r.members)post(member,{type:'PREPARE',nonce:r.nonce});await wait(r,waiting);
     await owner.fenceExtensionPages(token);return token;
    }catch(error){owner.release(token);throw error;}
   },
   assertFrozenExtensionPages(token){checked(token);return true;},
-  async fenceExtensionPages(token){const r=checked(token);try{r.checking=true;r.fenced=true;r.challenge=crypto.randomUUID();const waiting=Promise.all(r.members.map(member=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>{invalidate();reject(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));},30000);member.check=null;member.resolve=()=>{clearTimeout(timer);resolve();};member.reject=error=>{clearTimeout(timer);reject(error);};})));for(const member of r.members)post(member,{type:'CHECK',nonce:r.nonce,challenge:r.challenge});await waiting;checked(token,true);const now=await inventory();checked(token,true);if(JSON.stringify(now)!==JSON.stringify(r.inventory)||r.members.some(m=>m.check!==r.challenge))fail();r.checking=false;return true;}catch(error){invalidate();throw error;}},
-  release(token){const r=records.get(token);if(!r||r.owner!==owner)return;records.delete(token);if(active===r){active=null;generation++;}r.valid=false;for(const member of r.members){member.resolve=null;member.reject=null;member.ack=null;post(member,{type:'RELEASE',nonce:r.nonce});}},
-  blocksMutation(sender){if(closed)return true;if(!active)return false;if(active.fenced)return true;const member=members.get(sender?.documentId);return !member||member.ack===active.nonce;},
+  async fenceExtensionPages(token){const r=checked(token);try{r.checking=true;r.fenced=true;r.challenge=crypto.randomUUID();const waiting=acknowledgements(r,'check');for(const member of r.members)post(member,{type:'CHECK',nonce:r.nonce,challenge:r.challenge});await wait(r,waiting);checked(token,true);const now=await wait(r,inventory());checked(token,true);if(JSON.stringify(now)!==JSON.stringify(r.inventory)||r.members.some(m=>m.check!==r.challenge))fail();r.checking=false;return true;}catch(error){invalidate(r);throw error;}},
+  release(token){const r=records.get(token);if(!r||r.owner!==owner)return;records.delete(token);if(active===r){active=null;generation++;}r.valid=false;for(const entry of [...r.waiters])entry.reject(new ArchiveError('GENERATION_EDITOR_PROTECTION_REQUIRED'));for(const member of r.members){if(member.wait?.owner===r){member.resolve=null;member.reject=null;member.wait=null;member.ack=null;}post(member,{type:'RELEASE',nonce:r.nonce});}},
+  blocksMutation(sender){if(closed)return true;if(!active)return false;if(active.phase==='inventory'||active.fenced)return true;const member=members.get(sender?.documentId);return !member||member.ack===active.nonce;},
   close(){closed=true;invalidate();for(const m of members.values())try{m.port.disconnect();}catch{}members.clear();}
  });return owner;
 }

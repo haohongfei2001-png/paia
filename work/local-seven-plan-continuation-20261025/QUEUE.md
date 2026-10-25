@@ -8,16 +8,29 @@ See RECEPTION.json. Main 8522134 and development b7c6ecd were independently read
 
 The original ZIP and all held/failed evidence are preserved outside this isolated checkout. 784 outer checksums, 771 inventory entries and 60 held Context checksums passed. Package omissions are explicitly recorded by its README; this is not a complete backup of every historical worktree.
 
-## Continuous local work queue
+## Current local milestones and continuous queue
 
-1. **Context enrollment safety successor — IN PROGRESS.** Held b30 is not approved. Independent source review found mutable call dispatch, ambiguous repository-global ticket inheritance and non-durable UNKNOWN. Repair the original owners, preserve ordinary budget and fail-closed selection; use bounded synthetic owner tests. Root independently reviews the new diff.
-2. **Source union subsequent publication — IN PROGRESS in separate worktree.** Original no-cleanup failure reproduced and retained. Only explicit prepare may ask the original restore owner to finish cleanup of fully proven activated disposable stage data. Do not remove cut operands, hide fixture cleanup, grow budgets, or use publish as an implicit cleanup action.
-3. **Existing-library selection consumer — DESIGN/DEPENDENCY.** Inspect actual global editor/host/Context/Prompt holds, admissions and drains; do not remove the current ACTIVATE/CONTINUE/RESTART refusal without complete original-owner evidence. Cold/UNKNOWN may not be treated as idle. Avoid waiting on the selection request itself.
-4. **Integrated local verification and remaining consumer work — PENDING stable successors.** Consolidate necessary owning tests, source vectors and independent review; no repeated passing runs just for reassurance. Preserve every actual failure. Seven-plan matrix in seven-plan-current-audit.md distinguishes current code from external qualification.
+Completed local implementation successors (not product acceptance):
 
-## File ownership
+1. Context original enrollment/current-scope correction `340898ec`, Settings strict pending stop qualification `73cf254`. Cold/legacy needs explicit fresh Resume; unsettled publication remains denied. No unknown exposure is reclassified as quiet.
+2. Source union complete bootstrap publication cleanup `e6fedb4`; original failed candidate `99fad9b` preserved. Original immutable Source append continuation `6b22e0b` now supports original capture into an existing/new local conversation, cold publication and synthetic new-install recovery. Larger combinations still hit cumulative publication limits after some synthetic uploads; capacity unresolved.
+3. Default Assist birth-null instance `6175a1e` / evidence `027bc2f`; original dispatch activity `2a5998e`; Capture recovery private warm owner `d539d34`; fixed source deadline `2a03409`; Prompt receipts warm owner `bf7e5cb`; fixed three-owner transport composition `ca04053`. These are live owner proofs only, not editor/host/cold/global selection authority.
+4. Capture original API packaging contract `5274854`; first build failure and first insufficient alias guard preserved, independent review corrections included. Subsequent build is a separate milestone.
 
-Context line owns sync-local-lifecycle, indexed-store, idb-repository, the two Context journal owners and their three test files. Source line owns group-checkpoint, recovery-session, checkpoint-publication, source-union-publication-continuation and its owning tests. Root owns integration and this receipt/queue. No concurrent edits to shared runtime files.
+Actively executing independent local packages:
+
+- Root: initial editor inventory reservation and one original deadline, including old-fence/old-timer isolation; shared worker integration and exact evidence. The production ACTIVATE/CONTINUE/RESTART refusal remains.
+- Local tools line: actual ImportLedger + ImportHandler, BackupService, IntegrityChecker original admission/pending/hold/fence. No automatic cancellation, fabricated quietness or user-session clearing.
+- Organize line: original default/null/real-UNKNOWN distinctions and a minimal original owner package. A missing public running flag is never proof of no work.
+- Independent review line: frozen successor review, not repeated already-passing runs.
+
+Next dependency work after those owners: original global editor/host coverage; same reviewed semantic cut requalification with full raw proofs, not unconditional reprepare or metadata removal; original Sync reservation sequencing; terminal-state release preserving dispatched/UNKNOWN; cold CONTINUE remains denied without its own complete proof. Existing-library selection is still NOT_COMPLETE.
+
+The seven-plan audit records the rest: general causal/mixed family recovery and inherited/reverse qualification; genuine Topic prepared handle/field permission; native UI/host/IME/visual/account/service evidence. Do not invent Archive or Settings work merely for parallelism, and do not redo published Settings fixes. Larger resource and external service requirements are centralized, not used to freeze ordinary independent local development.
+
+## File ownership and preservation
+
+Root owns shared worker/coordination/editor/package integration. Local tools line owns four original tool owners and its fixed private helper. Organize line owns only its specified original owners once design review is complete. Each successor is reviewed and copied through its exact local commit; evidence branch ancestry is never blindly merged. Historical staging/build/failed fixture directories remain preserved; their presence is not a current runnable release claim.
 
 ## Unchanged limits
 
