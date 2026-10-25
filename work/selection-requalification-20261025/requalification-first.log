@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: same complete reviewed cut renews a stale tail proof with the original operation and no write
+ok 1 - same complete reviewed cut renews a stale tail proof with the original operation and no write
+  ---
+  duration_ms: 711.785333
+  type: 'test'
+  ...
+# Subtest: source changed represented content cannot be silently re-reviewed
+ok 2 - source changed represented content cannot be silently re-reviewed
+  ---
+  duration_ms: 568.467167
+  type: 'test'
+  ...
+# Subtest: target changed represented content cannot be silently re-reviewed
+ok 3 - target changed represented content cannot be silently re-reviewed
+  ---
+  duration_ms: 490.205833
+  type: 'test'
+  ...
+# Subtest: source unknown physical metadata is retained and requires review despite same graph
+ok 4 - source unknown physical metadata is retained and requires review despite same graph
+  ---
+  duration_ms: 515.686084
+  type: 'test'
+  ...
+# Subtest: target unknown physical metadata is retained and requires review despite same graph
+ok 5 - target unknown physical metadata is retained and requires review despite same graph
+  ---
+  duration_ms: 501.37525
+  type: 'test'
+  ...
+# Subtest: replaced registry candidate is refused without opening the replacement database
+ok 6 - replaced registry candidate is refused without opening the replacement database
+  ---
+  duration_ms: 771.588125
+  type: 'test'
+  ...
+# Subtest: target original gate revision change requires review
+ok 7 - target original gate revision change requires review
+  ---
+  duration_ms: 557.99925
+  type: 'test'
+  ...
+# Subtest: source rebound database identity cannot reuse the original reviewed target
+ok 8 - source rebound database identity cannot reuse the original reviewed target
+  ---
+  duration_ms: 496.495834
+  type: 'test'
+  ...
+# Subtest: changed SDK control before row requires review and no SDK dispatch
+ok 9 - changed SDK control before row requires review and no SDK dispatch
+  ---
+  duration_ms: 490.346791
+  type: 'test'
+  ...
+# Subtest: source unresolved original selection marker refuses requalification
+ok 10 - source unresolved original selection marker refuses requalification
+  ---
+  duration_ms: 615.849292
+  type: 'test'
+  ...
+# Subtest: target unresolved original selection marker refuses requalification
+ok 11 - target unresolved original selection marker refuses requalification
+  ---
+  duration_ms: 494.069166
+  type: 'test'
+  ...
+# Subtest: restore epoch change remains an original proof refusal with no writes
+ok 12 - restore epoch change remains an original proof refusal with no writes
+  ---
+  duration_ms: 485.8045
+  type: 'test'
+  ...
+# Subtest: forged argument and another owner cannot supply or replace the private review
+ok 13 - forged argument and another owner cannot supply or replace the private review
+  ---
+  duration_ms: 637.424334
+  type: 'test'
+  ...
+# Subtest: full new raw preimage still rejects mutation after requalification
+ok 14 - full new raw preimage still rejects mutation after requalification
+  ---
+  duration_ms: 559.417458
+  type: 'test'
+  ...
+# Subtest: close during requalification invalidates old async completion; new explicit review survives
+ok 15 - close during requalification invalidates old async completion; new explicit review survives
+  ---
+  duration_ms: 589.751875
+  type: 'test'
+  ...
+# Subtest: close while initial prepare is waiting cannot publish a late prepared record
+ok 16 - close while initial prepare is waiting cannot publish a late prepared record
+  ---
+  duration_ms: 584.455834
+  type: 'test'
+  ...
+# Subtest: explicit reprepare replaces original review identity, never adopts an old response
+ok 17 - explicit reprepare replaces original review identity, never adopts an old response
+  ---
+  duration_ms: 648.401083
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9918.380625

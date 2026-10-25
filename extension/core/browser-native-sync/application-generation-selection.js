@@ -41,10 +41,10 @@ function checkGate(actual,row,increment=0){if(!equal(actual,{...row.targetGate,w
 // retired-copy candidate proven to contain the exact complete current cut.
 // It never creates a candidate, imports an unknown family or deletes a library.
 export class OriginalApplicationGenerationSelection{
- #source;#core;#local;#factory;#authority;#prepared=null;#busy=false;
+ #source;#core;#local;#factory;#authority;#prepared=null;#busy=false;#lifetime=0;
  constructor(store,core,local,aiFilterAuthority=null){requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(core);if(store.repository!==core.repository||store.repository.name!==DATABASE_NAME||store.local!==local)fail('GENERATION_SELECTION_CAPABILITY');this.#source=store;this.#core=core;this.#local=local;this.#factory=store.repository.factory;this.#authority=aiFilterAuthority;}
  async prepare(){
-  if(this.#busy)fail('GENERATION_SELECTION_BUSY');this.#busy=true;
+  if(this.#busy)fail('GENERATION_SELECTION_BUSY');this.#busy=true;const lifetime=++this.#lifetime;this.#discardPrepared(this.#prepared);
   try{
    if(await point(this.#source.repository,APPLICATION_SELECTION_MARKER))fail('GENERATION_SELECTION_PENDING');
    const sourceProof=await prepareOriginalApplicationInheritanceCut(this.#source,this.#core),source=readOriginalApplicationInheritanceCut(sourceProof),before=await localRow(this.#local);
@@ -69,11 +69,46 @@ export class OriginalApplicationGenerationSelection{
     const sourceRows=await rows(this.#source.repository),targetRows=await rows(candidate.repository);
     await requireOriginalApplicationInheritanceCut(sourceProof);await requireOriginalApplicationInheritanceCut(targetProof);
     const prepared=Object.freeze(Object.create(null)),record=marker({id:APPLICATION_SELECTION_MARKER,version:1,operationId:crypto.randomUUID(),role:'source',phase:'prepared',sourceDatabaseId:source.databaseId,targetDatabaseId:databaseId,targetName:candidate.repository.name,datasetId:source.datasetId,graphDigest:source.graphDigest,canonicalDigest:source.canonicalDigest,registryRoot:copy(root),targetGate:copy(gate),beforeDigest:await digest(before),afterDigest:null,reservation:null,fences:null});
-    cuts.set(prepared,{owner:this,sourceProof,targetProof,sourceRows,targetRows,registry,candidate,before,record,fences});this.#prepared=prepared;
+    if(lifetime!==this.#lifetime)fail('GENERATION_SELECTION_NOT_PREPARED');
+    cuts.set(prepared,{owner:this,sourceProof,targetProof,sourceRows,targetRows,registry,candidate,targetCore,before,record,fences,sourceReview:source,targetReview:target,sourceRepository:this.#source.repository,sourceDatabase:this.#source.repository.db,sourceName:this.#source.repository.name,sourceFactory:this.#source.repository.factory,targetRepository:candidate.repository,targetDatabase:candidate.repository.db,targetFactory:candidate.repository.factory,coreDeviceId:this.#core.deviceId,targetDeviceId:targetCore.deviceId});this.#prepared=prepared;
     return {state:'prepared',scope:'exact-existing-cut',operationId:record.operationId,wholeArchiveComplete:false};
    }catch(error){candidate?.repository.db?.close();registry.db?.close();throw error;}
   }finally{this.#busy=false;}
  }
+ // Refresh only this original private review, never a caller-supplied target
+ // or a new prepare. The first profile permits tail/observation renewal only:
+ // even otherwise meaningful metadata writes require a fresh explicit review.
+ async requalify(){
+  if(arguments.length)fail('GENERATION_SELECTION_CAPABILITY');
+  const prepared=this.#prepared,p=cuts.get(prepared),lifetime=this.#lifetime;
+  if(this.#busy||!p||p.owner!==this)fail('GENERATION_SELECTION_NOT_PREPARED');this.#busy=true;
+  const current=()=>{
+   if(this.#prepared!==prepared||this.#lifetime!==lifetime||cuts.get(prepared)!==p)fail('GENERATION_SELECTION_NOT_PREPARED');
+   requireOriginalLibraryDocumentsGenerationMethods(this.#source);requireOriginalLibraryDocumentsGenerationMethods(p.candidate);requireOriginalGenerationCoreMethods(this.#core);requireOriginalGenerationCoreMethods(p.targetCore);
+   if(this.#source.repository!==p.sourceRepository||this.#core.repository!==p.sourceRepository||p.sourceRepository.db!==p.sourceDatabase||p.sourceRepository.name!==p.sourceName||p.sourceRepository.factory!==p.sourceFactory||this.#source.databaseId!==p.sourceReview.databaseId||this.#core.deviceId!==p.coreDeviceId||p.candidate.repository!==p.targetRepository||p.targetCore.repository!==p.targetRepository||p.targetRepository.db!==p.targetDatabase||p.targetRepository.name!==p.record.targetName||p.targetRepository.factory!==p.targetFactory||p.candidate.databaseId!==p.targetReview.databaseId||p.targetCore.deviceId!==p.targetDeviceId)fail('GENERATION_SELECTION_REVIEW_REQUIRED');
+  };
+  const reviewed=async()=>{
+   current();if(await point(p.sourceRepository,APPLICATION_SELECTION_MARKER)||await point(p.targetRepository,APPLICATION_SELECTION_MARKER))fail('GENERATION_SELECTION_REVIEW_REQUIRED');
+   if(!equal(await localRow(this.#local),p.before)||!equal(await registryRoot(p.registry),p.record.registryRoot)||!equal(await point(p.targetRepository,CANONICAL_GENERATION_GATE),p.record.targetGate)||!equal(await originalGenerationRepositoryRead(p.targetRepository,readControlPublicationFence,['meta']),p.fences))fail('GENERATION_SELECTION_REVIEW_REQUIRED');current();
+  };
+  try{
+   await reviewed();
+   const sourceProof=await prepareOriginalApplicationInheritanceCut(this.#source,this.#core),source=readOriginalApplicationInheritanceCut(sourceProof);current();
+   const targetProof=await prepareOriginalApplicationInheritanceCut(p.candidate,p.targetCore),target=readOriginalApplicationInheritanceCut(targetProof);current();
+   if(!equal(source,p.sourceReview)||!equal(target,p.targetReview))fail('GENERATION_SELECTION_REVIEW_REQUIRED');
+   const sourceRows=await rows(p.sourceRepository),targetRows=await rows(p.targetRepository);
+   // Do not strip, whitelist or normalize any row. Unknown physical changes
+   // cannot become silently reviewed merely because graph digests stayed equal.
+   if(!equal(sourceRows,p.sourceRows)||!equal(targetRows,p.targetRows))fail('GENERATION_SELECTION_REVIEW_REQUIRED');
+   await requireOriginalApplicationInheritanceCut(sourceProof);await requireOriginalApplicationInheritanceCut(targetProof);await reviewed();
+   // Final original proof checks retain their tail/control/owner requirements.
+   await requireOriginalApplicationInheritanceCut(sourceProof);await requireOriginalApplicationInheritanceCut(targetProof);current();
+   if(!equal(readOriginalApplicationInheritanceCut(sourceProof),source)||!equal(readOriginalApplicationInheritanceCut(targetProof),target))fail('GENERATION_SELECTION_REVIEW_REQUIRED');
+   const next=Object.freeze(Object.create(null));cuts.set(next,{...p,sourceProof,targetProof,sourceRows,targetRows});cuts.delete(prepared);this.#prepared=next;
+   return {state:'prepared',scope:'exact-existing-cut',operationId:p.record.operationId,wholeArchiveComplete:false};
+  }catch(error){this.#discardPrepared(prepared);throw error;}finally{this.#busy=false;}
+ }
+ #discardPrepared(prepared){const p=cuts.get(prepared);p?.candidate.repository.db?.close();p?.registry.db?.close();cuts.delete(prepared);if(this.#prepared===prepared)this.#prepared=null;}
  async activate(){
   const p=cuts.get(this.#prepared);if(this.#busy||!p||p.owner!==this)fail('GENERATION_SELECTION_NOT_PREPARED');this.#busy=true;
   try{
@@ -90,7 +125,7 @@ export class OriginalApplicationGenerationSelection{
  async continue(){return continueOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}
  async cancel(){return cancelOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}
  async rollback(){fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');}
- close(){const p=cuts.get(this.#prepared);p?.candidate.repository.db?.close();p?.registry.db?.close();cuts.delete(this.#prepared);this.#prepared=null;}
+ close(){this.#lifetime++;this.#discardPrepared(this.#prepared);}
 }
 
 async function finishSelection(source,target,registry,local,record,cold){
