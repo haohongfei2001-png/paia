@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "extension/tests/application-local-tools-coordination.test.mjs",
+    "extension/tests/application-transport-coordination.test.mjs",
+    "extension/tests/application-worker-admission.test.mjs",
+    "extension/tests/application-worker-activity-control.test.mjs",
+    "extension/tests/application-editor-guard.test.mjs"
+  ],
+  "base": "039e78d5f76e00ecb304d2ab87815ab3e35f5004",
+  "sha256": {
+    "extension/background/application-local-tools-coordination.js": "a731ccf5975ada6529d4f5153c061904a775f7810b16aa1820fad4bd343a1cf1",
+    "extension/background/service-worker.js": "ba71400da9405c7a663a8f2ac6952e9e885042df83d6e8a63ddfb540333cfd72",
+    "extension/tests/harness/selection-admission-worker.mjs": "b843bdb3a94eb9be84328162119c3723b255ac5daebd6486d702b5f7c4818463",
+    "extension/tests/application-local-tools-coordination.test.mjs": "3bbb32cf1c80e8f9662e9ab45396b98f813b1f1dcd217be3511bbec5a90c8900",
+    "extension/tests/application-transport-coordination.test.mjs": "5831824adc0f9e544531dab4878ea7480056836ee824b8150b16498cdfc2c49d",
+    "extension/tests/application-worker-admission.test.mjs": "ca104acbceb605de094d1c07f1c3158ca3359b92158244dff32c072d9271c8cd",
+    "extension/tests/application-worker-activity-control.test.mjs": "e9de84a7992a0d2a3c412337946e1bb34311541de05fc4547a8a194e2744e71c",
+    "extension/tests/application-editor-guard.test.mjs": "c1415ec1ed9d7e8616d57a321d8d58a550c94b4bde17596022741e10b78b48de"
+  }
+}

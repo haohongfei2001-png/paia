@@ -15,12 +15,13 @@ Completed local implementation successors (not product acceptance):
 1. Context original enrollment/current-scope correction `340898ec`, Settings strict pending stop qualification `73cf254`. Cold/legacy needs explicit fresh Resume; unsettled publication remains denied. No unknown exposure is reclassified as quiet.
 2. Source union complete bootstrap publication cleanup `e6fedb4`; original failed candidate `99fad9b` preserved. Original immutable Source append continuation `6b22e0b` now supports original capture into an existing/new local conversation, cold publication and synthetic new-install recovery. Larger combinations still hit cumulative publication limits after some synthetic uploads; capacity unresolved.
 3. Default Assist birth-null instance `6175a1e` / evidence `027bc2f`; original dispatch activity `2a5998e`; Capture recovery private warm owner `d539d34`; fixed source deadline `2a03409`; Prompt receipts warm owner `bf7e5cb`; fixed three-owner transport composition `ca04053`. These are live owner proofs only, not editor/host/cold/global selection authority.
-4. Capture original API packaging contract `5274854`; first build failure and first insufficient alias guard preserved, independent review corrections included. Subsequent build is a separate milestone.
+4. Editor inventory reservation, fixed original deadline, stale fence/timer isolation and late UI completion are implemented in `eca6e9b`; independent review passed. Original failure controls remain. Three local tools plus original worker composition are integrated; see LOCAL-TOOLS.md, including two corrected review findings and final 55/55 local worker combination.
+5. Capture original API packaging contract `5274854`; first build failure and first insufficient alias guard preserved, independent review corrections included. Offline package on `eca6e9b` passed 24,764 guardrails / 705 files; see BUILD-eca6e9b.md. It predates subsequent local-tool integration and is not current-source browser acceptance.
 
 Actively executing independent local packages:
 
-- Root: initial editor inventory reservation and one original deadline, including old-fence/old-timer isolation; shared worker integration and exact evidence. The production ACTIVATE/CONTINUE/RESTART refusal remains.
-- Local tools line: actual ImportLedger + ImportHandler, BackupService, IntegrityChecker original admission/pending/hold/fence. No automatic cancellation, fabricated quietness or user-session clearing.
+- Root: shared worker integration and remaining global original-owner dependencies. The production ACTIVATE/CONTINUE/RESTART refusal remains.
+- Selection core line: same private reviewed target requalification with complete original cuts and unchanged operation/graph/control/registry identity; no unconditional reprepare or global authority.
 - Organize line: original default/null/real-UNKNOWN distinctions and a minimal original owner package. A missing public running flag is never proof of no work.
 - Independent review line: frozen successor review, not repeated already-passing runs.
 

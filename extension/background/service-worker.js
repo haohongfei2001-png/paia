@@ -1,5 +1,6 @@
 import {createApplicationEditorGuard} from './application-editor-guard.js';
 import {createApplicationWorkerCoordination} from './application-worker-coordination.js';
+import {createApplicationLocalToolsCoordination} from './application-local-tools-coordination.js';
 import {createApplicationTransportCoordination} from './application-transport-coordination.js';
 import {createApplicationSelectionCommands,assertApplicationWorkerAdmission,createApplicationWorkerActivity} from './application-selection-commands.js';
 import {createConfiguredSyncLifecycle,syncLifecycleError} from './sync-local-lifecycle.js';
@@ -65,7 +66,7 @@ import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.j
 import {RecoveryDraftStore} from '../core/recovery-draft.js';
 
 let syncSuspended=false;
-let applicationWorkerCoordination,applicationTransportCoordination;
+let applicationWorkerCoordination,applicationTransportCoordination,applicationLocalToolsCoordination;
 let store,promptInsertionReceipts,syncLifecycle,maintenanceProcessing,maintenanceConfiguration,maintenanceRunner,contextConnections,localScopePreviewCapability,contextScopePreview,thoughtLibraryRead,sectionPromotion,thoughtSectionReading,promptReuse,archiveArrival,promptSurface,promptNext,promptAssist,legacyUsage,passport,revisit,readerState,sourceStructure,archiveNavigation,archiveOriginal,archiveOrderPreference,sourceOrderRegistry,originalOrganizer,organizeConfiguration,organizeActionSource,aiOrganizer,boundedOrganizer,onboarding,integrity,memory,contextTopics,contextCards,backups,imports,runner,safety,libraryRunner;
 const startupEvents=createApplicationStartupEvents(chrome);
 const aiFilterRuntime=createAIFilterRuntime(chrome,{getStore:()=>store,policy:readAIFilterPolicyConfiguration()});
@@ -121,6 +122,7 @@ libraryRunner=new LibraryRunner(store);
 // Real original instances only. No command consumes a source hold until an
 // admitted global selection contract exists; construction grants no readiness.
 applicationWorkerCoordination=createApplicationWorkerCoordination({store,safety,libraryRunner,filterRunner:runner,maintenanceRunner,contextConnections,promptAssist,promptNext,promptCommands:promptReuse,promptSurface});
+applicationLocalToolsCoordination=createApplicationLocalToolsCoordination({imports,backups,integrity,store,runtime:chrome.runtime});
 applicationTransportCoordination=createApplicationTransportCoordination({sourceCoordination:applicationWorkerCoordination,captureRecovery,promptInsertionReceipts,store,api:chrome});
 }
 chrome.tabs?.onRemoved?.addListener(id=>{void trackApplicationWork(ready.then(()=>{promptInsertionReceipts.removeTab(id);promptSurface.removeTab(id);promptNext.removeTab(id);promptAssist.removeTab(id);archiveArrival.removeTab(id);}).catch(()=>{}));});

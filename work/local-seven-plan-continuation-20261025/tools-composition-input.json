@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/Users/hhf/.codex/worktrees/organize-handoff-validation/paia/work/node22-official-20261023/node-v22.23.3-darwin-arm64/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "extension/tests/application-local-tools-coordination.test.mjs"
+  ],
+  "base": "039e78d5f76e00ecb304d2ab87815ab3e35f5004",
+  "sha256": {
+    "extension/background/application-local-tools-coordination.js": "a731ccf5975ada6529d4f5153c061904a775f7810b16aa1820fad4bd343a1cf1",
+    "extension/background/service-worker.js": "ba71400da9405c7a663a8f2ac6952e9e885042df83d6e8a63ddfb540333cfd72",
+    "extension/tests/harness/selection-admission-worker.mjs": "b843bdb3a94eb9be84328162119c3723b255ac5daebd6486d702b5f7c4818463",
+    "extension/tests/application-local-tools-coordination.test.mjs": "3bbb32cf1c80e8f9662e9ab45396b98f813b1f1dcd217be3511bbec5a90c8900",
+    "extension/core/local-tool-selection-hold.js": "648744cbe2a90552cba5834537d571014ca6f046274f569800b37984b4041695",
+    "extension/core/import/ledger.js": "ffda43c4b9f38870b3db197ea00127908ed1d9d8eaecfc01b3c343ce572e295a",
+    "extension/background/import-handler.js": "fa84692fcfe8085b66ca7e93b97b7ce508a3e48f0f982eaf64bc7a3f7f05b39a",
+    "extension/core/backup-service.js": "1f383e6b21c70988b21174667071e257108ddebb086b1bfa85d95db3170e7150",
+    "extension/core/integrity-checker.js": "cef9c6de5c65fe5c305a6bc2542d6cc2e8cfef6a8a10a45dd15226f54b5b0d51"
+  }
+}

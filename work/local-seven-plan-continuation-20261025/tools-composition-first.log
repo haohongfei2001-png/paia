@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: fixed original tools retain staged sessions and deny new work until exact release
+ok 1 - fixed original tools retain staged sessions and deny new work until exact release
+  ---
+  duration_ms: 180.762208
+  type: 'test'
+  ...
+# Subtest: foreign store, runtime and copied owners cannot borrow the fixed original tool proof
+ok 2 - foreign store, runtime and copied owners cannot borrow the fixed original tool proof
+  ---
+  duration_ms: 100.895959
+  type: 'test'
+  ...
+# Subtest: all three admissions close before waiting for an already accepted validator
+ok 3 - all three admissions close before waiting for an already accepted validator
+  ---
+  duration_ms: 100.338375
+  type: 'test'
+  ...
+# Subtest: changed original control cut refuses and releases only this composition
+ok 4 - changed original control cut refuses and releases only this composition
+  ---
+  duration_ms: 124.388291
+  type: 'test'
+  ...
+# Subtest: original import port disconnect revokes held grant and invalidates composition
+ok 5 - original import port disconnect revokes held grant and invalidates composition
+  ---
+  duration_ms: 125.206417
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 835.790917
