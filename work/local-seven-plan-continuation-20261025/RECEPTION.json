@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "scope": "PAIA seven-plan local development only",
+  "archive": {
+    "name": "PAIA-Final-Development-Handoff-20261025.zip",
+    "bytes": 5049304,
+    "sha256": "f1b79155eb1314a246eadf1576990913f7af3704e2368194a94a724af860b9a1",
+    "zipEntries": 785,
+    "outerChecksumsVerified": 784,
+    "artifactInventoryVerified": 771,
+    "missingArtifacts": [],
+    "heldContextChecksumsVerified": 60,
+    "heldContextManifestAndGitBlobsVerified": 42
+  },
+  "remoteReadBaseline": {
+    "main": "8522134ac23a8e563161b4e3633d56e858e01d5c",
+    "development": "b7c6ecdc39f1010dfcf4736df08e5ac89385b0ac",
+    "publishedDevelopment": "27ddcd192d00a97b685736f49d984c501bfc9908",
+    "developmentArchiveDelta": "3 handoff preservation paths only"
+  },
+  "localBranch": "codex/local-seven-plan-continuation-20261025",
+  "isolation": "independent repository; primary checkout, stashes and other worktrees preserved",
+  "status": "received; successor development in progress; not accepted or published"
+}
