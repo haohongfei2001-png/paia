@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: same live original selected owner qualifies unchanged complete cuts without writes or rollback authority
+ok 1 - same live original selected owner qualifies unchanged complete cuts without writes or rollback authority
+  ---
+  duration_ms: 1099.672625
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1285.550291

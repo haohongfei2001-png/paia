@@ -1,0 +1,25 @@
+TAP version 13
+# Subtest: same live original selected owner qualifies unchanged complete cuts without writes or rollback authority
+not ok 1 - same live original selected owner qualifies unchanged complete cuts without writes or rollback authority
+  ---
+  duration_ms: 565.612792
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-review/extension/tests/application-selection-warm-reverse.test.mjs:7:1'
+  failureType: 'testCodeFailure'
+  error: 'f.owner.prepareReverse is not a function'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-review/extension/tests/application-selection-warm-reverse.test.mjs:9:28)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 745.723166

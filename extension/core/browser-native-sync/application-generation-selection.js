@@ -1,6 +1,6 @@
-import {equalSourceWorkingPhysicalTree as equal} from './source-working-physical.js';
+import {equalSourceWorkingPhysicalTree as equal,measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {ArchiveError,STORAGE_KEY} from '../constants.js';
-import {ArchiveRepository,DATABASE_NAME,openOriginalExistingRepository,originalGenerationRepositoryRead,originalApplicationSelectionTransaction,registerRepositoryWorkLimit,registerOriginalRepositoryReadWorkLimit} from '../idb-repository.js';
+import {ArchiveRepository,DATABASE_NAME,openOriginalExistingRepository,originalGenerationRepositoryRead,originalApplicationSelectionTransaction,registerRepositoryWorkLimit,registerOriginalRepositoryReadWorkLimit,observeRepositoryWriteFence,requireRepositoryWriteFence,createOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,withOriginalRecoveryWork,finishOriginalRecoveryWork,remainingOriginalRecoveryWork} from '../idb-repository.js';
 import {originalOrganizerConstructor} from '../organizer/store-owner.js';
 import {requireOriginalLibraryDocumentsGenerationMethods} from '../library-documents-owner.js';
 import {BrowserNativeSyncCore,requireOriginalGenerationCoreMethods} from './core.js';
@@ -12,7 +12,8 @@ import {controlPublicationDigest as digest,controlPublicationRow,readControlPubl
 export const APPLICATION_SELECTION_MARKER='application-generation-selection:v1';
 export const APPLICATION_SELECTION_REGISTRY='paia-canonical-generation-registry-v1';
 const originalSelectionApply=Reflect.apply,selectionReviews=new WeakMap(),selectionRestrictions=new WeakMap(),restrictionTokens=new WeakMap();
-const authorities=new WeakMap(),cuts=new WeakMap(),copy=value=>structuredClone(value);
+const ReversePromise=Promise,reverseThen=Promise.prototype.then,reverseSetTimeout=setTimeout,reverseClearTimeout=clearTimeout;
+const authorities=new WeakMap(),cuts=new WeakMap(),reverseReviews=new WeakMap(),copy=value=>structuredClone(value);
 const fail=(code='GENERATION_SELECTION_CHANGED')=>{throw new ArchiveError(code);};
 const exact=(v,keys)=>v&&Object.getPrototypeOf(v)===Object.prototype&&Reflect.ownKeys(v).length===keys.length&&keys.every(k=>Object.hasOwn(Object.getOwnPropertyDescriptors(v)[k]??{},'value'));
 const hash=v=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v);
@@ -60,7 +61,7 @@ export function releaseOriginalApplicationSelectionReviewHold(token,owner){
 // retired-copy candidate proven to contain the exact complete current cut.
 // It never creates a candidate, imports an unknown family or deletes a library.
 export class OriginalApplicationGenerationSelection{
- #source;#core;#local;#localGet;#localSet;#factory;#authority;#prepared=null;#busy=false;#lifetime=0;#restriction=null;
+ #source;#core;#local;#localGet;#localSet;#factory;#authority;#prepared=null;#busy=false;#lifetime=0;#restriction=null;#reverse=null;
  constructor(store,core,local,aiFilterAuthority=null){requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(core);if(store.repository!==core.repository||store.repository.name!==DATABASE_NAME||store.local!==local)fail('GENERATION_SELECTION_CAPABILITY');this.#source=store;this.#core=core;this.#local=local;this.#factory=store.repository.factory;this.#authority=aiFilterAuthority;this.#localGet=local.get;this.#localSet=local.set;
   selectionReviews.set(this,(s,c,l)=>{const p=cuts.get(this.#prepared);if(s!==this.#source||c!==this.#core||l!==this.#local||!p||p.owner!==this||this.#source.repository!==p.sourceRepository||this.#source.repository.db!==p.sourceDatabase||this.#core.repository!==p.sourceRepository||this.#local.get!==this.#localGet||this.#local.set!==this.#localSet)fail('GENERATION_SELECTION_NOT_PREPARED');return Object.freeze({operationId:p.record.operationId});});
   selectionRestrictions.set(this,{hold:()=>{
@@ -139,7 +140,7 @@ export class OriginalApplicationGenerationSelection{
    return {state:'prepared',scope:'exact-existing-cut',operationId:p.record.operationId,wholeArchiveComplete:false};
   }catch(error){this.#discardPrepared(prepared);throw error;}finally{this.#busy=false;}
  }
- #discardPrepared(prepared){const p=cuts.get(prepared);p?.candidate.repository.db?.close();p?.registry.db?.close();cuts.delete(prepared);if(this.#prepared===prepared)this.#prepared=null;}
+ #discardPrepared(prepared){this.#discardReverse();const p=cuts.get(prepared);p?.candidate.repository.db?.close();p?.registry.db?.close();cuts.delete(prepared);if(this.#prepared===prepared)this.#prepared=null;}
  async activate(){
   if(this.#restriction)fail('GENERATION_SELECTION_BUSY');
   const prepared=this.#prepared,p=cuts.get(prepared),lifetime=this.#lifetime;if(this.#busy||!p||p.owner!==this)fail('GENERATION_SELECTION_NOT_PREPARED');
@@ -160,8 +161,95 @@ export class OriginalApplicationGenerationSelection{
  async status(){if(this.#restriction||this.#busy)fail('GENERATION_SELECTION_BUSY');this.#busy=true;try{return await inspectOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}finally{this.#busy=false;}}
  async continue(){if(this.#restriction||this.#busy)fail('GENERATION_SELECTION_BUSY');this.#busy=true;try{return await continueOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}finally{this.#busy=false;}}
  async cancel(){if(this.#restriction||this.#busy)fail('GENERATION_SELECTION_BUSY');this.#busy=true;try{return await cancelOriginalApplicationGenerationSelection(this.#local,this.#factory,this.#authority);}finally{this.#busy=false;}}
+ // Same live forward owner only: this review issues no selection writer or
+ // global hold. Every later revalidation consumes this exact cumulative ticket.
+ async prepareReverse(){
+  if(arguments.length)fail('GENERATION_SELECTION_CAPABILITY');
+  if(this.#busy||this.#restriction)fail('GENERATION_SELECTION_BUSY');
+  const prepared=this.#prepared,p=cuts.get(prepared),lifetime=this.#lifetime;
+  if(!p||p.owner!==this||!p.attempted)fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');
+  this.#discardReverse();this.#busy=true;
+  const token=Object.freeze(Object.create(null)),r={owner:this,token,prepared,p,lifetime,invalid:false,ready:false,running:false,ticket:null,finished:false,expected:null,
+   sourceTail:this.#source.tail,targetTail:p.candidate.tail,registryDatabase:p.registry.db,registryFactory:p.registry.factory,registryName:p.registry.name};
+  this.#reverse=r;reverseReviews.set(token,r);
+  try{
+   // Observe before any awaited read; never replace a fence after a read.
+   r.sourceFence=observeRepositoryWriteFence(p.sourceRepository);r.targetFence=observeRepositoryWriteFence(p.targetRepository);r.registryFence=observeRepositoryWriteFence(p.registry);
+   r.current=()=>{
+    if(r.invalid||this.#reverse!==r||this.#prepared!==prepared||cuts.get(prepared)!==p||this.#lifetime!==lifetime||this.#restriction)fail('GENERATION_REVERSE_REVIEW_CHANGED');
+    requireOriginalLibraryDocumentsGenerationMethods(this.#source);requireOriginalLibraryDocumentsGenerationMethods(p.candidate);requireOriginalGenerationCoreMethods(this.#core);requireOriginalGenerationCoreMethods(p.targetCore);
+    if(this.#source.repository!==p.sourceRepository||this.#core.repository!==p.sourceRepository||p.sourceRepository.db!==p.sourceDatabase||p.sourceRepository.name!==p.sourceName||p.sourceRepository.factory!==p.sourceFactory||this.#source.databaseId!==p.sourceReview.databaseId||this.#core.deviceId!==p.coreDeviceId||p.candidate.repository!==p.targetRepository||p.targetCore.repository!==p.targetRepository||p.targetRepository.db!==p.targetDatabase||p.targetRepository.name!==p.record.targetName||p.targetRepository.factory!==p.targetFactory||p.candidate.databaseId!==p.targetReview.databaseId||p.targetCore.deviceId!==p.targetDeviceId||p.registry.db!==r.registryDatabase||p.registry.factory!==r.registryFactory||p.registry.name!==r.registryName||this.#source.tail!==r.sourceTail||p.candidate.tail!==r.targetTail||this.#local.get!==this.#localGet||this.#local.set!==this.#localSet)fail('GENERATION_REVERSE_REVIEW_CHANGED');
+    requireRepositoryWriteFence(p.sourceRepository,r.sourceFence);requireRepositoryWriteFence(p.targetRepository,r.targetFence);requireRepositoryWriteFence(p.registry,r.registryFence);return true;
+   };
+   r.current();r.ticket=createOriginalRecoveryWork(p.sourceRepository,{isCurrent:r.current});
+   return await this.#runReverse(r,async()=>{r.expected=await originalReverseExpected(p,r);r.current();await this.#verifyReverse(r);},()=>{r.ready=true;return token;});
+  }catch(error){r.invalid=true;if(this.#reverse===r)this.#reverse=null;if(!r.running){this.#busy=false;this.#finishReverse(r);}throw error;}
+ }
+
+ // Only the captured repository instances are synchronously observed here.
+ // Other connections may have written; consumers must perform full raw review
+ // again, and this token is never rollback, writer or global-hold authority.
+ reverseReviewCurrent(token){
+  const r=reverseReviews.get(token);if(arguments.length!==1||!r||r.owner!==this||this.#reverse!==r||!r.ready||r.running||this.#busy)fail('GENERATION_REVERSE_REVIEW_CHANGED');
+  try{r.current();checkOriginalRecoveryWork(r.p.sourceRepository,r.ticket);return true;}catch(error){r.invalid=true;this.#finishReverse(r);throw error;}
+ }
+ async requalifyReverse(token){
+  if(arguments.length!==1)fail('GENERATION_SELECTION_CAPABILITY');this.reverseReviewCurrent(token);
+  const r=reverseReviews.get(token);this.#busy=true;
+  return this.#runReverse(r,()=>this.#verifyReverse(r),()=>true);
+ }
+ #runReverse(r,action,result){
+  let ms;try{ms=remainingOriginalRecoveryWork(r.p.sourceRepository,r.ticket);}catch(error){r.invalid=true;this.#busy=false;this.#finishReverse(r);throw error;}
+  r.running=true;
+  return new ReversePromise((resolve,reject)=>{
+   let timer,settled=false;
+   const finish=(error,value)=>{
+    if(settled)return;settled=true;reverseClearTimeout(timer);
+    if(error){r.invalid=true;if(this.#reverse===r)this.#reverse=null;reject(error);}else resolve(value);
+   };
+   // The window and busy owner outlive a timeout until the ORIGINAL operation
+   // really settles. A missing SDK observation never supplies another attempt.
+   const operation=withOriginalRecoveryWork(r.p.sourceRepository,r.ticket,action);
+   originalSelectionApply(reverseThen,operation,[()=>{
+    try{r.current();checkOriginalRecoveryWork(r.p.sourceRepository,r.ticket);finish(null,result());}catch(error){finish(error);}
+    finally{r.running=false;this.#busy=false;if(r.invalid)this.#finishReverse(r);}
+   },error=>{try{finish(error);}finally{r.running=false;this.#busy=false;if(r.invalid)this.#finishReverse(r);}}]);
+   timer=reverseSetTimeout(()=>finish(new ArchiveError('BNS_GROUP_RESOURCE_LIMIT')),ms);
+  });
+ }
+ async #verifyReverse(r){
+  const {p,expected}=r,current=()=>{r.current();checkOriginalRecoveryWork(p.sourceRepository,r.ticket);};current();
+  // Source reads are automatically attributed by the original work window.
+  // Other fixed repositories charge every returned row into that SAME ticket.
+  const source=await rows(p.sourceRepository);current();reverseCharge(r,expected.source,0);if(!equal(source,expected.source))fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');
+  const target=await rows(p.targetRepository);current();for(const values of Object.values(target)){
+   for(const row of values)reverseCharge(r,row,1);
+   // Conservatively include every page request/probe and all potential probe
+   // keys in the same ticket, beyond the actual returned row payloads.
+   reverseCharge(r,values.map(row=>row.id),1+2*Math.floor(values.length/64));
+  }reverseCharge(r,expected.target,0);if(!equal(target,expected.target))fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');
+  reverseCharge(r,CANONICAL_GENERATION_REGISTRY,1);const root=await registryRoot(p.registry);current();reverseCharge(r,root,0);reverseCharge(r,p.record.registryRoot,0);if(!equal(root,p.record.registryRoot))fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');
+  // This is the last awaited observation. Synchronous original fences below
+  // cannot certify other live connections, host documents or global silence.
+  reverseCharge(r,STORAGE_KEY,1);const local=await localRow(this.#local,this.#localGet);current();reverseCharge(r,local,0);reverseCharge(r,expected.after,0);if(!equal(local,expected.after))fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');current();
+ }
+ #finishReverse(r){if(r.ticket&&!r.finished&&!r.running){finishOriginalRecoveryWork(r.p.sourceRepository,r.ticket);r.finished=true;}}
+ #discardReverse(){const r=this.#reverse;if(!r)return;r.invalid=true;this.#reverse=null;this.#finishReverse(r);}
  async rollback(){fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');}
  close(){this.#lifetime++;this.#discardPrepared(this.#prepared);}
+}
+
+function reverseCharge(r,value,references=1){r.current();chargeOriginalRecoveryWork(r.p.sourceRepository,r.ticket,measureSourceWorkingPhysicalTree(value).B,references);}
+async function originalReverseExpected(p,r){
+ const base=p.record,prior=p.fences;
+ if(base.phase!=='prepared'||base.role!=='source'||prior.reservation||!Number.isSafeInteger(prior.revision+1)||!Number.isSafeInteger(base.targetGate.writeRevision+3)||p.sourceRows.meta.some(row=>row.id===APPLICATION_SELECTION_MARKER)||p.targetRows.meta.some(row=>row.id===APPLICATION_SELECTION_MARKER||row.id===CONTROL_PUBLICATION_RESERVATION))fail('GENERATION_REVERSE_INHERITANCE_REQUIRED');
+ const reservation={id:CONTROL_PUBLICATION_RESERVATION,version:1,revision:prior.revision+1,nonce:base.operationId,databaseId:base.targetDatabaseId,beforeDigest:base.beforeDigest,afterDigest:null,fenceDigest:null},fences={migration:prior.migration,gate:prior.gate,epoch:prior.epoch};
+ const after=controlPublicationRow(control(p.before),base.targetDatabaseId,reservation);reverseCharge(r,[p.before,reservation,fences,after],0);
+ const afterDigest=await digest(after);r.current();checkOriginalRecoveryWork(p.sourceRepository,r.ticket);const fenceDigest=await digest(fences);r.current();checkOriginalRecoveryWork(p.sourceRepository,r.ticket);
+ const selected=marker({...base,phase:'selected',afterDigest,reservation:{...reservation,afterDigest,fenceDigest},fences});
+ const source=copy(p.sourceRows),target=copy(p.targetRows),replace=(rows,row)=>{const index=rows.findIndex(value=>value.id===row.id);if(index<0)rows.push(row);else rows[index]=row;rows.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);};
+ replace(source.meta,selected);replace(target.meta,{id:CONTROL_PUBLICATION_REVISION,version:1,revision:reservation.revision});replace(target.meta,{...base.targetGate,writeRevision:base.targetGate.writeRevision+3});
+ reverseCharge(r,[source,target],0);return {source,target,after};
 }
 
 async function finishSelection(source,target,registry,local,record,cold,guarded=null){

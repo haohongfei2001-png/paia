@@ -1,0 +1,7 @@
+{
+  "base": "5f0bab08e8812252c5abf0b49d3a7023d6ae0bf5",
+  "files": {
+    "extension/core/browser-native-sync/application-generation-selection.js": "6cf4c571e5a9da59a2c044eaf322f8e0255448144fdbf9f2a93a964620b173e0",
+    "extension/tests/application-selection-warm-reverse.test.mjs": "525ae7d79799174f57409335e0f7c468d295100052b186b5807b6dbb0d27626a"
+  }
+}

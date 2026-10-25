@@ -1,0 +1,151 @@
+TAP version 13
+# Subtest: same live original selected owner qualifies unchanged complete cuts without writes or rollback authority
+ok 1 - same live original selected owner qualifies unchanged complete cuts without writes or rollback authority
+  ---
+  duration_ms: 1336.627667
+  type: 'test'
+  ...
+# Subtest: new-owner cannot manufacture a warm reverse review
+ok 2 - new-owner cannot manufacture a warm reverse review
+  ---
+  duration_ms: 600.45275
+  type: 'test'
+  ...
+# Subtest: unselected cannot manufacture a warm reverse review
+ok 3 - unselected cannot manufacture a warm reverse review
+  ---
+  duration_ms: 701.403416
+  type: 'test'
+  ...
+# Subtest: unknown cannot manufacture a warm reverse review
+ok 4 - unknown cannot manufacture a warm reverse review
+  ---
+  duration_ms: 928.5085
+  type: 'test'
+  ...
+# Subtest: a real target Working edit prevents unchanged-cut reverse qualification and stays intact
+ok 5 - a real target Working edit prevents unchanged-cut reverse qualification and stays intact
+  ---
+  duration_ms: 792.453666
+  type: 'test'
+  ...
+# Subtest: source-raw drift refuses even without changing the original graph digest
+ok 6 - source-raw drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 676.170917
+  type: 'test'
+  ...
+# Subtest: target-raw drift refuses even without changing the original graph digest
+ok 7 - target-raw drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 847.701625
+  type: 'test'
+  ...
+# Subtest: gate drift refuses even without changing the original graph digest
+ok 8 - gate drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 781.331
+  type: 'test'
+  ...
+# Subtest: control-revision drift refuses even without changing the original graph digest
+ok 9 - control-revision drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 797.400625
+  type: 'test'
+  ...
+# Subtest: marker drift refuses even without changing the original graph digest
+ok 10 - marker drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 696.044458
+  type: 'test'
+  ...
+# Subtest: registry drift refuses even without changing the original graph digest
+ok 11 - registry drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 754.701291
+  type: 'test'
+  ...
+# Subtest: control drift refuses even without changing the original graph digest
+ok 12 - control drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 762.266625
+  type: 'test'
+  ...
+# Subtest: opaque reverse token is original-owner only and close or SDK identity loss cannot revive it
+ok 13 - opaque reverse token is original-owner only and close or SDK identity loss cannot revive it
+  ---
+  duration_ms: 1008.496083
+  type: 'test'
+  ...
+# Subtest: same cumulative ticket cannot be renewed by repeated full-cut requalification
+ok 14 - same cumulative ticket cannot be renewed by repeated full-cut requalification
+  ---
+  duration_ms: 1793.134166
+  type: 'test'
+  ...
+# Subtest: close during the final SDK observation refuses without clearing the actual pending read
+ok 15 - close during the final SDK observation refuses without clearing the actual pending read
+  ---
+  duration_ms: 931.313958
+  type: 'test'
+  ...
+# Subtest: same-owner attempted write during final SDK observation invalidates the captured original fence even on abort
+not ok 16 - same-owner attempted write during final SDK observation invalidates the captured original fence even on abort
+  ---
+  duration_ms: 769.446666
+  type: 'test'
+  location: '/Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-review/extension/tests/application-selection-warm-reverse.test.mjs:63:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'STALE_BASE'
+    -   code: 'GENERATION_SELECTION_PENDING'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'GENERATION_SELECTION_PENDING'
+  actual:
+  error: 'STALE_BASE'
+  stack: |-
+    requireRepositoryWriteFence (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-review/extension/core/idb-repository.js:92:238)
+    r.current [as isCurrent] (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-review/extension/core/browser-native-sync/application-generation-selection.js:182:5)
+    recoveryWork (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-review/extension/core/idb-repository.js:102:113)
+    ArchiveRepository.transaction (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-review/extension/core/idb-repository.js:556:33)
+    async waitForActual (node:assert:644:5)
+    async Function.rejects (node:assert:767:25)
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-review/extension/tests/application-selection-warm-reverse.test.mjs:65:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///Users/hhf/Documents/GitHub/paia/work/final-development-takeover-20261025/warm-reverse-review/extension/tests/application-selection-warm-reverse.test.mjs:65:2)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: another original target connection may change after the last raw read: observation token is not a global hold and full revalidation refuses
+ok 17 - another original target connection may change after the last raw read: observation token is not a global hold and full revalidation refuses
+  ---
+  duration_ms: 1086.50025
+  type: 'test'
+  ...
+# Subtest: one original deadline returns failure while unresolved SDK observation keeps busy until actual late settlement
+ok 18 - one original deadline returns failure while unresolved SDK observation keeps busy until actual late settlement
+  ---
+  duration_ms: 1117.241625
+  type: 'test'
+  ...
+# Error: Test "same-owner attempted write during final SDK observation invalidates the captured original fence even on abort" at extension/tests/application-selection-warm-reverse.test.mjs:63:1 generated asynchronous activity after the test ended. This activity created the error "Error: GENERATION_REVERSE_REVIEW_CHANGED" and would have caused the test to fail, but instead triggered an unhandledRejection event.
+1..18
+# tests 18
+# suites 0
+# pass 17
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16575.175041

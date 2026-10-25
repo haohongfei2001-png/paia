@@ -1,0 +1,391 @@
+TAP version 13
+# Subtest: same complete reviewed cut renews a stale tail proof with the original operation and no write
+ok 1 - same complete reviewed cut renews a stale tail proof with the original operation and no write
+  ---
+  duration_ms: 977.676
+  type: 'test'
+  ...
+# Subtest: source changed represented content cannot be silently re-reviewed
+ok 2 - source changed represented content cannot be silently re-reviewed
+  ---
+  duration_ms: 743.841625
+  type: 'test'
+  ...
+# Subtest: target changed represented content cannot be silently re-reviewed
+ok 3 - target changed represented content cannot be silently re-reviewed
+  ---
+  duration_ms: 694.087958
+  type: 'test'
+  ...
+# Subtest: source unknown physical metadata is retained and requires review despite same graph
+ok 4 - source unknown physical metadata is retained and requires review despite same graph
+  ---
+  duration_ms: 811.387791
+  type: 'test'
+  ...
+# Subtest: target unknown physical metadata is retained and requires review despite same graph
+ok 5 - target unknown physical metadata is retained and requires review despite same graph
+  ---
+  duration_ms: 742.44875
+  type: 'test'
+  ...
+# Subtest: replaced registry candidate is refused without opening the replacement database
+ok 6 - replaced registry candidate is refused without opening the replacement database
+  ---
+  duration_ms: 687.129875
+  type: 'test'
+  ...
+# Subtest: target original gate revision change requires review
+ok 7 - target original gate revision change requires review
+  ---
+  duration_ms: 729.389292
+  type: 'test'
+  ...
+# Subtest: source rebound database identity cannot reuse the original reviewed target
+ok 8 - source rebound database identity cannot reuse the original reviewed target
+  ---
+  duration_ms: 666.190334
+  type: 'test'
+  ...
+# Subtest: changed SDK control before row requires review and no SDK dispatch
+ok 9 - changed SDK control before row requires review and no SDK dispatch
+  ---
+  duration_ms: 534.006166
+  type: 'test'
+  ...
+# Subtest: source unresolved original selection marker refuses requalification
+ok 10 - source unresolved original selection marker refuses requalification
+  ---
+  duration_ms: 500.904083
+  type: 'test'
+  ...
+# Subtest: target unresolved original selection marker refuses requalification
+ok 11 - target unresolved original selection marker refuses requalification
+  ---
+  duration_ms: 496.37575
+  type: 'test'
+  ...
+# Subtest: restore epoch change remains an original proof refusal with no writes
+ok 12 - restore epoch change remains an original proof refusal with no writes
+  ---
+  duration_ms: 502.247334
+  type: 'test'
+  ...
+# Subtest: forged argument and another owner cannot supply or replace the private review
+ok 13 - forged argument and another owner cannot supply or replace the private review
+  ---
+  duration_ms: 556.380209
+  type: 'test'
+  ...
+# Subtest: full new raw preimage still rejects mutation after requalification
+ok 14 - full new raw preimage still rejects mutation after requalification
+  ---
+  duration_ms: 589.711292
+  type: 'test'
+  ...
+# Subtest: close during requalification invalidates old async completion; new explicit review survives
+ok 15 - close during requalification invalidates old async completion; new explicit review survives
+  ---
+  duration_ms: 643.521292
+  type: 'test'
+  ...
+# Subtest: close while initial prepare is waiting cannot publish a late prepared record
+ok 16 - close while initial prepare is waiting cannot publish a late prepared record
+  ---
+  duration_ms: 560.522167
+  type: 'test'
+  ...
+# Subtest: explicit reprepare replaces original review identity, never adopts an old response
+ok 17 - explicit reprepare replaces original review identity, never adopts an old response
+  ---
+  duration_ms: 601.797875
+  type: 'test'
+  ...
+# Subtest: source pending control publication remains unresolved and blocks requalification
+ok 18 - source pending control publication remains unresolved and blocks requalification
+  ---
+  duration_ms: 479.319166
+  type: 'test'
+  ...
+# Subtest: target pending control publication remains unresolved and blocks requalification
+ok 19 - target pending control publication remains unresolved and blocks requalification
+  ---
+  duration_ms: 467.070833
+  type: 'test'
+  ...
+# Subtest: explicit complete original existing cut selects the published candidate and cold original owner preserves source
+ok 20 - explicit complete original existing cut selects the published candidate and cold original owner preserves source
+  ---
+  duration_ms: 877.276541
+  type: 'test'
+  ...
+# Subtest: source mutation after readonly preparation invalidates activation without a marker or overwritten data
+ok 21 - source mutation after readonly preparation invalidates activation without a marker or overwritten data
+  ---
+  duration_ms: 716.029584
+  type: 'test'
+  ...
+# Subtest: target mutation after readonly preparation invalidates activation without a marker or overwritten data
+ok 22 - target mutation after readonly preparation invalidates activation without a marker or overwritten data
+  ---
+  duration_ms: 729.391333
+  type: 'test'
+  ...
+# Subtest: unrepresented default content and foreign candidate graph cannot pass inheritance
+ok 23 - unrepresented default content and foreign candidate graph cannot pass inheritance
+  ---
+  duration_ms: 663.782083
+  type: 'test'
+  ...
+# Subtest: ordinary callers cannot install, clone or erase the private selection marker
+ok 24 - ordinary callers cannot install, clone or erase the private selection marker
+  ---
+  duration_ms: 659.78925
+  type: 'test'
+  ...
+# Subtest: local SDK reject-before retains one dispatch and reconciles only durable original receipt
+ok 25 - local SDK reject-before retains one dispatch and reconciles only durable original receipt
+  ---
+  duration_ms: 724.423416
+  type: 'test'
+  ...
+# Subtest: local SDK reject-after retains one dispatch and reconciles only durable original receipt
+ok 26 - local SDK reject-after retains one dispatch and reconciles only durable original receipt
+  ---
+  duration_ms: 739.997791
+  type: 'test'
+  ...
+# Subtest: interruption after committed source fence has a cold explicit continue path
+ok 27 - interruption after committed source fence has a cold explicit continue path
+  ---
+  duration_ms: 746.467958
+  type: 'test'
+  ...
+# Subtest: interruption after committed source fence has a cold explicit cancel path
+ok 28 - interruption after committed source fence has a cold explicit cancel path
+  ---
+  duration_ms: 572.04375
+  type: 'test'
+  ...
+# Subtest: cold configured application consumes only completed receipt and refuses rollback after later human edit
+ok 29 - cold configured application consumes only completed receipt and refuses rollback after later human edit
+  ---
+  duration_ms: 535.966041
+  type: 'test'
+  ...
+# selected original startup
+# original human edit committed
+# fallback refusal preserved rows
+# Subtest: unrepresented existing default Source is refused without implicit enrollment or any writes
+ok 30 - unrepresented existing default Source is refused without implicit enrollment or any writes
+  ---
+  duration_ms: 467.180291
+  type: 'test'
+  ...
+# Subtest: existing default without a selected receipt is the prior original application, not an automatic candidate switch
+ok 31 - existing default without a selected receipt is the prior original application, not an automatic candidate switch
+  ---
+  duration_ms: 439.38875
+  type: 'test'
+  ...
+# Subtest: actual cold configured worker uses selected original services and keeps the prior database
+ok 32 - actual cold configured worker uses selected original services and keeps the prior database
+  ---
+  duration_ms: 1600.134083
+  type: 'test'
+  ...
+# Subtest: durable interruption at source-dispatched reconciles the original operation without another SDK dispatch
+ok 33 - durable interruption at source-dispatched reconciles the original operation without another SDK dispatch
+  ---
+  duration_ms: 533.935167
+  type: 'test'
+  ...
+# Subtest: durable interruption at source-selected reconciles the original operation without another SDK dispatch
+ok 34 - durable interruption at source-selected reconciles the original operation without another SDK dispatch
+  ---
+  duration_ms: 529.591375
+  type: 'test'
+  ...
+# Subtest: durable interruption at target-cleanup reconciles the original operation without another SDK dispatch
+ok 35 - durable interruption at target-cleanup reconciles the original operation without another SDK dispatch
+  ---
+  duration_ms: 528.994375
+  type: 'test'
+  ...
+# Subtest: original final wait set-replaced must prevent SDK entry
+ok 36 - original final wait set-replaced must prevent SDK entry
+  ---
+  duration_ms: 3387.026667
+  type: 'test'
+  ...
+# Subtest: original final wait closed must prevent SDK entry
+ok 37 - original final wait closed must prevent SDK entry
+  ---
+  duration_ms: 2489.526708
+  type: 'test'
+  ...
+# Subtest: original review restriction blocks every stateful original owner entry and exact release only removes its own restriction
+ok 38 - original review restriction blocks every stateful original owner entry and exact release only removes its own restriction
+  ---
+  duration_ms: 870.692375
+  type: 'test'
+  ...
+# Subtest: close invalidates the exact held review without reopening it
+ok 39 - close invalidates the exact held review without reopening it
+  ---
+  duration_ms: 687.618333
+  type: 'test'
+  ...
+# Subtest: sdk invalidates the exact held review without reopening it
+ok 40 - sdk invalidates the exact held review without reopening it
+  ---
+  duration_ms: 682.420084
+  type: 'test'
+  ...
+# Subtest: an attempted marker write cannot be reclassified as an untouched private review even after transaction rollback
+ok 41 - an attempted marker write cannot be reclassified as an untouched private review even after transaction rollback
+  ---
+  duration_ms: 699.756542
+  type: 'test'
+  ...
+# Subtest: foreign original owner, store or local object cannot obtain or release this private restriction
+ok 42 - foreign original owner, store or local object cannot obtain or release this private restriction
+  ---
+  duration_ms: 726.746875
+  type: 'test'
+  ...
+# Subtest: already accepted original status retains its busy lifetime through the real read
+ok 43 - already accepted original status retains its busy lifetime through the real read
+  ---
+  duration_ms: 674.520166
+  type: 'test'
+  ...
+# Subtest: already accepted original continue retains its busy lifetime through the real read
+ok 44 - already accepted original continue retains its busy lifetime through the real read
+  ---
+  duration_ms: 689.475292
+  type: 'test'
+  ...
+# Subtest: already accepted original cancel retains its busy lifetime through the real read
+ok 45 - already accepted original cancel retains its busy lifetime through the real read
+  ---
+  duration_ms: 728.168042
+  type: 'test'
+  ...
+# Subtest: same live original selected owner qualifies unchanged complete cuts without writes or rollback authority
+ok 46 - same live original selected owner qualifies unchanged complete cuts without writes or rollback authority
+  ---
+  duration_ms: 1503.584166
+  type: 'test'
+  ...
+# Subtest: new-owner cannot manufacture a warm reverse review
+ok 47 - new-owner cannot manufacture a warm reverse review
+  ---
+  duration_ms: 752.239417
+  type: 'test'
+  ...
+# Subtest: unselected cannot manufacture a warm reverse review
+ok 48 - unselected cannot manufacture a warm reverse review
+  ---
+  duration_ms: 687.803792
+  type: 'test'
+  ...
+# Subtest: unknown cannot manufacture a warm reverse review
+ok 49 - unknown cannot manufacture a warm reverse review
+  ---
+  duration_ms: 1001.24725
+  type: 'test'
+  ...
+# Subtest: a real target Working edit prevents unchanged-cut reverse qualification and stays intact
+ok 50 - a real target Working edit prevents unchanged-cut reverse qualification and stays intact
+  ---
+  duration_ms: 1111.517917
+  type: 'test'
+  ...
+# Subtest: source-raw drift refuses even without changing the original graph digest
+ok 51 - source-raw drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 981.347917
+  type: 'test'
+  ...
+# Subtest: target-raw drift refuses even without changing the original graph digest
+ok 52 - target-raw drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 881.310875
+  type: 'test'
+  ...
+# Subtest: gate drift refuses even without changing the original graph digest
+ok 53 - gate drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 841.191833
+  type: 'test'
+  ...
+# Subtest: control-revision drift refuses even without changing the original graph digest
+ok 54 - control-revision drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 838.048334
+  type: 'test'
+  ...
+# Subtest: marker drift refuses even without changing the original graph digest
+ok 55 - marker drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 762.17325
+  type: 'test'
+  ...
+# Subtest: registry drift refuses even without changing the original graph digest
+ok 56 - registry drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 897.751667
+  type: 'test'
+  ...
+# Subtest: control drift refuses even without changing the original graph digest
+ok 57 - control drift refuses even without changing the original graph digest
+  ---
+  duration_ms: 837.850334
+  type: 'test'
+  ...
+# Subtest: opaque reverse token is original-owner only and close or SDK identity loss cannot revive it
+ok 58 - opaque reverse token is original-owner only and close or SDK identity loss cannot revive it
+  ---
+  duration_ms: 1091.891833
+  type: 'test'
+  ...
+# Subtest: same cumulative ticket cannot be renewed by repeated full-cut requalification
+ok 59 - same cumulative ticket cannot be renewed by repeated full-cut requalification
+  ---
+  duration_ms: 1822.901333
+  type: 'test'
+  ...
+# Subtest: close during the final SDK observation refuses without clearing the actual pending read
+ok 60 - close during the final SDK observation refuses without clearing the actual pending read
+  ---
+  duration_ms: 753.174083
+  type: 'test'
+  ...
+# Subtest: same-owner attempted write during final SDK observation invalidates the captured original fence even on abort
+ok 61 - same-owner attempted write during final SDK observation invalidates the captured original fence even on abort
+  ---
+  duration_ms: 778.587916
+  type: 'test'
+  ...
+# Subtest: another original target connection may change after the last raw read: observation token is not a global hold and full revalidation refuses
+ok 62 - another original target connection may change after the last raw read: observation token is not a global hold and full revalidation refuses
+  ---
+  duration_ms: 1096.89175
+  type: 'test'
+  ...
+# Subtest: one original deadline returns failure while unresolved SDK observation keeps busy until actual late settlement
+ok 63 - one original deadline returns failure while unresolved SDK observation keeps busy until actual late settlement
+  ---
+  duration_ms: 1055.075875
+  type: 'test'
+  ...
+1..63
+# tests 63
+# suites 0
+# pass 63
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 17939.559084
