@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: terminal contract refuses missing-before before any control plan is consumed
+ok 1 - terminal contract refuses missing-before before any control plan is consumed
+  ---
+  duration_ms: 2.7955
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses wrong-stage before any control plan is consumed
+ok 2 - terminal contract refuses wrong-stage before any control plan is consumed
+  ---
+  duration_ms: 0.186083
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses wrong-kind before any control plan is consumed
+ok 3 - terminal contract refuses wrong-kind before any control plan is consumed
+  ---
+  duration_ms: 0.122667
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses byte-refund before any control plan is consumed
+ok 4 - terminal contract refuses byte-refund before any control plan is consumed
+  ---
+  duration_ms: 0.141708
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses time-refund before any control plan is consumed
+ok 5 - terminal contract refuses time-refund before any control plan is consumed
+  ---
+  duration_ms: 0.22925
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses not-verified before any control plan is consumed
+ok 6 - terminal contract refuses not-verified before any control plan is consumed
+  ---
+  duration_ms: 0.122584
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses changed-tickets before any control plan is consumed
+ok 7 - terminal contract refuses changed-tickets before any control plan is consumed
+  ---
+  duration_ms: 0.153375
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses changed-burned before any control plan is consumed
+ok 8 - terminal contract refuses changed-burned before any control plan is consumed
+  ---
+  duration_ms: 0.126167
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses changed-transport before any control plan is consumed
+ok 9 - terminal contract refuses changed-transport before any control plan is consumed
+  ---
+  duration_ms: 0.373583
+  type: 'test'
+  ...
+# Subtest: terminal receipt refuses bytes outside its retained original envelope
+ok 10 - terminal receipt refuses bytes outside its retained original envelope
+  ---
+  duration_ms: 0.2945
+  type: 'test'
+  ...
+# Subtest: terminal receipt refuses references outside its retained original envelope
+ok 11 - terminal receipt refuses references outside its retained original envelope
+  ---
+  duration_ms: 0.122542
+  type: 'test'
+  ...
+# Subtest: terminal receipt refuses activeMs outside its retained original envelope
+ok 12 - terminal receipt refuses activeMs outside its retained original envelope
+  ---
+  duration_ms: 0.082458
+  type: 'test'
+  ...
+# Subtest: terminal receipt refuses nan outside its retained original envelope
+ok 13 - terminal receipt refuses nan outside its retained original envelope
+  ---
+  duration_ms: 0.075041
+  type: 'test'
+  ...
+# Subtest: terminal receipt refuses negative outside its retained original envelope
+ok 14 - terminal receipt refuses negative outside its retained original envelope
+  ---
+  duration_ms: 0.073667
+  type: 'test'
+  ...
+# Subtest: terminal exact envelope is consumed once without new allowance or refund
+ok 15 - terminal exact envelope is consumed once without new allowance or refund
+  ---
+  duration_ms: 0.565792
+  type: 'test'
+  ...
+# Subtest: aborted terminal retains prepaid durable data and cannot supply a completion receipt
+ok 16 - aborted terminal retains prepaid durable data and cannot supply a completion receipt
+  ---
+  duration_ms: 0.127792
+  type: 'test'
+  ...
+# Subtest: original one-group publication consumes terminal ledger contract and preserves paid receipt
+ok 17 - original one-group publication consumes terminal ledger contract and preserves paid receipt
+  ---
+  duration_ms: 206.464875
+  type: 'test'
+  ...
+# Subtest: original failed terminal write rolls back verified row and keeps publication reservation
+ok 18 - original failed terminal write rolls back verified row and keeps publication reservation
+  ---
+  duration_ms: 127.474166
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 558.615459

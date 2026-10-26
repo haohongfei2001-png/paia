@@ -1,0 +1,155 @@
+diff --git a/extension/core/browser-native-sync/canonical-generation-task-ledger.js b/extension/core/browser-native-sync/canonical-generation-task-ledger.js
+index d05cef4..ef3d416 100644
+--- a/extension/core/browser-native-sync/canonical-generation-task-ledger.js
++++ b/extension/core/browser-native-sync/canonical-generation-task-ledger.js
+@@ -58,18 +58,33 @@ export function readOriginalGenerationControlWork(repository){return Object.free
+ const controlReceipts=new WeakMap(),controlPlans=new WeakMap(),controlReads=new WeakMap();
+ function receiptFor(repository,row){const r=controlReceipts.get(repository);return r&&!r.failed&&r.taskId===row.taskId&&equal(r.identity,row.identity)&&equal(r.pending,row.controlPending)&&equal(r.row,row)?r:null;}
+ export function prepareOriginalGenerationControl(repository,scope,before,after,{terminal=false}={}){
+- requireOriginalTaskControlScope(repository,scope,terminal);originalGenerationTaskData(after);if(after.version!==2)return after;
++ requireOriginalTaskControlScope(repository,scope,terminal);originalGenerationTaskData(after);
++ // The original publication consumer already prepays its whole closure. Bind
++ // terminal settlement to that exact debit; the old control debt below is a
++ // separate receipt, never permission to refund the publication reservation.
++ let terminalEnvelope=null;
++ if(terminal){
++  originalGenerationTaskData(before);
++  if(before.version!==2||before.phase!=='applying'||before.pending?.kind!=='publication'||before.pending.ms>30000||!equal(after,originalGenerationTaskSettle(before,before.pending,{bytes:before.pending.bytes,activeMs:before.pending.ms},'verified')))fail();
++  terminalEnvelope=Object.freeze({...before.pending});
++ }
++ if(after.version!==2)return after;
+  if(controlPlans.has(scope))fail();if(before!==null){originalGenerationTaskData(before);if(before.version!==2||before.taskId!==after.taskId||!equal(before.identity,after.identity)||!equal(before.controlPending,after.controlPending)||before.controlSequence!==after.controlSequence||before.controlBurned!==after.controlBurned)fail();}
+  const held=controlReceipts.get(repository);if(held?.failed)fail('BNS_GROUP_RESOURCE_LIMIT');const old=before?.controlPending??null,receipt=old?receiptFor(repository,before):null;
+  if(receipt?.reading||receipt?.settling)fail('BNS_GROUP_RESOURCE_LIMIT');if(receipt&&!terminal){const bytes=receipt.pending.bytes-receipt.bytes,ms=Math.floor(receipt.pending.ms-receipt.activeMs);if(bytes<=0||ms<=0)fail('BNS_GROUP_RESOURCE_LIMIT');registerRepositoryWorkLimit(repository,scope,{bytes,ms});}
+  let next=clone(after);if(old){if(receipt){if(receipt.bytes>old.bytes||Math.ceil(receipt.activeMs)>old.ms)fail('BNS_GROUP_RESOURCE_LIMIT');next.workBytes-=old.bytes-receipt.bytes;next.activeMs-=old.ms-Math.ceil(receipt.activeMs);}else next.controlBurned++;}
+  next.controlPending=null;
+  if(!terminal){if(next.controlSequence===16384||next.workBytes+2*1024*1024>QUALIFIED_HUMAN_TASK_LIMITS.workBytes||next.activeMs+30000>QUALIFIED_HUMAN_TASK_LIMITS.activeMs)fail('BNS_GROUP_RESOURCE_LIMIT');next.controlSequence++;next.workBytes+=2*1024*1024;next.activeMs+=30000;next.controlPending={sequence:next.controlSequence,bytes:2*1024*1024,ms:30000};}
+- originalGenerationTaskData(next);controlPlans.set(scope,{repository,before,after:clone(next),receipt,terminal});if(receipt)receipt.settling=scope;return next;
++ originalGenerationTaskData(next);controlPlans.set(scope,{repository,before,after:clone(next),receipt,terminal,terminalEnvelope});if(receipt)receipt.settling=scope;return next;
+ }
+ export function completeOriginalGenerationControl(repository,scope){
+- const p=controlPlans.get(scope);if(!p||p.repository!==repository)fail();const work=readOriginalCommittedTransactionWork(repository,scope);
++ const p=controlPlans.get(scope);if(!p||p.repository!==repository||p.failed)fail();const work=readOriginalCommittedTransactionWork(repository,scope);
+  if(p.receipt&&controlReceipts.get(repository)!==p.receipt)fail();
++ // This verifies an already committed original receipt. It does not roll back
++ // a committed transaction, mint a new allowance or perform a cold write.
++ if(p.terminal&&(!number(work.references)||work.references>4096||!number(work.bytes)||work.bytes>p.terminalEnvelope.bytes||!Number.isFinite(work.activeMs)||work.activeMs<0||Math.ceil(work.activeMs)>p.terminalEnvelope.ms)){
++  p.failed=true;if(p.receipt)p.receipt.failed=true;fail('BNS_GROUP_RESOURCE_LIMIT');
++ }
+  // Only a committed successor consumes the predecessor receipt. Failed native
+  // writes retain both the durable debt and its one-use original receipt.
+  controlPlans.delete(scope);if(p.terminal){controlReceipts.delete(repository);return;}
+diff --git a/extension/tests/canonical-generation-terminal-ledger-contract.test.mjs b/extension/tests/canonical-generation-terminal-ledger-contract.test.mjs
+new file mode 100644
+index 0000000..cee97db
+--- /dev/null
++++ b/extension/tests/canonical-generation-terminal-ledger-contract.test.mjs
+@@ -0,0 +1,108 @@
++import test from 'node:test';import assert from 'node:assert/strict';
++import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
++import {ArchiveRepository} from '../core/idb-repository.js';
++import {LibraryDocumentsStore} from '../core/library-documents-store.js';
++import {local} from './harness/thought-m1.mjs';
++import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';
++import {HumanLibrarySyncJournal} from '../core/browser-native-sync/human-library-journal.js';
++import {buildCheckpoint} from '../core/browser-native-sync/checkpoints.js';
++import {CanonicalGenerationPublication} from '../core/browser-native-sync/canonical-generation-publication.js';
++import {CanonicalGenerationCheckpointStage,readCanonicalPhasedHumanProof} from '../core/browser-native-sync/canonical-generation-checkpoint-stage.js';
++import {CanonicalGenerationPhasedHumanRestore,completeOriginalPhasedHumanPublication} from '../core/browser-native-sync/canonical-generation-phased-human.js';
++import {CANONICAL_PHASED_TASK,GENERATION_TASK_LIMITS,readOriginalGenerationControlWork,originalGenerationTaskData,originalGenerationTaskStart,originalGenerationTaskReserve,originalGenerationTaskSettle,originalGenerationTaskBurn} from '../core/browser-native-sync/canonical-generation-task-ledger.js';
++globalThis.IDBKeyRange=IDBKeyRange;
++async function fixture(t,count=1,checkpoint){const factory=new IDBFactory(),source=new LibraryDocumentsStore(local(),{indexedDB:factory,name:'SYNTHETIC-phased-source'});await source.consent(true);await source.finishFoundation();const sc=new BrowserNativeSyncCore(source.repository,{datasetId:'synthetic_phased',deviceId:'synthetic_source'});source.humanLibraryJournal=new HumanLibrarySyncJournal(sc);for(let i=0;i<count;i++)await source.createEntry({actor:'user',body:'SYNTHETIC original '+i,type:'idea',formation:'explicit',evidence:[],operationId:crypto.randomUUID()});const objects=new Map(),transport={async putImmutable(ref,raw){objects.set(ref.id,raw.slice());},async get(ref){return objects.get(ref.id)?.slice();}},cp=await buildCheckpoint(sc,transport,{grouped:{store:source}}),registry=new ArchiveRepository(local(),{indexedDB:factory,name:'SYNTHETIC-phased-registry'}),publication=new CanonicalGenerationPublication(registry),store=new LibraryDocumentsStore(local(),{indexedDB:factory,name:'SYNTHETIC-phased-target'}),handle=await publication.attach(store.repository,{generationId:'synthetic_generation',databaseId:'synthetic_database'});await store.consent(true);await store.finishFoundation();const core=new BrowserNativeSyncCore(store.repository,{datasetId:sc.datasetId,deviceId:'synthetic_receiver',namespace:'synthetic_replay'});store.humanLibraryJournal=new HumanLibrarySyncJournal(core);const stage=new CanonicalGenerationCheckpointStage(publication,handle,{store,core,checkpoint,protectRepository:true});await stage.begin(cp.ref,r=>transport.get(r));t.after(()=>[source.repository,registry,store.repository].forEach(r=>r.db?.close()));return {stage,publication,handle,store,core,cp,transport,registry,factory};}
++import {readFile} from 'node:fs/promises';
++import {IDBObjectStore} from './vendor/fake-indexeddb/build/esm/index.js';
++// Isolated contract tests replace only the Repository authority/receipt boundary.
++// The integration cases below use the unchanged real Repository and original owners.
++const file=new URL('../core/browser-native-sync/canonical-generation-task-ledger.js',import.meta.url);
++const boundary=`export function requireOriginalTaskControlScope(r,s,terminal){if(s.repository!==r||s.terminal!==terminal)throw Error('scope denied');}
++export function readOriginalCommittedTransactionWork(r,s){if(s.repository!==r||!s.work)throw Error('no original completion');return s.work;}
++export function requireOriginalTaskControlFailure(r,s){if(s.repository!==r||!s.failed)throw Error('not failed');}
++export function registerRepositoryWorkLimit(){}`;
++const encoded=s=>'data:text/javascript;base64,'+Buffer.from(s).toString('base64');
++const source=(await readFile(file,'utf8')).replace("'../idb-repository.js'",JSON.stringify(encoded(boundary))).replace("'../constants.js'",JSON.stringify(new URL('../constants.js',file).href)).replace("'./value.js'",JSON.stringify(new URL('./value.js',file).href));
++const L=await import(encoded(source));
++function pair(){
++ const before=L.originalGenerationTaskReserve({...L.originalQualifiedHumanTaskStart({manifestId:'a'.repeat(64),generationIdentity:{id:'synthetic'},sourceBase:{root:{active:null}}}),phase:'applying'},'publication',{bytes:16384,ms:5000});
++ return {before,after:L.originalGenerationTaskSettle(before,before.pending,{bytes:before.pending.bytes,activeMs:before.pending.ms},'verified')};
++}
++for(const defect of ['missing-before','wrong-stage','wrong-kind','byte-refund','time-refund','not-verified','changed-tickets','changed-burned','changed-transport'])test('terminal contract refuses '+defect+' before any control plan is consumed',()=>{
++ const r={},s={repository:r,terminal:true};let {before,after}=pair();
++ if(defect==='missing-before')before=null;
++ else if(defect==='wrong-stage')before.phase='validated';
++ else if(defect==='wrong-kind')before.pending.kind='verify';
++ else if(defect==='byte-refund')after.workBytes--;
++ else if(defect==='time-refund')after.activeMs--;
++ else if(defect==='not-verified')after.phase='applying';
++ else if(defect==='changed-tickets')after.tickets++;
++ else if(defect==='changed-burned')after.burned++;
++ else after.transportIds=['b'.repeat(64)];
++ assert.throws(()=>L.prepareOriginalGenerationControl(r,s,before,after,{terminal:true}));
++ // The failed admission did not occupy the scope or create a new reservation.
++ const good=pair();assert.equal(L.prepareOriginalGenerationControl(r,s,good.before,good.after,{terminal:true}).workBytes,good.before.workBytes);
++});
++for(const defect of ['bytes','references','activeMs','nan','negative'])test('terminal receipt refuses '+defect+' outside its retained original envelope',()=>{
++ const r={},s={repository:r,terminal:true},p=pair();L.prepareOriginalGenerationControl(r,s,p.before,p.after,{terminal:true});s.work={bytes:16384,references:4096,activeMs:5000};
++ if(defect==='bytes')s.work.bytes++;
++ else if(defect==='references')s.work.references++;
++ else if(defect==='activeMs')s.work.activeMs+=0.01;
++ else if(defect==='nan')s.work.activeMs=NaN;
++ else s.work.bytes=-1;
++ assert.throws(()=>L.completeOriginalGenerationControl(r,s));s.work={bytes:1,references:1,activeMs:1};assert.throws(()=>L.completeOriginalGenerationControl(r,s),'a refused completion cannot later be relabeled successful');
++});
++test('terminal exact envelope is consumed once without new allowance or refund',()=>{
++ const r={},s={repository:r,terminal:true},p=pair(),saved=structuredClone(p);const next=L.prepareOriginalGenerationControl(r,s,p.before,p.after,{terminal:true});
++ assert.deepEqual(next,p.after);s.work={bytes:16384,references:4096,activeMs:5000};L.completeOriginalGenerationControl(r,s);assert.throws(()=>L.completeOriginalGenerationControl(r,s));assert.deepEqual(p,saved);
++});
++test('aborted terminal retains prepaid durable data and cannot supply a completion receipt',()=>{
++ const r={},s={repository:r,terminal:true,failed:true},p=pair(),saved=structuredClone(p.before);L.prepareOriginalGenerationControl(r,s,p.before,p.after,{terminal:true});
++ assert.throws(()=>L.completeOriginalGenerationControl(r,s));L.abandonOriginalGenerationControl(r,s);assert.throws(()=>L.completeOriginalGenerationControl(r,s));assert.deepEqual(p.before,saved);
++});
++async function prepared(t){
++ const f=await fixture(t,1);await f.stage.stageQualifiedHumanCheckpoint(r=>f.transport.get(r));const proof=await f.stage.validateQualifiedHumanCheckpoint(),restore=new CanonicalGenerationPhasedHumanRestore(f);await restore.step(proof);await restore.preparePublication(proof);
++ const task=()=>f.store.repository.transaction(false,t=>t.get('meta',CANONICAL_PHASED_TASK),['meta']);return {...f,proof,restore,task,before:await task()};
++}
++test('original one-group publication consumes terminal ledger contract and preserves paid receipt',async t=>{
++ const f=await prepared(t);assert.equal(f.before.pending.kind,'publication');const token=await f.publication.sealOriginalPhasedHumanCheckpoint(f.handle,f.restore,f.proof),after=await f.task(),receipt=completeOriginalPhasedHumanPublication(f.restore,f.proof);
++ assert.equal(after.phase,'verified');assert.equal(after.pending,null);assert.equal(after.controlPending,null);assert.equal(after.taskId,f.before.taskId);assert.ok(after.workBytes>=f.before.pending.bytes);assert.ok(after.activeMs>=f.before.pending.ms);assert.ok(receipt.native.bytes+receipt.preparationBytes<=receipt.prepaidBytes);assert.ok(receipt.native.references<=4096);
++ await f.publication.reserve(token,'synthetic_terminal_contract');assert.equal((await f.publication.recover()).state,'committed');assert.equal((await f.publication.active()).state,'active');
++ await f.store.repository.close();const cold=new LibraryDocumentsStore(f.store.local,{indexedDB:f.factory,name:f.store.repository.name}).repository;t.after(()=>cold.db?.close());
++ const durable=await cold.transaction(false,t=>t.get('meta',CANONICAL_PHASED_TASK),['meta']);assert.deepEqual(durable,after);assert.equal((await f.publication.active()).state,'active');
++});
++test('original failed terminal write rolls back verified row and keeps publication reservation',async t=>{
++ const f=await prepared(t),put=IDBObjectStore.prototype.put;let hits=0;
++ IDBObjectStore.prototype.put=function(row,...args){if(this.transaction.db.name===f.store.repository.name&&row?.id===CANONICAL_PHASED_TASK&&row.phase==='verified'){hits++;throw Error('SYNTHETIC terminal write failure');}return put.call(this,row,...args);};
++ try{await assert.rejects(f.publication.sealOriginalPhasedHumanCheckpoint(f.handle,f.restore,f.proof));}finally{IDBObjectStore.prototype.put=put;}
++ assert.equal(hits,1);assert.deepEqual(await f.task(),f.before);assert.deepEqual(await f.publication.active(),{state:'empty'});
++});
++
++test('terminal settles only the previous exact control receipt and keeps all publication prepayment',()=>{
++ const r={},first={repository:r,terminal:false},p=pair();
++ const paid=L.prepareOriginalGenerationControl(r,first,null,p.before);
++ first.work={bytes:100,references:3,activeMs:5};L.completeOriginalGenerationControl(r,first);
++ const after=L.originalGenerationTaskSettle(paid,paid.pending,{bytes:paid.pending.bytes,activeMs:paid.pending.ms},'verified'),terminal={repository:r,terminal:true};
++ const next=L.prepareOriginalGenerationControl(r,terminal,paid,after,{terminal:true});
++ assert.equal(next.workBytes,p.before.workBytes+100);assert.equal(next.activeMs,p.before.activeMs+5);assert.equal(next.controlPending,null);assert.equal(next.controlBurned,0);
++ terminal.work={bytes:16000,references:9,activeMs:4900};L.completeOriginalGenerationControl(r,terminal);
++ assert.throws(()=>L.originalGenerationControlReadWork(r,{},{}),'settled receipt cannot lend another allowance');
++});
++test('missing prior control receipt never refunds the durable debt during terminal accounting',()=>{
++ const firstRepo={},first={repository:firstRepo,terminal:false},p=pair(),paid=L.prepareOriginalGenerationControl(firstRepo,first,null,p.before);
++ const r={},scope={repository:r,terminal:true},after=L.originalGenerationTaskSettle(paid,paid.pending,{bytes:paid.pending.bytes,activeMs:paid.pending.ms},'verified');
++ // Numeric accounting only under the stubbed authority; this grants no cold
++ // writer capability and supplies no deadline from a prior process.
++ const next=L.prepareOriginalGenerationControl(r,scope,paid,after,{terminal:true});
++ assert.equal(next.workBytes,paid.workBytes);assert.equal(next.activeMs,paid.activeMs);assert.equal(next.controlBurned,paid.controlBurned+1);assert.equal(next.controlPending,null);
++});
++test('terminal contract does not accept an old version task as an unmetered completion',()=>{
++ const r={},scope={repository:r,terminal:true},old=L.originalGenerationTaskStart({manifestId:'a'.repeat(64),generationIdentity:{id:'synthetic'},sourceBase:{root:{active:null}}});
++ assert.throws(()=>L.prepareOriginalGenerationControl(r,scope,old,old,{terminal:true}));
++});
++
++test('terminal admission cannot normalize an oversized persisted duration into a new allowance',()=>{
++ const r={},scope={repository:r,terminal:true},p=pair();p.before.pending.ms=30001;p.before.activeMs=30001;
++ p.after=L.originalGenerationTaskSettle(p.before,p.before.pending,{bytes:p.before.pending.bytes,activeMs:p.before.pending.ms},'verified');
++ assert.throws(()=>L.prepareOriginalGenerationControl(r,scope,p.before,p.after,{terminal:true}));
++});

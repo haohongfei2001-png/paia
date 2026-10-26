@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: terminal contract refuses missing-before before any control plan is consumed
+ok 1 - terminal contract refuses missing-before before any control plan is consumed
+  ---
+  duration_ms: 3.668917
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses wrong-stage before any control plan is consumed
+ok 2 - terminal contract refuses wrong-stage before any control plan is consumed
+  ---
+  duration_ms: 0.219042
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses wrong-kind before any control plan is consumed
+ok 3 - terminal contract refuses wrong-kind before any control plan is consumed
+  ---
+  duration_ms: 0.135541
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses byte-refund before any control plan is consumed
+ok 4 - terminal contract refuses byte-refund before any control plan is consumed
+  ---
+  duration_ms: 0.181417
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses time-refund before any control plan is consumed
+ok 5 - terminal contract refuses time-refund before any control plan is consumed
+  ---
+  duration_ms: 0.296291
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses not-verified before any control plan is consumed
+ok 6 - terminal contract refuses not-verified before any control plan is consumed
+  ---
+  duration_ms: 0.14825
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses changed-tickets before any control plan is consumed
+ok 7 - terminal contract refuses changed-tickets before any control plan is consumed
+  ---
+  duration_ms: 0.187291
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses changed-burned before any control plan is consumed
+ok 8 - terminal contract refuses changed-burned before any control plan is consumed
+  ---
+  duration_ms: 0.149833
+  type: 'test'
+  ...
+# Subtest: terminal contract refuses changed-transport before any control plan is consumed
+ok 9 - terminal contract refuses changed-transport before any control plan is consumed
+  ---
+  duration_ms: 0.401708
+  type: 'test'
+  ...
+# Subtest: terminal receipt refuses bytes outside its retained original envelope
+ok 10 - terminal receipt refuses bytes outside its retained original envelope
+  ---
+  duration_ms: 0.393166
+  type: 'test'
+  ...
+# Subtest: terminal receipt refuses references outside its retained original envelope
+ok 11 - terminal receipt refuses references outside its retained original envelope
+  ---
+  duration_ms: 0.163875
+  type: 'test'
+  ...
+# Subtest: terminal receipt refuses activeMs outside its retained original envelope
+ok 12 - terminal receipt refuses activeMs outside its retained original envelope
+  ---
+  duration_ms: 0.148417
+  type: 'test'
+  ...
+# Subtest: terminal receipt refuses nan outside its retained original envelope
+ok 13 - terminal receipt refuses nan outside its retained original envelope
+  ---
+  duration_ms: 0.10675
+  type: 'test'
+  ...
+# Subtest: terminal receipt refuses negative outside its retained original envelope
+ok 14 - terminal receipt refuses negative outside its retained original envelope
+  ---
+  duration_ms: 0.087167
+  type: 'test'
+  ...
+# Subtest: terminal exact envelope is consumed once without new allowance or refund
+ok 15 - terminal exact envelope is consumed once without new allowance or refund
+  ---
+  duration_ms: 0.63425
+  type: 'test'
+  ...
+# Subtest: aborted terminal retains prepaid durable data and cannot supply a completion receipt
+ok 16 - aborted terminal retains prepaid durable data and cannot supply a completion receipt
+  ---
+  duration_ms: 0.156791
+  type: 'test'
+  ...
+# Subtest: original one-group publication consumes terminal ledger contract and preserves paid receipt
+ok 17 - original one-group publication consumes terminal ledger contract and preserves paid receipt
+  ---
+  duration_ms: 241.952417
+  type: 'test'
+  ...
+# Subtest: original failed terminal write rolls back verified row and keeps publication reservation
+ok 18 - original failed terminal write rolls back verified row and keeps publication reservation
+  ---
+  duration_ms: 159.24925
+  type: 'test'
+  ...
+# Subtest: terminal settles only the previous exact control receipt and keeps all publication prepayment
+ok 19 - terminal settles only the previous exact control receipt and keeps all publication prepayment
+  ---
+  duration_ms: 0.265
+  type: 'test'
+  ...
+# Subtest: missing prior control receipt never refunds the durable debt during terminal accounting
+ok 20 - missing prior control receipt never refunds the durable debt during terminal accounting
+  ---
+  duration_ms: 0.098667
+  type: 'test'
+  ...
+# Subtest: terminal contract does not accept an old version task as an unmetered completion
+ok 21 - terminal contract does not accept an old version task as an unmetered completion
+  ---
+  duration_ms: 0.043125
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 674.637208
