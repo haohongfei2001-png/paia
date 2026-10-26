@@ -1,0 +1,54 @@
+TAP version 13
+# Subtest: MAIN Q4 original topic rename preparation
+ok 1 - MAIN Q4 original topic rename preparation
+  ---
+  duration_ms: 1170.708785
+  type: 'test'
+  ...
+# {"mode":"topic rename","prepared":true,"state":"UNAVAILABLE","error":null,"profile":1,"transport":0,"dispatch":0,"material":2,"preparedHandles":1,"released":1,"semanticUnchanged":true,"acksUnchanged":true}
+# Subtest: MAIN Q4 original section rename preparation
+ok 2 - MAIN Q4 original section rename preparation
+  ---
+  duration_ms: 672.263419
+  type: 'test'
+  ...
+# {"mode":"section rename","prepared":true,"state":"UNAVAILABLE","error":null,"profile":1,"transport":0,"dispatch":0,"material":2,"preparedHandles":1,"released":1,"semanticUnchanged":true,"acksUnchanged":true}
+# Subtest: Q4 rename capabilities require exact current Commands and Filter source provenance
+ok 3 - Q4 rename capabilities require exact current Commands and Filter source provenance
+  ---
+  duration_ms: 51.949134
+  type: 'test'
+  ...
+# Subtest: signed existing human topic UPDATE preserves the exact selected human interpretation
+ok 4 - signed existing human topic UPDATE preserves the exact selected human interpretation
+  ---
+  duration_ms: 3650.854487
+  type: 'test'
+  ...
+# Subtest: signed existing human topic UPDATE defers when its exact structural unit is omitted
+ok 5 - signed existing human topic UPDATE defers when its exact structural unit is omitted
+  ---
+  duration_ms: 2901.098678
+  type: 'test'
+  ...
+# Subtest: signed existing human section UPDATE preserves the exact selected human interpretation
+ok 6 - signed existing human section UPDATE preserves the exact selected human interpretation
+  ---
+  duration_ms: 2741.512814
+  type: 'test'
+  ...
+# Subtest: signed existing human section UPDATE defers when its exact structural unit is omitted
+ok 7 - signed existing human section UPDATE defers when its exact structural unit is omitted
+  ---
+  duration_ms: 2647.648973
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14884.005781

@@ -1,7 +1,7 @@
 import {createTopicIdentityProcessingGrant,disposeTopicIdentityProcessingGrant} from '../core/ai-usage/topic-identity-processing-grant.js';
 import {createTopicIdentitySourceProcessing,disposeTopicIdentitySourceProcessing,settleTopicIdentitySourceWork,holdTopicIdentitySourceWork,releaseTopicIdentitySourceWork} from '../core/ai-usage/topic-identity-source-processing.js';
 import {requireMaintenanceProcessingContext} from '../core/ai-usage/maintenance-processing-source-denial.js';
-import {createMaintenanceSourceProcessing,disposeMaintenanceSourceProcessing} from '../core/ai-usage/maintenance-source-processing.js';
+import {createMaintenanceSourceProcessing,disposeMaintenanceSourceProcessing,assertMaintenanceSourceProcessingOwner} from '../core/ai-usage/maintenance-source-processing.js';
 import {ArchiveError} from '../core/constants.js';
 import {topicRootTarget} from '../core/topic-root-target.js';
 import {MaintenanceProcessingConsent,maintenanceProcessingConsentStatus,configureMaintenanceProcessingConsent,cancelMaintenanceProcessingConsentChange,assertMaintenanceProcessingConsentStatusFacts,beginMaintenanceProcessingDisable,cancelMaintenanceProcessingDisable} from './maintenance-processing-consent.js';
@@ -61,7 +61,7 @@ export function configureMaintenanceProcessingSource(commands,store,configuratio
  const processing=createMaintenanceSourceProcessing({store,consentOwner:r.owner,caller,context});
  const grantOwner=createTopicIdentityProcessingGrant({store,consentOwner:r.owner,caller,context,processing}),topicIdentityProcessing=createTopicIdentitySourceProcessing({store,caller,grantOwner});
  const result=Object.freeze({...Object.fromEntries(Reflect.ownKeys(descriptors).map(key=>[key,descriptors[key].value])),processing});
- identityConfigurations.set(result,{store,processing,topicIdentityProcessing});
+ identityConfigurations.set(result,{store,processing,topicIdentityProcessing,owner:r,service,context,caller});
  if(r.identityProcessing){const previous=r.identityProcessing;(r.retiredIdentityProcessing??=new Set()).add(previous);disposeTopicIdentitySourceProcessing(previous,store);settleTopicIdentitySourceWork(previous,store).then(()=>r.retiredIdentityProcessing.delete(previous),()=>{});}
  if(r.identityGrant)disposeTopicIdentityProcessingGrant(r.identityGrant,store);
  r.identityProcessing=topicIdentityProcessing;r.identityGrant=grantOwner;
@@ -72,3 +72,15 @@ export function configureMaintenanceProcessingSource(commands,store,configuratio
 // Exact static assembly only. Configuration copies cannot install identity
 // authority; absence keeps the old independently supplied route unchanged.
 export function configuredMaintenanceTopicIdentityProcessing(configuration,store){const held=identityConfigurations.get(configuration);if(!held)return null;if(held.store!==store||configuration.processing!==held.processing)fail('UNAVAILABLE');return held.topicIdentityProcessing;}
+
+// Exact original static source enrollment, not the public deny-only tags. This
+// exposes no issuer, grant, selected fields or registration seam. A retired or
+// copied configuration cannot add route capabilities to an independent issuer.
+export function isOriginalMaintenanceSourceConfiguration(configuration){
+ const held=identityConfigurations.get(configuration);if(!held)return false;
+ try{
+  const owner=held.owner,service=data(configuration,'service'),context=data(service,'context'),caller=data(context,'caller');
+  if(owner.result!==configuration||owner.store!==held.store||owner.processing!==held.processing||data(configuration,'processing')!==held.processing||service!==held.service||context!==held.context||caller!==held.caller)return false;
+  assertMaintenanceSourceProcessingOwner(held.processing,held.store,owner.owner,caller,context);return true;
+ }catch{return false;}
+}

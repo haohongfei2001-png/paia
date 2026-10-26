@@ -1,0 +1,83 @@
+{
+  "version": "0.55.15",
+  "base": "f906c92ec863be8a55d3c5f04f4361f244f6a943",
+  "baseTree": "e42b02a025e51e26dedaa66e396b07e930039fd5",
+  "expectedRemoteMain": "5dcabcab23545583da0afe22e965ecf47f1e6c0f",
+  "testedSource": "9018e17b7c098ee9c6cf4d8d18de84b153f8c6da",
+  "priorFailure": {
+    "version": "0.55.14",
+    "run": "40274994569",
+    "job": "121415747751",
+    "path": "services/ai-gateway/tests/maintenance-source-response-path.test.mjs",
+    "lines": "159\u2013162",
+    "failures": 4
+  },
+  "execution": {
+    "count": 1,
+    "selected": 7,
+    "passed": 7,
+    "failed": 0,
+    "exit": 0,
+    "durationMs": 14884.005781,
+    "node": "v24.19.0",
+    "ciNodeTarget": "22",
+    "existingPg": "8.23.1",
+    "command": "node --test --test-concurrency=1 --test-reporter=tap --test-name-pattern='^(?:signed existing human topic UPDATE preserves the exact selected human interpretation|signed existing human topic UPDATE defers when its exact structural unit is omitted|signed existing human section UPDATE preserves the exact selected human interpretation|signed existing human section UPDATE defers when its exact structural unit is omitted|MAIN Q4 original topic rename preparation|MAIN Q4 original section rename preparation|Q4 rename capabilities require exact current Commands and Filter source provenance)$' services/ai-gateway/tests/maintenance-source-response-path.test.mjs extension/tests/main-q4-original-consumer-binding.test.mjs extension/tests/q4-rename-source-capability-provenance.test.mjs"
+  },
+  "files": [
+    {
+      "path": "extension/background/maintenance-processing-commands.js",
+      "bytes": 11472,
+      "sha256": "54047062af13bc9a9200d34558399ea1426ce95acbfa1b57d2f0029d08ff1016",
+      "scope": "tested-source"
+    },
+    {
+      "path": "extension/core/ai-usage/maintenance-service-client.js",
+      "bytes": 45563,
+      "sha256": "2fee91e44bda89558f49275308694be9cc0403ad2fbbdd2e5d0144c0e29574ad",
+      "scope": "tested-source"
+    },
+    {
+      "path": "extension/tests/q4-rename-source-capability-provenance.test.mjs",
+      "bytes": 4910,
+      "sha256": "c8fefe36ff4344927a2e17b301bf53e2073c72234e900cb256b8dcfa9428c84c",
+      "scope": "tested-source"
+    },
+    {
+      "path": "extension/tests/main-q4-original-consumer-binding.test.mjs",
+      "bytes": 17569,
+      "sha256": "783a0e0343ac3df9ab1189fe7b116a89f394cba21fba99d73c15a8a5d861446d",
+      "scope": "tested-source"
+    },
+    {
+      "path": "services/ai-gateway/tests/maintenance-source-response-path.test.mjs",
+      "bytes": 47319,
+      "sha256": "36308d492c4c2d473ff62820e257d3c3d8f8938794de882d1c7ca5fa9bd596be",
+      "scope": "tested-source"
+    },
+    {
+      "path": "extension/manifest.json",
+      "bytes": 2985,
+      "sha256": "19e8803ed78ffb007d409c55b57490d949c200489d959aabb5700c67d1b806a3",
+      "scope": "version-metadata"
+    },
+    {
+      "path": "extension/package.json",
+      "bytes": 747,
+      "sha256": "083450536318df8643c7adee051c2df5be15c7de9d4b58dbf997e2d156f82b84",
+      "scope": "version-metadata"
+    },
+    {
+      "path": "work/q4-rename-source-provenance-20261026/selected-once.tap",
+      "bytes": 2062,
+      "sha256": "3481840512f57d87257bc1f2dd2f5b71527faa7768b5e2e69c7cefc6fa126e4e",
+      "scope": "original-execution-receipt"
+    },
+    {
+      "path": "work/q4-rename-source-provenance-20261026/selected-once.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "scope": "original-execution-receipt"
+    }
+  ]
+}
