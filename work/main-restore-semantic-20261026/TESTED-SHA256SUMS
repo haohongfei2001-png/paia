@@ -1,0 +1,7 @@
+d8323d3c62f5ab0602b9b96b2ba3a214b6c4be50d206546b7f048b95d556361f  extension/core/ai-usage/local-maintenance-session.js
+c8570276288d48bcb4177bd22f65ecb9d597f5bf4ec653fb39f3c4fbab6aa965  extension/core/ai-usage/maintenance-service-client.js
+b1789b4afe6d778f6c8f85b3785d191882302bd42494de948b45a5c616332c41  extension/core/ai-usage/structural-context-mapping.js
+7a48c0c8b12926709e030f1ca2bc2032ff1e3cb6e67b7346ddab78e4c887a3f6  extension/core/ai-usage/structural-topic-reconciliation.js
+86e16c6daa3e38a211f05737ad6ffdf2d3ccdbf482e9681a4c11a7eeeaf5832b  extension/core/ai-usage/topic-context-mapping.js
+3b24308440b23a5e3d6bb75de8e96a25732eed7947306c915fc3077f98dad11e  extension/tests/ai-cost-03-section-restore-topic.test.mjs
+ffefc97b36df60a8c1b6fb1c3323f0577b433c681c8d1598429dbcc17febf7e3  extension/tests/ai-cost-03-topic-name-restore-topic.test.mjs

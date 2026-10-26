@@ -109,8 +109,11 @@ function createMaintenanceServiceClientOwned(configuration){
   if(job.resultReport?.state!=='ACKNOWLEDGED')fail('OUTCOME_UNKNOWN');
   if(previous.recovery){if(!equal(previous.recovery,job.maintenanceRecovery))fail('OUTCOME_UNKNOWN');return {recovery:previous.recovery};}
  }
+ // The source-owned formal adapter supports these finite restoration
+ // successors here. This is route metadata, never a processing/identity grant;
+ // no configuration or missing issuer is created by this projection.
  const client={
-  sessionOptions:Object.freeze({authority:c.resolveAuthority,service:Object.freeze({...service,...(service.filter?{filter:Object.freeze({enabled:service.filter.enabled,...(service.filter.selectScope?{selectScope:service.filter.selectScope}:{})})}:{}),responseAdapter:responses.adapter}),processing:c.processing,window}),
+  sessionOptions:Object.freeze({authority:c.resolveAuthority,service:Object.freeze({...service,topic:Object.freeze({...service.topic,reconcileHumanSectionRestores:true,reconcileHumanTopicRestores:true}),...(service.filter?{filter:Object.freeze({enabled:service.filter.enabled,...(service.filter.selectScope?{selectScope:service.filter.selectScope}:{})})}:{}),responseAdapter:responses.adapter}),processing:c.processing,window}),
   options:Object.freeze({scope:c.scope,contractVersion:c.contractVersion,routeVersion:c.routeVersion}),
   available:()=>{try{current();return true;}catch{return false;}},
   // Metadata-only selector hint. It grants no fields, task, request or paid

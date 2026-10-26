@@ -19,10 +19,11 @@ import {requireMaintenanceServiceClient} from './maintenance-service-client.js';
 import * as maintenanceClientSource from './maintenance-service-client.js';
 import {readSectionPromotionRecoveryLocator} from './section-promotion-checkpoint.js';
 import {readSectionPromotionRecoveryAuthority,assertSectionPromotionRecoveryAuthorityFacts,takeSectionPromotionRecoveryRetirementOutcome} from './section-promotion-recovery-authority.js';
-import {assertStructuralTopicAssessment,assertStructuralTopicResult} from './structural-topic-reconciliation.js';
+import {assertStructuralTopicAssessment,assertStructuralTopicResult,assertSectionRestoreTopicAssessment,assertSectionRestoreTopicResult,assertTopicNameRestoreAssessment,assertTopicNameRestoreResult} from './structural-topic-reconciliation.js';
 import {qualifyContextProtectionCorrections,assertContextProtectionCorrections,readContextEditMapping,contextEditScope,contextEditEvidence,captureContextEditMaterial,assertContextEditMaterial,releaseContextEditMaterial} from './context-correction.js';
 import {inputProjection} from '../thought-evidence.js';
-import {readStructuralContext,structuralContextGroups,structuralContextProperty,structuralContextMaterial,structuralContextEvidence} from './structural-context-mapping.js';
+import {topicNameRestoreAllowsTopic,sameTopicNameRestoreProof} from './topic-context-mapping.js';
+import {readStructuralContext,structuralContextAllowsTopic,structuralSectionRestoreAllowsTopic,sameStructuralSectionRestoreProof,structuralContextGroups,structuralContextProperty,structuralContextMaterial,structuralContextEvidence} from './structural-context-mapping.js';
 import {readBoundEntryContext,boundContextEvidenceMatches,boundSelectedText} from '../context-bound-entry.js';
 import {readAuthoredEntryContext,authoredContextEvidenceMatches,authoredSelectedFields,authoredSelectedText} from '../context-authored-entry.js';
 import {hashText} from '../dedupe.js';
@@ -116,7 +117,7 @@ export class LocalMaintenanceSession {
    exact(service,['version','topic','context','responseAdapter','filter'],['version','topic','context','responseAdapter']);if(service.filter!==undefined){exact(service.filter,['enabled','selectScope'],['enabled']);if(service.filter.enabled!==true||service.filter.selectScope!==undefined&&typeof service.filter.selectScope!=='function')fail();}if(service.version!==1)fail();
    // A declared adapter route capability, not a provider field or a grant.
    // Legacy Context-only routes leave human Topic facets pending.
-   exact(service.topic,['resolveProcessing','decisionVersion','parameters','reconcileHumanNames','reconcileHumanSections'],['resolveProcessing','decisionVersion','parameters']);for(const capability of ['reconcileHumanNames','reconcileHumanSections'])if(service.topic[capability]!==undefined&&typeof service.topic[capability]!=='boolean')fail();exact(service.context,['processingVerifier','caller']);
+   exact(service.topic,['resolveProcessing','decisionVersion','parameters','reconcileHumanNames','reconcileHumanSections','reconcileHumanSectionRestores','reconcileHumanTopicRestores'],['resolveProcessing','decisionVersion','parameters']);for(const capability of ['reconcileHumanNames','reconcileHumanSections','reconcileHumanSectionRestores','reconcileHumanTopicRestores'])if(service.topic[capability]!==undefined&&typeof service.topic[capability]!=='boolean')fail();exact(service.context,['processingVerifier','caller']);
    const adapter=service.responseAdapter;if(adapter!==null){exact(adapter,['topic','context','filter','topicCandidate','sectionPromotion'],['topic','context']);if(adapter.sectionPromotion!==undefined&&typeof adapter.sectionPromotion!=='function')fail();if(adapter.topicCandidate!==undefined&&typeof adapter.topicCandidate!=='function')fail();if(adapter.filter!==undefined&&typeof adapter.filter!=='function')fail();if(typeof adapter.topic!=='function'||typeof adapter.context!=='function')fail();}
    this.#topic=new TopicFormationService(store,{resolveQualification:()=>this.#ownerQualification('topic'),resolveExactReuse:(selection,base)=>this.#qualifyExactReuse(selection,base),resolveProcessing:service.topic.resolveProcessing,parameters:service.topic.parameters,decision:adapter===null?null:{version:service.topic.decisionVersion,assess:async view=>{
     const a=this.#active;this.#current(a?.state);if(a?.facet!=='topic')fail('UNAVAILABLE');
@@ -129,7 +130,7 @@ export class LocalMaintenanceSession {
     if(selectedEntries.some(e=>!view.entries.some(v=>v.id===e.entryId&&v.revision===e.revision)))fail('STALE_BASE');
     const selected=selectedEntries.map(e=>e.entryId).sort(),accounted=assessed?.entries?.filter(e=>e.entryId!==undefined).map(e=>e.entryId).sort();
     if(selected.length&&!equal(selected,accounted))fail('STALE_BASE');
-    const structures=this.#structures(a.state,a.units);if(structures.length){if(a.units.length!==1||structures.length!==1)fail('STALE_BASE');assertStructuralTopicAssessment(assessed,view,structures[0],a.state.structuralMaterial.get(structures[0].recordId));}return assessed;
+    const structures=this.#structures(a.state,a.units);if(structures.length){if(a.units.length!==1||structures.length!==1)fail('STALE_BASE');(topicNameRestoreAllowsTopic(structures[0])?assertTopicNameRestoreAssessment:structuralSectionRestoreAllowsTopic(structures[0])?assertSectionRestoreTopicAssessment:assertStructuralTopicAssessment)(assessed,view,structures[0],a.state.structuralMaterial.get(structures[0].recordId));}return assessed;
    }},writeTransaction:(fn,finalFence,publication)=>this.#writeDomain(fn,'topic',finalFence,null,publication)});
    this.#context=new ContextMaintenanceService(store,{resolveQualification:()=>this.#ownerQualification(),processingVerifier:service.context.processingVerifier,writeTransaction:(fn,finalFence,expectedTarget,publication)=>this.#writeDomain(fn,'context',finalFence,expectedTarget,publication)});
   }
@@ -366,7 +367,7 @@ export class LocalMaintenanceSession {
  async #structuralMapping(request,transaction=null){
   const qualify=async transaction=>{const t=contextScopeTransactionReader(this.#store,transaction,createContextScopeWorkBudget()),found=new Map();for(const {key,descriptor:d}of request.items){if(!['section','topic'].includes(d.kind))continue;const mapping=await readStructuralContext(this.#store,t,d);if(mapping)found.set(key,mapping);}return found;};return this.#qualificationRead(request,transaction,qualify);
  }
- #structuralTopicCapable(mapping){return !!mapping&&(mapping.kind==='topic'?this.#service?.topic.reconcileHumanNames===true:this.#service?.topic.reconcileHumanSections===true);}
+ #structuralTopicCapable(mapping){if(topicNameRestoreAllowsTopic(mapping))return this.#service?.topic.reconcileHumanTopicRestores===true;if(structuralSectionRestoreAllowsTopic(mapping))return this.#service?.topic.reconcileHumanSectionRestores===true;return structuralContextAllowsTopic(mapping)&&(mapping.kind==='topic'?this.#service?.topic.reconcileHumanNames===true:this.#service?.topic.reconcileHumanSections===true);}
  #structures(state,units){return [...new Map(units.filter(u=>state.structuralMapping?.has(u.key)&&(u.facet==='context'||u.facet==='topic'&&this.#structuralTopicCapable(state.structuralMapping.get(u.key)))).map(u=>[u.key,state.structuralMapping.get(u.key)])).values()];}
  #checkStructuralBudget(state,units){
   const structures=this.#structures(state,units.filter(u=>u.facet==='context'));if(!structures.length)return;
@@ -381,7 +382,7 @@ export class LocalMaintenanceSession {
  }
  async #checkStructuralMapping(state,units,transaction){
   return this.#qualificationCheck(state,units,transaction,async transaction=>{
-  const t=contextScopeTransactionReader(this.#store,transaction,state.authoredBudget);for(const u of units)if(this.#structures(state,[u]).length){const d=state.request.items.find(i=>i.key===u.key).descriptor;const m=state.structuralMapping.get(u.key);if(!equal(await readStructuralContext(this.#store,t,d),m))fail('STALE_BASE');for(const e of m.entries)if(state.structuralInputs?.has(e.inputId)&&(await inputProjection(this.#store,t,e.inputId))?.body!==state.structuralInputs.get(e.inputId))fail('STALE_BASE');}
+  const t=contextScopeTransactionReader(this.#store,transaction,state.authoredBudget);for(const u of units)if(this.#structures(state,[u]).length){const d=state.request.items.find(i=>i.key===u.key).descriptor;const m=state.structuralMapping.get(u.key),current=await readStructuralContext(this.#store,t,d);if(!equal(current,m)||u.facet==='topic'&&(!this.#structuralTopicCapable(current)||structuralSectionRestoreAllowsTopic(m)&&!sameStructuralSectionRestoreProof(m,current)||topicNameRestoreAllowsTopic(m)&&!sameTopicNameRestoreProof(m,current)))fail('STALE_BASE');for(const e of m.entries)if(state.structuralInputs?.has(e.inputId)&&(await inputProjection(this.#store,t,e.inputId))?.body!==state.structuralInputs.get(e.inputId))fail('STALE_BASE');}
   });
  }
  async #authoredMapping(request,transaction=null){
@@ -450,7 +451,7 @@ export class LocalMaintenanceSession {
   const mappingReady=this.#service?.responseAdapter&&(this.#provider||this.#remote)&&typeof this.#window?.acquire==='function'&&typeof this.#window?.isCurrent==='function';
   if(mappingReady&&(batch.blockedUnits>0||batch.reason==='DEFER_SCAN_BOUND')){
    if(!this.#remote)localProviderDescriptor(this.#provider);
-   const cleanup=await this.#foundation.archiveObsoleteDeferred({limit:100,reconsiderEntryTopics:true,reconsiderEntryContexts:true,reconsiderPlacementContexts:true,reconsiderStructuralContexts:true,reconsiderContextEdits:true,reconsiderStructuralTopics:this.#service?.topic.reconcileHumanNames===true||this.#service?.topic.reconcileHumanSections===true,maintenanceRouteVersion:options.routeVersion},{signal,isCurrent:()=>generation===this.#generation&&!signal.aborted});
+   const cleanup=await this.#foundation.archiveObsoleteDeferred({limit:100,reconsiderEntryTopics:true,reconsiderEntryContexts:true,reconsiderPlacementContexts:true,reconsiderStructuralContexts:true,reconsiderContextEdits:true,reconsiderStructuralTopics:this.#service?.topic.reconcileHumanNames===true||this.#service?.topic.reconcileHumanSections===true||this.#service?.topic.reconcileHumanSectionRestores===true||this.#service?.topic.reconcileHumanTopicRestores===true,maintenanceRouteVersion:options.routeVersion},{signal,isCurrent:()=>generation===this.#generation&&!signal.aborted});
    if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
    if(cleanup.archived){batch=await readMaintenanceBatch(this.#foundation,options);this.#replaceProcessingSelection(batch,options);if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');}
   }
@@ -479,7 +480,7 @@ export class LocalMaintenanceSession {
   const isolateContext=()=>{const key=[...contextMapping.keys()].find(key=>batch.request.coverage.some(u=>u.key===key&&u.facet==='context'));if(key){const coverage=batch.request.coverage.filter(u=>u.key===key),omitted=coverage.length!==batch.request.coverage.length;
    batch={...batch,...(omitted?{nextCursor:options.cursor??null,complete:false,pendingBatchUnits:batch.request.coverage.length-coverage.length}:{}),request:{...batch.request,items:batch.request.items.filter(i=>i.key===key),coverage,children:[coverage]}};
   }};isolateContext();
-  // The explicitly capable route checks one complete renamed structure per
+  // The explicitly capable route checks one complete proved structure per
   // opportunity. Other dirty work retains its original scan boundary.
   const isolateStructure=()=>{
    const selected=batch.request.coverage.find(u=>u.facet==='topic'&&this.#structuralTopicCapable(structuralMapping.get(u.key)));
@@ -898,7 +899,7 @@ export class LocalMaintenanceSession {
   if(following.length)a.following=await this.#captureFollowing(a.state,t);
   if(facet==='context'||facet==='topic'&&this.#structures(a.state,a.units).length)await this.#checkEntryMapping(a.state,a.units,t);
   if(facet==='filter'?result?.ok!==true||result.disposition!==(a.outcome==='COMMITTED'?'committed':'no_change')||!equal(result.inputIds,this.#inputs(a.state,a.units)):facet==='context'?result?.ok!==true||result.conflict===true||a.outcome==='NO_CHANGE'&&result.disposition!==(this.#contextEdits(a.state,a.units).length?'protected':'no_change'):!['create','reuse','candidate','unassigned'].includes(result?.outcome))fail('STALE_BASE');
-  if(facet==='topic'&&this.#structures(a.state,a.units).length)assertStructuralTopicResult(result,this.#structures(a.state,a.units)[0]);
+  if(facet==='topic'&&this.#structures(a.state,a.units).length){const mapping=this.#structures(a.state,a.units)[0];(topicNameRestoreAllowsTopic(mapping)?assertTopicNameRestoreResult:structuralSectionRestoreAllowsTopic(mapping)?assertSectionRestoreTopicResult:assertStructuralTopicResult)(result,mapping);}
   if(a.expectedDisposition!==null&&result?.disposition!==a.expectedDisposition)fail('STALE_BASE');
   if(facet==='context'){if(a.contextChange&&result.itemId!==a.contextChange.itemId)fail('STALE_BASE');const expected=a.expectedTarget?.();if(!expected||expected.itemId!==result.itemId||expected.item.revision!==result.revision)fail('STALE_BASE');await this.#checkExistingContext(a.state,a.childId,t,'settlement',expected,a.publication?.());}
   if(facet==='filter'&&a.state.filterHandles.get(a.childId)){if(typeof result.isCurrent!=='function'||typeof result.fenceAfterSettlement!=='function'||!result.visibilityPublication)fail('STALE_BASE');a.ownerCurrent=result.isCurrent;a.finalFence=result.fenceAfterSettlement;a.state.filterPublications.set(a.childId,{token:result.visibilityPublication,units:structuredClone(r.units)});check();}

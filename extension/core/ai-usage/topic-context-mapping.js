@@ -3,20 +3,29 @@ import {inputProjection} from '../thought-evidence.js';
 import {prefix,revisionOK,idOK} from '../thought-model.js';
 import {equal} from './contracts.js';
 
-// A genuine rename is selected interpretation, never an Input fact or permission
+// A genuine current human rename/restore is selected interpretation, never an Input fact or permission
 // to rewrite a Topic. Complete bounded manual membership remains indispensable.
 export const TOPIC_CONTEXT_LIMIT=16;
+// Only the existing rename semantics qualify the separate Topic facet.
+const topicReconciliationMappings=new WeakSet(),topicNameRestoreMappings=new WeakMap();
+// A restore has its own original-owner proof. Neither the rename capability
+// nor the independently qualified Section restore grants this identity scope.
+export const topicNameRestoreAllowsTopic=m=>!!m&&topicNameRestoreMappings.has(m)&&equal(topicNameRestoreMappings.get(m).mapping,m);
+export const sameTopicNameRestoreProof=(a,b)=>topicNameRestoreAllowsTopic(a)&&topicNameRestoreAllowsTopic(b)&&equal(topicNameRestoreMappings.get(a),topicNameRestoreMappings.get(b));
+export const topicContextAllowsTopic=m=>!!m&&topicReconciliationMappings.has(m);
 const snapshot=row=>{const {searchVersion,updatedAt,countVersion,negativeUpdatedSequence,organizationRevision,...value}=row||{};return value;};
 const normalized=x=>typeof x==='string'?x.normalize('NFKC').toLocaleLowerCase().trim().replace(/\s+/g,' '):null;
 export async function readTopicContext(store,t,d){
  if(d?.kind!=='topic'||d.removed||d.fenceOnly||d.independent||!idOK(d.entityId)||d.recordId!==d.entityId)return null;
  const topic=await t.get('topics',d.entityId),j=await t.get('revisions',d.journalId);
  if(!topic||topic.id!==d.entityId||topic.revision!==d.revision||topic.lifecycle!=='active'||topic.activeKey!==0||topic.redirectTo||topic.layoutJobId||topic.identity?.noRecreation||!revisionOK(topic.revision)||!revisionOK(topic.organizationRevision)||!revisionOK(topic.activeLayoutGeneration)||topic.activeLayoutGeneration<1)return null;
- if(j?.kind!=='topic'||j.actor!=='user'||j.reason!=='rename'||j.important!==true||j.entityId!==topic.id||j.documentId!==topic.id||j.entityKey!=='topic:'+topic.id||!equal(j.fieldMask,['name'])||!equal(snapshot(j.after),snapshot(topic))||j.afterRevision!==topic.revision||!revisionOK(j.baseRevision)||j.afterRevision!==j.baseRevision+1||j.before?.revision!==j.baseRevision||j.before?.id!==topic.id||j.before.lifecycle!=='active'||normalized(j.before.name)===normalized(topic.name)||typeof topic.name!=='string'||!topic.name.trim()||topic.name.length>300||!idOK(j.operationId)||!equal([...(j.sourceRecordIds||[])].sort(),d.sourceRecordIds)||!await store.sourcePresent(t,j.sourceRecordIds||[]))return null;
+ if(j?.kind!=='topic'||j.actor!=='user'||!['rename','restore'].includes(j.reason)||j.important!==true||j.entityId!==topic.id||j.documentId!==topic.id||j.entityKey!=='topic:'+topic.id||!equal(j.fieldMask,['name'])||!equal(snapshot(j.after),snapshot(topic))||j.afterRevision!==topic.revision||!revisionOK(j.baseRevision)||j.afterRevision!==j.baseRevision+1||j.before?.revision!==j.baseRevision||j.before?.id!==topic.id||j.before.lifecycle!=='active'||normalized(j.before.name)===normalized(topic.name)||typeof topic.name!=='string'||!topic.name.trim()||topic.name.length>300||!idOK(j.operationId)||!equal([...(j.sourceRecordIds||[])].sort(),d.sourceRecordIds)||!await store.sourcePresent(t,j.sourceRecordIds||[]))return null;
  const latest=await t.edge('revisions','byList',prefix(['topic:'+topic.id]),'prev'),human=topic.authorship?.name,protection=topic.protections?.name;
  if(latest?.id!==j.id||human?.actor!=='user'||human.everHumanConfirmed!==true||human.operationId!==j.operationId||protection?.locked!==true||protection.operationId!==j.operationId||protection.at!==human.at||protection.reason!=='user_edit')return null;
  const receipt=await t.get('operationReceipts',j.operationId);
  if(receipt?.namespace!=='thought-library'||receipt.ownerId!==topic.id||receipt.result?.id!==topic.id||receipt.result.revision!==topic.revision)return null;
+ // Interpret the currently confirmed name; do not replay or read the old restore target.
+ if(j.reason==='restore'&&(receipt.id!==j.operationId||receipt.schemaVersion!==1||!Number.isSafeInteger(receipt.operationSequence)||receipt.operationSequence<1||typeof receipt.createdAt!=='string'||!Number.isFinite(Date.parse(receipt.createdAt))||typeof receipt.digest!=='string'||!/^([a-f0-9]{64})$/.test(receipt.digest)||!equal(receipt.result,{id:topic.id,revision:topic.revision})))return null;
  try{
   const expected=structuredClone(j.before),prepared={beforeRevision:j.baseRevision,beforeName:j.before.name,oldToken:j.before.identity?.nameToken,newToken:j.after.identity?.nameToken};
   if(![prepared.oldToken,prepared.newToken].every(x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x)))return null;
@@ -44,7 +53,10 @@ export async function readTopicContext(store,t,d){
  }
  if((j.sourceRecordIds||[]).some(id=>!sources.has(id)))return null;
  entries.sort((a,b)=>a.entryId.localeCompare(b.entryId));if(new Set(entries.map(e=>e.entryId)).size!==count||sources.size>20)return null;
- return {kind:'topic',recordId:topic.id,topicId:topic.id,topicRevision:topic.revision,topicOrganizationRevision:topic.organizationRevision,layoutGeneration:topic.activeLayoutGeneration,journalId:j.id,operationId:j.operationId,selectedFields:['name'],entries,sourceRecordIds:[...sources].sort()};
+ const mapping={kind:'topic',recordId:topic.id,topicId:topic.id,topicRevision:topic.revision,topicOrganizationRevision:topic.organizationRevision,layoutGeneration:topic.activeLayoutGeneration,journalId:j.id,operationId:j.operationId,selectedFields:['name'],entries,sourceRecordIds:[...sources].sort()};
+ if(j.reason==='rename')topicReconciliationMappings.add(mapping);
+ if(j.reason==='restore')topicNameRestoreMappings.set(mapping,{mapping:structuredClone(mapping),journal:structuredClone(j),receipt:structuredClone(receipt),topic:structuredClone(snapshot(topic))});
+ return mapping;
 }
 export function topicContextScope(mapping){const {sourceRecordIds,...scope}=mapping;return structuredClone(scope);}
 export function topicContextMaterial(mapping,view){const topic=view.identities?.find(t=>t.id===mapping.topicId&&t.revision===mapping.topicRevision);return topic&&typeof topic.name==='string'?{...topicContextScope(mapping),name:topic.name}:null;}
