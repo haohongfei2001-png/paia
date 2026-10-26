@@ -1,0 +1,72 @@
+import {domainResultReceipt} from './domain-result-receipt.js';
+import {isAssistResultJob,isHistoricalCandidateJob} from './contracts.js';
+import {prefix} from '../thought-model.js';
+const LIMIT=100;
+const stores=['meta','organizerJobs','organizerUsage'];
+const integer=x=>Number.isSafeInteger(x)&&x>=0;
+// This local evidence fence grants neither processing nor financial authority.
+// Overflow is deliberately all-or-nothing; existing current() remains mandatory.
+export async function invalidateSemanticJobs(t,changedEvidence=new Map()){
+ if(!stores.every(name=>t.tx.objectStoreNames.contains(name)))return {status:'UNSUPPORTED',checked:0,cancelled:0};
+ const legacy=await t.rangePage('organizerJobs','byMaintenance',prefix(['ai_usage_v1',0]),null,LIMIT);
+ if(legacy.next!==null)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
+ const atomic=await t.rangePage('organizerJobs','byMaintenance',prefix(['ai_organize_atomic_v1',0]),null,Math.max(1,LIMIT-legacy.rows.length));
+ if(atomic.next!==null||legacy.rows.length+atomic.rows.length>LIMIT)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
+ const assist=await t.rangePage('organizerJobs','byMaintenance',prefix(['ai_assist_result_v1',0]),null,Math.max(1,LIMIT-legacy.rows.length-atomic.rows.length));
+ if(assist.next!==null||legacy.rows.length+atomic.rows.length+assist.rows.length>LIMIT)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
+ const candidates=await t.rangePage('organizerJobs','byMaintenance',prefix(['ai_assist_candidates_v1',0]),null,Math.max(1,LIMIT-legacy.rows.length-atomic.rows.length-assist.rows.length));
+ const page={rows:[...legacy.rows,...atomic.rows,...assist.rows,...candidates.rows],next:candidates.next};
+ if(page.rows.length>LIMIT)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
+ if(page.next!==null)return {status:'INCOMPLETE',reason:'SCAN_BOUND',checked:0,cancelled:0};
+ if(!page.rows.length)return {status:'CHECKED',checked:0,cancelled:0,unsupported:0};
+ const restore=await t.get('meta','recovery-restore-epoch'),gate=await t.get('meta','gate');
+ let cancelled=0,unsupported=0;
+ for(const {value:job}of page.rows){
+  if(!(job.kind==='ai_usage_v1'&&!Object.hasOwn(job,'commitMode')||job.kind==='ai_organize_atomic_v1'&&job.commitMode==='organize-atomic-v1'&&job.type==='AI_ORGANIZE'&&job.childIds?.length>=2||isAssistResultJob(job)||isHistoricalCandidateJob(job))||job.version!==1||job.cancelEpoch!==0||!Array.isArray(job.items)||!isAssistResultJob(job)&&!job.items.length||job.items.length>100||!Array.isArray(job.childIds)||!job.childIds.length||job.childIds.length>4||!job.authority){unsupported++;continue;}
+  const a=job.authority;
+  // A human fence alone remains rebindable through the existing plan owner.
+  // It is not evidence that this job's semantic inputs changed.
+  let stale=false;
+  if(typeof a.restoreEpoch==='string'&&typeof restore?.value==='string'&&a.restoreEpoch!==restore.value)stale=true;
+  if(gate&&typeof gate.enabled==='boolean'&&a.gateEpoch!==undefined&&gate.epoch!==undefined&&(gate.enabled===false||a.gateEpoch!==gate.epoch))stale=true;
+  for(const item of job.items){
+   if(typeof item.key!=='string'||typeof item.signature!=='string')continue;
+   // The semantic writer supplies only rows already validated and written in
+   // this same transaction. No cross-transaction cache or historical scan.
+   const known=changedEvidence.get(item.key);
+   if(known?.version===1&&known.descriptor?.key===item.key&&typeof known.signature==='string'&&(known.signature!==item.signature||known.descriptor.removed===true))stale=true;
+  }
+  if(!stale)continue;
+  const receipts=[];let valid=true;
+  for(const childId of job.childIds){const row=await t.get('organizerUsage','aiu:attempt:'+childId),fence=await t.get('meta','aiu:dispatched:'+childId);if(fence&&(!row||!row.attemptCount))valid=false;if(row&&(row.kind!=='ai_usage_v1'||row.jobId!==job.id||row.childId!==childId||!integer(row.attemptCount)))valid=false;receipts.push(row);}
+  if(!valid){unsupported++;continue;}
+  let dispatched=false,unknown=false;
+  for(const receipt of receipts){if(!receipt)continue;
+   if(receipt.state==='COMMITTED'){dispatched||=receipt.attemptCount>0;continue;}
+   if(receipt.attemptCount){dispatched=true;if(['DISPATCHED','OUTCOME_UNKNOWN'].includes(receipt.state)){receipt.state='OUTCOME_UNKNOWN';unknown=true;}else if(receipt.state!=='COMMITTED'){receipt.state='EXPIRED_UNCOMMITTED';receipt.stateKey=1;}receipt.spendState=receipt.financialSettlement?.state==='SETTLED'?'SETTLED_SERVICE':'RESERVATION_RETAINED';}
+   else{receipt.state='CANCELLED_BEFORE_DISPATCH';receipt.stateKey=1;receipt.spendState='RELEASED_BEFORE_DISPATCH';}
+   await t.put('organizerUsage',receipt);
+  }
+  job.cancelEpoch++;job.state=unknown?'OUTCOME_UNKNOWN':dispatched?'EXPIRED_UNCOMMITTED':'CANCELLED_BEFORE_DISPATCH';job.stateKey=unknown?0:1;
+  // Original semantic invalidation is also a terminal domain writer. Known
+  // failures are recorded here, atomically; unknown spend stays unresolved.
+  // Existing noncanonical legacy IDs still invalidate under their original
+  // rules, but cannot acquire a new Foundation result identity.
+  if(/^aiu:job:[a-f0-9]{64}$/.test(job.id)){const result=await domainResultReceipt(t,job);if(result)job.domainResultReceipt=result;}
+  await t.put('organizerJobs',job);cancelled++;
+ }
+ return {status:unsupported?'INCOMPLETE':'CHECKED',checked:page.rows.length,cancelled,unsupported};
+}
+
+// Read-only expected writes for the original Saved receive owner's terminal
+// proof. Execute the SAME invalidator against cloned reads and an in-memory
+// write overlay; this projection grants neither dispatch nor commit authority.
+export async function projectSemanticJobInvalidation(t,changedEvidence=new Map()){
+ const pending=new Map(),writes=[],copy=value=>value==null?value:structuredClone(value);
+ const view={tx:t.tx,
+  rangePage:async(...args)=>copy(await t.rangePage(...args)),
+  get:async(table,key)=>pending.get(table)?.has(key)?copy(pending.get(table).get(key)):copy(await t.get(table,key)),
+  put:async(table,row)=>{if(!['organizerUsage','organizerJobs'].includes(table))throw new Error('SEMANTIC_PROJECTION_OWNER');let rows=pending.get(table);if(!rows)pending.set(table,rows=new Map());rows.set(row.id,copy(row));writes.push({table,row:copy(row)});}
+ };
+ return {result:await invalidateSemanticJobs(view,changedEvidence),writes};
+}

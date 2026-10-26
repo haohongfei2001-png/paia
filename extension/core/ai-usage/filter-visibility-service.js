@@ -1,0 +1,48 @@
+import {createSectionPromotionRecoveryAuthority,disposeSectionPromotionRecoveryAuthority,sectionPromotionRecoveryAuthorityDrained} from './section-promotion-recovery-authority.js';
+import {createIdentityCurrentnessHub,identityCurrentnessHubOrigin,identityCurrentnessHubDrained,createHubMaintenanceIdentity} from './identity-currentness-hub.js';
+import {createAIFilterVisibilityOwner} from './filter-visibility-owner.js';
+// Read-only provenance for this fixed original worker assembly. There is no
+// public registration seam; copied or modified configurations inherit nothing.
+const sourceConfigurations=new WeakMap();
+const dataSnapshot=value=>{if(!value||![Object.prototype,null].includes(Object.getPrototypeOf(value)))return null;const descriptors=Object.getOwnPropertyDescriptors(value);if(Reflect.ownKeys(descriptors).some(key=>typeof key!=='string'||!Object.hasOwn(descriptors[key],'value')))return null;return {prototype:Object.getPrototypeOf(value),descriptors};};
+const sameSnapshot=(actual,expected)=>actual===null||expected===null?actual===expected:actual.prototype===expected.prototype&&Object.keys(actual.descriptors).length===Object.keys(expected.descriptors).length&&Object.keys(expected.descriptors).every(key=>{const a=actual.descriptors[key],b=expected.descriptors[key];return a&&['value','writable','enumerable','configurable'].every(field=>a[field]===b[field]);});
+function bindSourceConfiguration(value,source){sourceConfigurations.set(value,{source,values:dataSnapshot(value),service:dataSnapshot(value.service),context:dataSnapshot(value.service.context),topic:dataSnapshot(value.service.topic)});return value;}
+export function readAIFilterServiceSourceConfiguration(value){const held=sourceConfigurations.get(value);if(!held)return null;return sameSnapshot(dataSnapshot(value),held.values)&&sameSnapshot(dataSnapshot(value.service),held.service)&&sameSnapshot(dataSnapshot(value.service.context),held.context)&&sameSnapshot(dataSnapshot(value.service.topic),held.topic)?held.source:null;}
+// The worker owns this one transport pool. Configuration contains source-owned
+// issuers/processing only; UI messages and persisted history cannot configure it.
+export function createAIFilterServiceAssembly({getStore,consent,policy,authority,storage}){
+ let disposed=false,active=null,retiring=null;
+ const stop=state=>{if(!state)return;const remove=state.remove;state.remove=null;try{remove?.();}catch{}if(!state.live)return;state.live=false;state.readOnly?.dispose();disposeSectionPromotionRecoveryAuthority(state.recovery);state.hub.dispose();for(const fn of state.listeners)try{fn();}catch{}state.listeners.clear();};
+ const retire=()=>{if(active){stop(active);retiring=active;active=null;}authority.configureVisibility(null);};
+ const removeConsent=consent.onInvalidate(()=>{active?.readOnly?.invalidate();active?.hub.invalidate();});
+ function select(configuration,endpoint){
+  if(disposed)return null;
+  if(configuration===null){retire();return null;}
+  if(!configuration||![Object.prototype,null].includes(Object.getPrototypeOf(configuration))){retire();return null;}
+  const descriptors=Object.getOwnPropertyDescriptors(configuration);if(Reflect.ownKeys(descriptors).some(k=>typeof k!=='string'||!Object.hasOwn(descriptors[k],'value'))){retire();return null;}
+  const {filterIdentity:unused,promotionRecoveryAuthority:unusedRecovery,...raw}=configuration;
+  if(!raw.service||![Object.prototype,null].includes(Object.getPrototypeOf(raw.service))||Reflect.ownKeys(raw.service).some(k=>typeof k!=='string'||!Object.hasOwn(Object.getOwnPropertyDescriptor(raw.service,k),'value'))||typeof raw.isCurrent!=='function'||typeof raw.onInvalidate!=='function'||typeof raw.clock!=='function'){retire();return null;}
+  const same=state=>state&&state.endpoint===endpoint&&Object.keys(raw).length===Object.keys(state.raw).length&&Object.keys(raw).every(k=>raw[k]===state.raw[k]);
+  if(active&&(!same(active)||!active.live)){retire();}
+  const ordinary={...raw,service:{...raw.service,filter:authority.serviceFilter}};
+  if(endpoint===null){retire();return bindSourceConfiguration(ordinary,configuration);}
+  // Cancel is not physical settlement. A late fetch or fresh-proof promise in
+  // the old pool keeps its slot and blocks construction of a replacement pool.
+  if(retiring){if(!identityCurrentnessHubDrained(retiring.hub)||retiring.readOnly&&!retiring.readOnly.isDrained()||retiring.recovery&&!sectionPromotionRecoveryAuthorityDrained(retiring.recovery))return null;retiring=null;}
+  if(!active){
+   const hub=createIdentityCurrentnessHub({endpoint,clock:raw.clock,fetch:raw.fetch??globalThis.fetch});
+   if(!hub||identityCurrentnessHubOrigin(hub)!==raw.origin){hub?.dispose();return bindSourceConfiguration(ordinary,configuration);}
+   const state={raw,endpoint,hub,live:true,listeners:new Set(),remove:null,readOnly:null,recovery:null};
+   const current=()=>{try{return state.live&&raw.isCurrent()===true;}catch{return false;}};
+   state.configuration={...ordinary,isCurrent:current,onInvalidate(fn){if(typeof fn!=='function'||state.listeners.size>=8)throw Error('UNAVAILABLE');if(!current()){fn();return ()=>{};}state.listeners.add(fn);return ()=>state.listeners.delete(fn);}};
+   try{state.recovery=createSectionPromotionRecoveryAuthority({store:getStore(),configuration:state.configuration,hub});}catch{/* Missing source store remains unavailable. */}
+   state.readOnly=createAIFilterVisibilityOwner({getStore,consent,policy,configuration:state.configuration,hub,storage});
+   try{state.remove=raw.onInvalidate(()=>{stop(state);authority.invalidate();});if(typeof state.remove!=='function'||!current())throw Error();}catch{stop(state);retiring=state;return null;}
+   active=state;authority.configureVisibility(state.readOnly);
+   // Both storage/HMAC recovery and issuer admission remain outside IDB reads.
+   state.readOnly?.load().catch(()=>{});
+  }
+  const identity=createHubMaintenanceIdentity(active.hub);return identity?bindSourceConfiguration({...active.configuration,filterIdentity:identity,...(active.recovery?{promotionRecoveryAuthority:active.recovery}:{})},configuration):null;
+ }
+ return Object.freeze({configure:select,invalidate(){active?.readOnly?.invalidate();active?.hub.invalidate();},dispose(){if(disposed)return;disposed=true;retire();removeConsent();}});
+}

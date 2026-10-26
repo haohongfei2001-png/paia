@@ -1,0 +1,76 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+const realSetTimeout=globalThis.setTimeout,realClearTimeout=globalThis.clearTimeout,timers=new Map();
+// Only capture the new module's original long deadline. Restore globals before
+// fixtures run, leaving fake-IDB's actual short scheduling untouched.
+globalThis.setTimeout=(callback,ms,...args)=>{const timer=realSetTimeout(callback,ms,...args);if(ms>=29000)timers.set(timer,()=>{realClearTimeout(timer);timers.delete(timer);callback(...args);});return timer;};
+globalThis.clearTimeout=timer=>{timers.delete(timer);return realClearTimeout(timer);};
+const {existingSelectionFixture}=await import('./harness/existing-application-selection.mjs');
+const {OriginalApplicationGenerationSelection,APPLICATION_SELECTION_MARKER}=await import('../core/browser-native-sync/application-generation-selection.js');
+const {STORAGE_KEY}=await import('../core/constants.js');
+const {inputEdit}=await import('./harness/thought-m1.mjs');
+const {CANONICAL_GENERATION_GATE}=await import('../core/browser-native-sync/canonical-generation-publication.js');
+const {CONTROL_PUBLICATION_REVISION}=await import('../core/local-control-publication.js');
+globalThis.setTimeout=realSetTimeout;globalThis.clearTimeout=realClearTimeout;
+async function selected(t){const f=await existingSelectionFixture(t),owner=new OriginalApplicationGenerationSelection(f.a,f.coreA,f.a.local);t.after(()=>owner.close());await owner.prepare();assert.equal((await owner.activate()).state,'selected');return {...f,owner};}
+test('same live original selected owner qualifies unchanged complete cuts without writes or rollback authority',async t=>{
+ const f=await selected(t),a=await f.snapshot(f.a),b=await f.snapshot(f.b),control=structuredClone((await f.a.local.get(STORAGE_KEY))[STORAGE_KEY]);
+ const token=await f.owner.prepareReverse();assert.equal(Object.isFrozen(token),true);assert.deepEqual(Reflect.ownKeys(token),[]);assert.equal(f.owner.reverseReviewCurrent(token),true);assert.equal(await f.owner.requalifyReverse(token),true);
+ assert.deepEqual(await f.snapshot(f.a),a);assert.deepEqual(await f.snapshot(f.b),b);assert.deepEqual((await f.a.local.get(STORAGE_KEY))[STORAGE_KEY],control);await assert.rejects(f.owner.rollback(),{code:'GENERATION_REVERSE_INHERITANCE_REQUIRED'});
+ assert.equal((await f.a.repository.transaction(false,t=>t.get('meta',APPLICATION_SELECTION_MARKER))).phase,'selected');
+});
+
+function gatedLocal(){const data={};let block=false,entered,release,mode='normal',sets=0;return {
+ get data(){return data;},calls:()=>sets,mode:value=>mode=value,
+ pause(){block=true;const started=new Promise(resolve=>{entered=resolve;}),pending=new Promise(resolve=>{release=resolve;});this.pending=pending;return {started,release:()=>{block=false;release();}};},
+ async get(key){if(block){entered();await this.pending;}return {[key]:structuredClone(data[key])};},
+ async set(value){sets++;if(mode==='reject-before')throw Error('SYNTHETIC SDK result lost');Object.assign(data,structuredClone(value));}
+};}
+async function customSelected(t){const local=gatedLocal(),f=await existingSelectionFixture(t,{sourceLocal:local}),owner=new OriginalApplicationGenerationSelection(f.a,f.coreA,local);t.after(()=>owner.close());await owner.prepare();assert.equal((await owner.activate()).state,'selected');return {...f,owner,local};}
+for(const kind of ['new-owner','unselected','unknown'])test(kind+' cannot manufacture a warm reverse review',async t=>{
+ const local=gatedLocal(),f=await existingSelectionFixture(t,{sourceLocal:local}),owner=new OriginalApplicationGenerationSelection(f.a,f.coreA,local);t.after(()=>owner.close());await owner.prepare();
+ if(kind==='unknown'){local.mode('reject-before');assert.equal((await owner.activate()).state,'outcome-unknown');}else if(kind==='new-owner'){await owner.activate();owner.close();}
+ const candidate=kind==='new-owner'?new OriginalApplicationGenerationSelection(f.a,f.coreA,local):owner;t.after(()=>candidate.close());const a=await f.snapshot(f.a),b=await f.snapshot(f.b),n=local.calls();
+ await assert.rejects(candidate.prepareReverse());assert.deepEqual(await f.snapshot(f.a),a);assert.deepEqual(await f.snapshot(f.b),b);assert.equal(local.calls(),n);
+});
+test('a real target Working edit prevents unchanged-cut reverse qualification and stays intact',async t=>{
+ const f=await selected(t);await inputEdit(f.b,f.blocks[0].id,{note:'SYNTHETIC new target intent'});const a=await f.snapshot(f.a),b=await f.snapshot(f.b);await assert.rejects(f.owner.prepareReverse());assert.deepEqual(await f.snapshot(f.a),a);assert.deepEqual(await f.snapshot(f.b),b);
+});
+for(const kind of ['source-raw','target-raw','gate','control-revision','marker','registry','control'])test(kind+' drift refuses even without changing the original graph digest',async t=>{
+ const f=await selected(t);
+ if(kind==='control'){const row=(await f.a.local.get(STORAGE_KEY))[STORAGE_KEY];row.preferences={...row.preferences,SYNTHETIC_changed:true};await f.a.local.set({[STORAGE_KEY]:row});}
+ else await f.raw(kind==='registry'?f.registry:kind==='source-raw'||kind==='marker'?f.a.repository:f.b.repository,store=>{
+  if(kind==='gate'||kind==='control-revision'||kind==='marker'){const key=kind==='gate'?CANONICAL_GENERATION_GATE:kind==='control-revision'?CONTROL_PUBLICATION_REVISION:APPLICATION_SELECTION_MARKER;const request=store.get(key);request.onsuccess=()=>{const row=request.result;if(kind==='gate')row.writeRevision++;else if(kind==='control-revision')row.revision++;else row.operationId='SYNTHETIC_other_operation';store.put(row);};}
+  else if(kind==='registry'){const request=store.get('canonical-generation:registry:v1');request.onsuccess=()=>{const row=request.result;row.revision++;store.put(row);};}
+  else store.put({id:'SYNTHETIC extra raw row',value:true});
+ });
+ const a=await f.snapshot(f.a),b=await f.snapshot(f.b);await assert.rejects(f.owner.prepareReverse());assert.deepEqual(await f.snapshot(f.a),a);assert.deepEqual(await f.snapshot(f.b),b);
+});
+test('opaque reverse token is original-owner only and close or SDK identity loss cannot revive it',async t=>{
+ const f=await selected(t),token=await f.owner.prepareReverse(),other=new OriginalApplicationGenerationSelection(f.a,f.coreA,f.a.local);t.after(()=>other.close());
+ assert.throws(()=>other.reverseReviewCurrent(token));assert.throws(()=>f.owner.reverseReviewCurrent(Object.freeze({...token})));await assert.rejects(f.owner.prepareReverse({snapshot:{}}));
+ const get=f.a.local.get;f.a.local.get=async()=>({});assert.throws(()=>f.owner.reverseReviewCurrent(token));f.a.local.get=get;assert.throws(()=>f.owner.reverseReviewCurrent(token));
+ const next=await f.owner.prepareReverse();f.owner.close();assert.throws(()=>f.owner.reverseReviewCurrent(next));
+});
+test('same cumulative ticket cannot be renewed by repeated full-cut requalification',async t=>{
+ const f=await selected(t),token=await f.owner.prepareReverse(),a=await f.snapshot(f.a),b=await f.snapshot(f.b);let rejected=false;
+ for(let i=0;i<128;i++){try{await f.owner.requalifyReverse(token);}catch(error){assert.equal(error.code,'BNS_GROUP_RESOURCE_LIMIT');rejected=true;break;}}
+ assert.equal(rejected,true);assert.throws(()=>f.owner.reverseReviewCurrent(token));assert.deepEqual(await f.snapshot(f.a),a);assert.deepEqual(await f.snapshot(f.b),b);
+});
+test('close during the final SDK observation refuses without clearing the actual pending read',async t=>{
+ const f=await customSelected(t),gate=f.local.pause();t.after(gate.release);const pending=f.owner.prepareReverse();await gate.started;f.owner.close();await assert.rejects(f.owner.prepareReverse(),{code:'GENERATION_SELECTION_BUSY'});gate.release();await assert.rejects(pending);assert.equal((await f.a.repository.transaction(false,t=>t.get('meta',APPLICATION_SELECTION_MARKER))).phase,'selected');
+});
+test('same-owner attempted write during final SDK observation invalidates the captured original fence even on abort',async t=>{
+ const f=await customSelected(t),gate=f.local.pause();t.after(gate.release);const pending=f.owner.prepareReverse(),rejected=assert.rejects(pending);await gate.started;
+ try{await assert.rejects(f.a.repository.transaction(true,t=>t.put('meta',{id:'SYNTHETIC forbidden',value:true})),{code:'STALE_BASE'});}finally{gate.release();}await rejected;assert.equal(await f.a.repository.transaction(false,t=>t.get('meta','SYNTHETIC forbidden')),undefined);
+});
+test('another original target connection may change after the last raw read: observation token is not a global hold and full revalidation refuses',async t=>{
+ const f=await customSelected(t),gate=f.local.pause();t.after(gate.release);const pending=f.owner.prepareReverse();await gate.started;
+ await inputEdit(f.b,f.blocks[0].id,{note:'SYNTHETIC other connection after raw read'});gate.release();const token=await pending;assert.equal(f.owner.reverseReviewCurrent(token),true,'only captured-owner synchronous observations');
+ const after=await f.snapshot(f.b);await assert.rejects(f.owner.requalifyReverse(token),{code:'GENERATION_REVERSE_INHERITANCE_REQUIRED'});assert.deepEqual(await f.snapshot(f.b),after);await assert.rejects(f.owner.rollback(),{code:'GENERATION_REVERSE_INHERITANCE_REQUIRED'});
+});
+test('one original deadline returns failure while unresolved SDK observation keeps busy until actual late settlement',async t=>{
+ const f=await customSelected(t),gate=f.local.pause();t.after(gate.release);const pending=f.owner.prepareReverse();await gate.started;assert.equal(timers.size,1);[...timers.values()][0]();
+ await assert.rejects(pending,{code:'BNS_GROUP_RESOURCE_LIMIT'});await assert.rejects(f.owner.prepareReverse(),{code:'GENERATION_SELECTION_BUSY'});gate.release();await new Promise(resolve=>realSetTimeout(resolve,0));
+ const next=await f.owner.prepareReverse();assert.equal(f.owner.reverseReviewCurrent(next),true);assert.equal((await f.a.repository.transaction(false,t=>t.get('meta',APPLICATION_SELECTION_MARKER))).phase,'selected');
+});

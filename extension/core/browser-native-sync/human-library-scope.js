@@ -1,0 +1,173 @@
+import {projectOriginalWorkingInvalidation} from './input-working-commit.js';
+import {originalSavedHumanScopePartition} from './saved-work-bootstrap.js';
+import {readGroupRows,groupTablePages} from './group-page-reader.js';
+import {validateSourceLinkedDescriptor} from './source-linked-evidence.js';
+import {planHumanEntryEvidence} from '../thought-store-owner.js';
+import {originalCurrentMixedGroupCore,originalGroupCheckpointCoreOrNull,requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
+import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
+import {localHumanTopicIdentity,localHumanSuppression,localSourceSuppression} from './human-library-identity.js';
+import {requireGroupHumanCompilationInput} from './group-checkpoint-scope.js';
+import {normalizePhysical} from './human-library-journal.js';
+import {keyedHash} from '../thought-model.js';
+import {ownerVersion} from '../library-search.js';
+import {projectOriginalMixedNativeSearchRow} from './human-library-search-proof.js';
+import {captureHumanCurrentUnindexedProjection,captureHumanCurrentGroupProjection,requireHumanCurrentUnindexedProjection,releaseHumanCurrentUnindexedProjection,bindHumanCurrentUnindexedProjectionScope,encodeHumanCurrentGroupCheckpoint,publishHumanCurrentGroupCheckpoint,branchRawMeasure,borrowOriginalMixedScopeCompilationSecret,requireOriginalMixedScopeCompilationCurrent,requireOriginalMixedNativeCanonicalCut} from './human-library-plan.js';
+import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
+import {clone,equal,fail,count} from './value.js';
+const wirePlans=new WeakMap(),proofs=new WeakMap(),preparations=new WeakSet(),types={entry:'thoughts',topic:'topics',section:'sections',placement:'placements',suppression:'thoughtSuppressions',keepSeparate:'pairs'};
+const sort=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));
+function observeHumanScopeNames(names,after){for(const name of [after.name,...after.identity.aliases.map(alias=>alias.name)]){const normalized=String(name).normalize('NFKC').toLocaleLowerCase().trim(),row=names.get(normalized)||{name:normalized,topicIds:[]};if(!row.topicIds.includes(after.id))row.topicIds.push(after.id);names.set(normalized,row);}}
+// Meter the original name builder, including actual Unicode normalization and
+// distinct Topic memberships. Native callers must prepay its finite Map/string
+// frame; this numeric output creates no Scope or metadata-admission authority.
+export function measureOriginalMixedWireNames(plan){
+ if(arguments.length!==1||!originalCurrentMixedGroupCore(plan))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');const names=new Map();for(const group of plan.groups)if(group.type==='humanLibraryCommit')for(const member of group.prepared.members)if(member.value.entityType==='topic')observeHumanScopeNames(names,member.value.after);
+ return Object.freeze(measureSourceWorkingPhysicalTree([...names.values()]));
+}
+export function compileHumanScope(plan){
+ const linked=plan.groups.some(group=>group.type==='humanLibraryCommit'&&group.prepared.members.some(op=>op.value.entityType==='sourceLink'));const maps=Object.fromEntries([...Object.keys(types),'history',...(linked?['sourceLink']:[]),...(plan.groups.some(group=>group.type==='humanLibraryCommit'&&group.prepared.members.some(op=>op.value.entityType==='sourceSuppression'))?['sourceSuppression']:[])].map(type=>[type,new Map()])),names=new Map(),mixed=originalCurrentMixedGroupCore(plan);
+ for(const group of plan.groups)if(group.type==='humanLibraryCommit')for(const op of group.prepared.members){const {entityType:type,after}=op.value;maps[type].set(after.id,mixed?after:clone(after));if(type==='topic')observeHumanScopeNames(names,after);}
+ const wire={rows:Object.fromEntries(Object.entries(maps).map(([type,map])=>[type,sort([...map.values()])])),names:[...names.values()].sort((a,b)=>a.name.localeCompare(b.name))};if(originalGroupCheckpointCoreOrNull(plan))wirePlans.set(wire,plan);return wire;
+}
+export async function prepareHumanScopeProof(store,scope,wire,nativeMixedCompilation){
+ requireGroupHumanCompilationInput(scope,wire);
+ if(!store)fail('BNS_GROUP_BINDING');const previous=proofs.get(scope);if(preparations.has(scope)||previous?.projectionOpening||previous?.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');preparations.add(scope);try{const native=nativeMixedCompilation!==undefined,secret=native?borrowOriginalMixedScopeCompilationSecret(nativeMixedCompilation,store,scope,wire):await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key'))?.value,['meta']));if(!Array.isArray(secret))fail('BNS_HUMAN_BINDING_REQUIRED');const current=()=>{if(native)requireOriginalMixedScopeCompilationCurrent(nativeMixedCompilation,store,scope);};current();
+ const links=wire.rows.sourceLink??[];if(native&&links.length)fail('BNS_HUMAN_UNSUPPORTED');let linkedEpoch=links.length?await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-epoch'))?.value||0,['meta'])):null;const provenance=[],dependencies=[],plan=wirePlans.get(wire);
+ if(links.length&&plan?.groups.some(g=>g.type==='inputWorkingCommit')){
+  const core=originalGroupCheckpointCoreOrNull(plan);requireOriginalGroupCheckpointPlan(core,plan);if(core.repository!==store.repository||plan.groups.filter(g=>g.type==='sourceBootstrapCommit').length!==1||plan.groups.some(g=>g.type==='sourceAppendCommit'))fail('BNS_HUMAN_UNSUPPORTED');
+  // Cold canonical replay starts from the complete original empty scope. Run
+  // each real invalidation rule in causal order, not a count of Working DTOs.
+  linkedEpoch=0;for(const group of plan.groups)if(group.type==='inputWorkingCommit')linkedEpoch=(await projectOriginalWorkingInvalidation(core,plan,group,linkedEpoch)).sequence;
+ }
+ for(const value of links){const link=validateSourceLinkedDescriptor(value),e=link.evidence,scopeToken=await keyedHash(secret,['scope',e.sourceIdentityTokens]),evidence={...clone(e),scopeToken,versionToken:await keyedHash(secret,['version',scopeToken,e.fieldDigests]),epoch:linkedEpoch},pair=planHumanEntryEvidence({actor:'user',formation:'explicit'},evidence,{id:link.provenanceId,generationId:link.generationId,entryId:link.id,at:link.at,generator:null});if(link.version===2){pair.provenance.contributionType='exact_excerpt';pair.provenance.span=clone(link.span);}provenance.push(pair.provenance);dependencies.push(pair.dependency);}
+ const rows=clone(wire.rows);for(const row of rows.entry){row.exactSignature=await keyedHash(secret,['body',row.type,row.thoughtText]);current();}for(const row of rows.topic){row.identity=(await localHumanTopicIdentity(row.name,row.identity,secret)).identity;current();}
+ for(const row of rows.history)if(row.kind==='topic')for(const side of ['before','after'])if(row[side]){row[side].identity=(await localHumanTopicIdentity(row[side].name,row[side].identity,secret)).identity;current();}
+ // A failed compilation must not abandon a later live crypto operand. Keep
+ // the original native work ticket through each actual keyed-hash settlement
+ // and authenticate its current cut before starting the next suppression.
+ const suppression=[];for(const row of rows.suppression){suppression.push(await localHumanSuppression(row,secret));current();}for(const row of rows.sourceSuppression??[])suppression.push(await localSourceSuppression(row,secret));rows.suppression=sort(suppression);
+ const names=[];for(const row of wire.names){const token=await keyedHash(secret,['personal-topic-name-v1',row.name]);current();names.push({id:'personalTopicName:'+token,version:1,topicIds:row.topicIds});}
+ const normalized=Object.fromEntries(Object.entries(rows).map(([type,items])=>[type,items.map(row=>normalizePhysical(type,row))]));if(proofs.get(scope)!==previous)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');proofs.set(scope,{store,secret,rows:normalized,names:sort(names),pairs:sort(rows.keepSeparate),linkedEpoch,provenance:sort(provenance),dependencies:sort(dependencies)});
+ return normalized.history;
+ }finally{preparations.delete(scope);}
+}
+// Optional local readonly checkpoint preflight only. The wire scope remains
+// canonical-only; no native handle or source projection is serialized/restored.
+export async function prepareHumanCurrentScopeProjection(store,core,scope){
+ return prepareCurrentScopeProjection(store,core,scope,null);
+}
+export async function prepareHumanCurrentGroupScopeProjection(store,core,scope,plan){
+ if(arguments.length!==4)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');return prepareCurrentScopeProjection(store,core,scope,plan);
+}
+async function prepareCurrentScopeProjection(store,core,scope,plan){
+ const p=proofs.get(scope);if(!p||p.store!==store||preparations.has(scope)||p.projectionOpening||p.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ p.projectionOpening=true;let cap;
+ try{cap=plan?await captureHumanCurrentGroupProjection(store,core,scope,plan):await captureHumanCurrentUnindexedProjection(store,core);if(proofs.get(scope)!==p||p.store!==store)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');const ids=await bindHumanCurrentUnindexedProjectionScope(cap,scope);if(proofs.get(scope)!==p||preparations.has(scope))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');p.projectionIds=ids;p.projection=cap;p.groupPlan=plan;cap=null;}
+ finally{p.projectionOpening=false;if(cap)releaseHumanCurrentUnindexedProjection(cap);}
+}
+export function releaseHumanCurrentScopeProjection(scope){
+ const p=proofs.get(scope);if(!p||p.projectionOpening||!p.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const cap=p.projection;p.projection=null;p.projectionIds=null;p.groupPlan=null;releaseHumanCurrentUnindexedProjection(cap);
+}
+// Fixed original Plan/Scope handshake. These functions assert/measure only;
+// arbitrary caller data cannot mint a native cap or read a private physical cut.
+function projectionScopeRecord(scope,store){const p=proofs.get(scope);if(!p||p.store!==store||preparations.has(scope)||!p.projectionOpening||p.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');return p;}
+export function measureHumanScopeProjectionExpectation(scope,store){
+ const p=projectionScopeRecord(scope,store),stats={},B=branchRawMeasure([p.rows,p.names,p.pairs,p.secret],4*1024*1024,stats,'native');
+ return Object.freeze({B,T:stats.units,V:stats.nodes,E:stats.slots});
+}
+export function measureHumanScopeProjectionComparisonPeak(scope,store,raw){
+ const p=projectionScopeRecord(scope,store),measure=value=>{const s={},B=branchRawMeasure(value,4*1024*1024,s,'native');return{B,T:s.units,V:s.nodes,E:s.slots};};
+ const tree=m=>2*m.T+128*m.V+8*m.E+128;let peak=0;
+ for(const [type,name]of [...Object.entries(types),['history','revisions']]){if(type==='keepSeparate')continue;const a=measure(raw.rows[name]),b=measure(p.rows[type]);peak=Math.max(peak,5*tree(a)+tree(b)+16*(a.E+b.E)+2*(a.B+b.B));}
+ for(const [prefix,expected]of [['personalTopicName:',p.names],['topicKeepSeparate:',p.pairs]]){const a=measure(raw.prefixes[prefix]),b=measure(expected);peak=Math.max(peak,tree(a)+tree(b)+16*(a.E+b.E)+2*(a.B+b.B));}
+ return peak;
+}
+export function assertHumanScopeProjectionExpectation(scope,store,raw){
+ const p=projectionScopeRecord(scope,store);if(!equal(raw.points['thought-suppression-key']?.value,p.secret))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ for(const [type,name]of Object.entries(types)){if(type==='keepSeparate')continue;const rows=raw.rows[name];if(rows.length>128)fail('BNS_GROUP_RESOURCE_LIMIT');for(const row of rows){if(type==='entry'&&(!count(row.createdSequence)||row.createdSequence<1||!count(row.updatedSequence)||row.updatedSequence<1||row.negativeUpdatedSequence!==-row.updatedSequence)||type==='topic'&&(!Number.isSafeInteger(row.negativeUpdatedSequence)||row.negativeUpdatedSequence>=0))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}if(!equal(sort(rows.map(row=>normalizePhysical(type,row))),p.rows[type]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ // This first native export profile binds a complete Human-only history cut.
+ // Existing mixed Source/Working checkpoint paths retain their old default;
+ // an unrelated or unrepresented revision is not silently discarded here.
+ if(!equal(sort(raw.rows.revisions.map(row=>normalizePhysical('history',row))),p.rows.history))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ if(!equal(sort([...raw.prefixes['personalTopicName:']]),p.names)||!equal(sort([...raw.prefixes['topicKeepSeparate:']]),p.pairs))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ // Old normalized history was returned to the original compiler; freeze its
+ // existing tree only after this genuine cut match, so a later caller mutation
+ // cannot change the compiled Human expectation behind the private native cap.
+ const freeze=v=>{if(v&&typeof v==='object'){for(const item of Object.values(v))freeze(item);Object.freeze(v);}};freeze(p.rows);freeze(p.names);freeze(p.pairs);freeze(p.secret);
+}
+// Numeric measurement of the actual private keyed expectation while the
+// original mixed native compiler owns its live nonce. No key or row escapes.
+export function measureOriginalMixedHumanScopeExpectation(scope,store,nonce){
+ if(arguments.length!==3)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);
+ const p=proofs.get(scope);if(!p||p.store!==store||preparations.has(scope)||p.projectionOpening||p.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ return Object.freeze(measureSourceWorkingPhysicalTree([p.rows,p.names,p.pairs,p.secret]));
+}
+export function hasHumanScope(scope){return proofs.has(scope);}
+// Mixed history retains its Source/Working rows. Compare the exact Human ID
+// inventory here; the original outer canonical owner compares every other row.
+// This body assertion neither admits search derivatives nor grants an export.
+export function assertOriginalMixedNativeHumanBodies(store,core,scope,plan,raw,nonce,searchProof){
+ if(arguments.length!==7)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalMixedNativeCanonicalCut(nonce,store,core,scope,plan,raw);
+ const p=proofs.get(scope);if(!p||p.store!==store||preparations.has(scope)||p.projectionOpening||p.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ if(!equal(raw.rows.meta.find(row=>row.id==='thought-suppression-key')?.value,p.secret))fail('BNS_HUMAN_CHANGED');
+ for(const [type,name]of Object.entries(types)){
+  if(type==='keepSeparate')continue;const rows=raw.rows[name];if(rows.length>128)fail('BNS_GROUP_RESOURCE_LIMIT');
+  for(const row of rows)if(type==='entry'&&(!count(row.createdSequence)||row.createdSequence<1||!count(row.updatedSequence)||row.updatedSequence<1||row.negativeUpdatedSequence!==-row.updatedSequence)||type==='topic'&&(!Number.isSafeInteger(row.negativeUpdatedSequence)||row.negativeUpdatedSequence>=0))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+  if(!equal(sort(rows.map(row=>normalizePhysical(type,['entry','topic','section'].includes(type)?projectOriginalMixedNativeSearchRow(searchProof,type,row):row))),p.rows[type]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ }
+ const ids=new Set(p.rows.history.map(row=>row.id)),history=raw.rows.revisions.filter(row=>ids.has(row.id));
+ if(!equal(sort(history.map(row=>normalizePhysical('history',projectOriginalMixedNativeSearchRow(searchProof,'history',row)))),p.rows.history))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ for(const [prefix,expected]of [['personalTopicName:',p.names],['topicKeepSeparate:',p.pairs]])if(!equal(sort(raw.rows.meta.filter(row=>row.id.startsWith(prefix))),expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ return {history:p.rows.history};
+}
+export async function requireHumanScope(store,t,scope){
+ const p=proofs.get(scope);if(!p||p.store!==store)fail('BNS_HUMAN_CHANGED');if(p.projectionOpening||preparations.has(scope))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ if(p.projection){
+  const identity=requireRepositoryTransactionScope(store.repository,t);if(identity.mode!=='readonly')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireRepositoryTransactionDataMethods(store.repository,t);
+  // Binding matched and froze the actual private canonical expectation. The
+  // native whole-cut recheck preserves it; do not allocate a second arbitrary
+  // t.all/normalizer snapshot alongside the retained native tree.
+  await requireHumanCurrentUnindexedProjection(t,p.projection);
+  // <=257 borrowed IDs, their bounded vectors and Set cells are a <=48KiB
+  // fixed outer-Scope allowance in the original native384KiB work frame,
+  // held through authentic transaction drain. No bodies or new strings.
+  return {allowed:new Set([...p.projectionIds,...p.names.map(row=>row.id),...p.pairs.map(row=>row.id)]),history:p.rows.history};
+ }
+ if(!equal((await t.get('meta','thought-suppression-key'))?.value,p.secret))fail('BNS_HUMAN_CHANGED');
+ for(const [type,name]of Object.entries(types)){if(type==='keepSeparate')continue;const saved=originalSavedHumanScopePartition(scope,store),savedIds=new Set(saved?.entries||[]),rows=sort((await readGroupRows(t,name)).filter(row=>type!=='entry'||!savedIds.has(row.id)));for(const row of rows){if(type==='entry'&&(!count(row.createdSequence)||row.createdSequence<1||!count(row.updatedSequence)||row.updatedSequence<1||row.negativeUpdatedSequence!==-row.updatedSequence)||type==='topic'&&(!Number.isSafeInteger(row.negativeUpdatedSequence)||row.negativeUpdatedSequence>=0))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}if(!equal(rows.map(row=>normalizePhysical(type,row)),p.rows[type]))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(p.linkedEpoch!==null&&((await t.get('meta','thought-epoch'))?.value||0)!==p.linkedEpoch)fail('BNS_HUMAN_CHANGED');for(const [name,expected]of [['provenance',p.provenance],['dependencies',p.dependencies]]){const saved=originalSavedHumanScopePartition(scope,store),ids=new Set(saved?.[name]||[]);if(!equal(sort((await readGroupRows(t,name)).filter(row=>!ids.has(row.id))),expected))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ const names=await readGroupRows(t,'meta',{prefix:'personalTopicName:'}),pairs=await readGroupRows(t,'meta',{prefix:'topicKeepSeparate:'}),allowed=new Set();for await(const page of groupTablePages(t,'meta',{prefix:'thought-read-index:'}))if(page.length)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ if(!equal(sort(names),p.names)||!equal(sort(pairs),p.pairs))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');for(const row of [...names,...pairs])allowed.add(row.id);
+ // Only untouched original search queue locators are admitted in this first
+ // group seam. Indexed/posting/projection qualification remains a separate
+ // actual-owner design; no arbitrary derivative store is exempted.
+ if(await t.count('librarySearchTerms'))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ // This pending-only profile owes one original locator for every Human
+ // search owner, not merely valid rows for whichever locators survived.
+ // Saved has its own exact partition; do not count its rows as Human work.
+ const pending=new Set();for(const kind of ['entry','topic','section'])for(const owner of p.rows[kind])pending.add(owner);
+ for(const row of await readGroupRows(t,'libraryMigrationItems')){const saved=originalSavedHumanScopePartition(scope,store);if(saved?.entries.includes(row.ownerId))continue;const owner=p.rows[row.ownerKind]?.find(item=>item.id===row.ownerId);if(!owner||!['entry','topic','section'].includes(row.ownerKind)||!equal(row,{id:JSON.stringify(['search',row.ownerKind,row.ownerId]),entityKind:'search',statusKey:0,ownerKind:row.ownerKind,ownerId:row.ownerId,version:ownerVersion(row.ownerKind,owner),phase:'delete',offset:0,sourceRecordIds:owner.sourceRecordIds??[]})||!pending.delete(owner))fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(pending.size)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
+ return {allowed,history:p.rows.history};
+}
+export async function requireHumanCurrentGroupScope(store,t,scope,plan){
+ const p=proofs.get(scope);if(!p||p.store!==store||p.groupPlan!==plan||!p.projection||p.projectionOpening||preparations.has(scope))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const identity=requireRepositoryTransactionScope(store.repository,t);if(identity.mode!=='readonly')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ await requireHumanCurrentUnindexedProjection(t,p.projection);return true;
+}
+export async function encodeHumanCurrentGroupScope(scope,plan,transport,options){
+ const p=proofs.get(scope);if(!p||p.groupPlan!==plan||!p.projection||p.projectionOpening||preparations.has(scope))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ return encodeHumanCurrentGroupCheckpoint(p.projection,scope,plan,transport,options);
+}
+export async function publishHumanCurrentGroupScope(scope,plan,checkpoint,transport,options){
+ const p=proofs.get(scope);if(!p||p.groupPlan!==plan||!p.projection||p.projectionOpening||preparations.has(scope))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ return publishHumanCurrentGroupCheckpoint(p.projection,scope,plan,checkpoint,transport,options);
+}
+
+// Saved may count this partition only after the original Human scope has
+// independently compiled its exact source-free Entry/history owner projection.
+export function originalHumanSavedScopePartition(scope,store){
+ const p=proofs.get(scope);if(!p)return null;if(p.store!==store||p.projection||p.projectionOpening||preparations.has(scope)||p.rows.topic.length||p.rows.section.length||p.rows.placement.length||p.rows.suppression.length||p.provenance.length||p.dependencies.length)fail('BNS_SAVED_WORK_UNSUPPORTED');
+ return {entries:p.rows.entry.map(row=>({id:row.id}))};
+}

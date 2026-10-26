@@ -1,0 +1,4 @@
+import {timestamp} from './contract.js';
+export function applyOfficialTime(records,ledger,proof){let changed=0;const old=ledger.officialExport||{timestamp:null,conflict:false};const next={...old};if(proof?.conflict)next.conflict=true;if(proof?.time){if(next.timestamp&&next.timestamp!==proof.time)next.conflict=true;else next.timestamp=proof.time;}ledger.officialExport=next;
+ for(const r of records){if(r.sourceSentAt&&['high','very_high'].includes(r.timeConfidence)){if(next.timestamp&&r.sourceSentAt!==next.timestamp)next.conflict=true;continue;}const time=timestamp(next.timestamp,Date.parse(r.capturedAt));if(!time||next.conflict){if(next.conflict&&r.timeConfidence!=='conflict'){r.timeConfidence='conflict';changed++;}continue;}r.sourceSentAt=time;r.timeSource='official_export';r.timeConfidence='high';r.timeCandidates={...(r.timeCandidates||{dom:false,response:false,agreement:'unknown'}),officialExport:true};changed++;}return changed;
+}

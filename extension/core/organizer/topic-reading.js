@@ -1,0 +1,224 @@
+import {prefix,fail,idOK} from '../thought-model.js';
+import {entryMatchesProvider,entryProviderKeys} from '../thought-source-scope.js';
+import {expressionTime} from './expression-time.js';
+import {readTopicActivity} from './topic-activity.js';
+import {rootReadAuthority} from './root-read.js';
+import {readDependencyInputs,dependencyLifecycle} from '../thought-evidence.js';
+import {validProvider} from '../read-projection-keys.js';
+import {entryTime} from './topic-chronology.js';
+import {thoughtTopicDescriptorPage,thoughtTopicExpressionPage,invalidateThoughtTopicIndex} from '../thought-read-index.js';
+
+const normalized=value=>String(value||'').normalize('NFKC').toLocaleLowerCase();
+const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).length;
+const activePlacement=p=>p?.lifecycle==='active';
+const sectionCursorOK=(cursor,topic)=>!cursor||(cursor.topicId===topic.id&&cursor.generation===topic.activeLayoutGeneration&&cursor.organizationRevision===topic.organizationRevision);
+
+async function describePlacement(s,t,topic,p,activity={}){
+ if(!activePlacement(p))return null;
+ const row=await t.get('thoughts',p.entryId);
+ if(!row||row.storageSchema!==2||row.lifecycle!=='active')return null;
+ // Purge can invalidate canonical readability before lazy row cleanup runs.
+ // Both projections must count the same live eligible set as body resolution.
+ if(!await s.sourcePresent(t,row.sourceRecordIds)||!row.hasHumanAction&&row.origin==='ai'){
+  const current=await s.readableEntry(t,row.id);
+  if(current.lifecycle!=='active'||!current.hasHumanAction&&current.origin==='ai'&&dependencyLifecycle(current,await readDependencyInputs(s,t,current))!=='active')return null;
+ }
+ const time=await entryTime(t,row.id),rawTime=time.sourceSentAt||time.capturedAt||row.createdAt||null;
+ const effectiveTime=Number.isFinite(Date.parse(rawTime||''))?rawTime:null;
+ const descriptor=planHumanPlacementDescriptor(topic,p,row,time,effectiveTime);
+ descriptor.next();
+ descriptor.next(await expressionTime(s,t,row));
+ const result=descriptor.next(await entryProviderKeys(s,t,row.id)).value;
+ const proof=p.excludedByUser===true||row.quarantineSealed?{at:null}:await readTopicActivity(t,row,result.expressionTime,activity);
+ if(proof.pending)return {activityPending:true,cursor:proof.cursor};
+ result.activityAt=proof.at;return result;
+}
+// Original descriptor construction only. The two suspension points retain
+// property observation across the original expression/provider awaits.
+// Supplied facts are not a native cut, reader, scope or recovery permission.
+export function* planHumanPlacementDescriptor(topic,p,row,time,effectiveTime){
+ return {
+  topicId:topic.id,layoutGeneration:topic.activeLayoutGeneration,
+  entryId:p.entryId,sectionId:p.sectionId,sectionRank:p.sectionRank,rank:p.rank,
+  placementRevision:p.revision,entryRevision:row.revision,
+  expressionTime:(yield),providerKeys:(yield),
+  ...time,effectiveTime,
+  timeBasis:!effectiveTime?'unknown':time.sourceSentAt?'source':time.capturedAt?'capture':'created'
+ };
+}
+export const descriptorReader=s=>(t,topic,p,activity)=>describePlacement(s,t,topic,p,activity);
+const cursorView=cursor=>cursor?{generation:cursor.generation,viewKey:cursor.viewKey,sort:cursor.sort,key:cursor.key}:null;
+const wrapCursor=(topicId,query,providerKey,cursor)=>cursor?{topicId,query,providerKey,...cursor}:null;
+
+export async function topicSectionsPage(s,{topicId,cursor=null,limit=100}={}){
+ if(!idOK(topicId)||!Number.isInteger(limit)||limit<1||limit>100)fail();
+ await s.finishFoundation();
+ return s.run(()=>s.repository.transaction(false,async t=>{
+  const topic=await s.canonicalTopic(t,topicId);
+  if(!sectionCursorOK(cursor,topic))return {cursorInvalid:true,topic,items:[],nextCursor:null};
+  const page=await t.rangePage('sections','byTopicOrder',prefix([topic.id,topic.activeLayoutGeneration,0]),cursor?.key||null,limit),items=[];
+  for(const {value:raw} of page.rows){
+   const row=s.safeOrganization?await s.safeOrganization(t,'section',raw):raw;
+   if(row?.lifecycle==='active'&&!row.redirectTo)items.push(row);
+  }
+  return {
+   topic,items,
+   nextCursor:page.next?{topicId:topic.id,generation:topic.activeLayoutGeneration,organizationRevision:topic.organizationRevision,key:page.next}:null
+  };
+ }));
+}
+
+export async function topicAdjacency(s,{topicId,kind,id,direction,sectionId=null}={}){
+ if(!idOK(topicId)||!idOK(id)||!['section','entry'].includes(kind)||!['up','down'].includes(direction)||kind==='entry'&&!idOK(sectionId))fail();
+ await s.finishFoundation();
+ return s.run(()=>s.repository.transaction(false,async t=>{
+  const topic=await s.canonicalTopic(t,topicId);
+  const store=kind==='section'?'sections':'placements',index=kind==='section'?'byTopicOrder':'bySectionOrder';
+  const range=kind==='section'?prefix([topic.id,topic.activeLayoutGeneration,0]):prefix([topic.id,topic.activeLayoutGeneration,sectionId,0]);
+  let cursor=null,previous=null,found=false,scanned=0;
+  for(let batches=0;batches<100;batches++){
+   const page=await t.rangePage(store,index,range,cursor,100);
+   for(const {value:raw} of page.rows){
+    scanned++;
+    const active=raw?.lifecycle==='active'&&!raw.redirectTo;
+    if(!active)continue;
+    const currentId=kind==='section'?raw.sectionId:raw.entryId;
+    if(found)return {id:currentId,boundary:false,scanned};
+    if(currentId===id){
+     if(direction==='up')return {id:previous,boundary:previous===null,scanned};
+     found=true;continue;
+    }
+    previous=currentId;
+   }
+   if(!page.next)break;cursor=page.next;
+  }
+  if(found&&direction==='down')return {id:null,boundary:true,scanned};
+  return {id:null,boundary:true,missing:true,scanned};
+ }));
+}
+
+async function sectionRowsFor(s,topic,ids){
+ const unique=[...new Set(ids.filter(Boolean))],out=[];
+ if(!unique.length)return out;
+ return s.run(()=>s.repository.transaction(false,async t=>{
+  for(const id of unique){
+   const raw=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,id]));
+   const row=raw&&(s.safeOrganization?await s.safeOrganization(t,'section',raw):raw);
+   if(row?.lifecycle==='active'&&!row.redirectTo)out.push(row);
+  }
+  return out;
+ }));
+}
+
+async function invalidateForTimeMismatch(s,topicId){
+ await s.run(()=>s.repository.transaction(true,t=>invalidateThoughtTopicIndex(s,t,topicId,{sourceTime:true})));
+}
+
+// Time-sorted Topic reading now pages a body-free generation projection.
+// Only the descriptor chunk selected for this response resolves canonical
+// Thought bodies, so a warm next chunk never rescans the entire Topic.
+export async function topicReadingPage(s,{topicId,sort='asc',query='',cursor=null,limit=40,trackedEntryIds=[],anchorId=null,sectionId=null,sectionCursor=null,direction='next',timeEdge=null,providerKey=null,chronology='placement',expectedReadGeneration=null}={}){
+ if(!['placement','expression'].includes(chronology))fail();
+ if(!idOK(topicId)||!['asc','desc'].includes(sort)||!['next','prev'].includes(direction)||typeof query!=='string'||query.length>500||!Number.isInteger(limit)||limit<1||limit>40||!Array.isArray(trackedEntryIds)||trackedEntryIds.length>100||trackedEntryIds.some(id=>!idOK(id))||anchorId!==null&&!idOK(anchorId)||sectionId!==null&&!idOK(sectionId))fail();
+ if(providerKey!==null&&!validProvider(providerKey))fail();
+ if(timeEdge!==null&&(!['earliest','latest','unknown'].includes(timeEdge)||cursor||anchorId||sectionId||direction!=='next'||query.trim()||providerKey!==null))fail();
+ await s.finishFoundation();const needle=normalized(query.trim());
+ if(cursor&&(cursor.topicId!==topicId||cursor.query!==needle||cursor.sort!==sort||(cursor.providerKey??null)!==providerKey))return {cursorInvalid:true,items:[],tracked:[]};
+ const expression=chronology==='expression';
+ const descriptor=expression?await thoughtTopicExpressionPage(s,{
+  topicId,sort,cursor:cursor?{...cursor,year:null}:null,limit,direction,providerKey,query:needle,
+  anchorId,sectionId,timeEdge,expectedReadGeneration,describe:descriptorReader(s)
+ }):await thoughtTopicDescriptorPage(s,{
+  topicId,sort,cursor:cursorView(cursor),limit,direction,
+  anchorId:anchorId||null,sectionId:sectionId||null,timeEdge,describe:descriptorReader(s)
+ });
+ // Invalid responses omit cached Topic metadata as well as bodies: Source
+ // eligibility may have changed after its name and summary were read.
+ // Fence tracked material and layout reads as well as paired body hydration.
+ const bodyAuthority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
+ const tracked=trackedEntryIds.length?await s.trackedLibraryEntries({ids:trackedEntryIds}):[];
+ const topic=await s.topic(topicId);
+ if(descriptor.cursorInvalid)return {cursorInvalid:true,anchorUnavailable:descriptor.anchorUnavailable===true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ if(descriptor.indexing){
+  const authority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
+  if(authority!==bodyAuthority)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+  return {topic,tracked,items:[],sort,query:needle,indexing:true,coverage:descriptor.coverage,operations:descriptor.operations,nextCursor:null,previousCursor:null,sections:[],sectionCursor:null,matchCount:null};
+ }
+
+ const placements=await s.run(()=>s.repository.transaction(false,async t=>{
+  const rows=new Map();
+  for(const d of descriptor.items){
+   const p=await t.get('placements',JSON.stringify([topic.id,topic.activeLayoutGeneration,d.entryId]));
+   if(activePlacement(p)&&p.revision===d.placementRevision)rows.set(d.entryId,p);
+  }
+  return rows;
+ }));
+ if(placements.size!==descriptor.items.length)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+
+ const providerMatches=providerKey===null?null:await s.run(()=>s.repository.transaction(false,async t=>{
+  const matches=new Set();for(const d of descriptor.items)if(await entryMatchesProvider(s,t,d.entryId,providerKey))matches.add(d.entryId);return matches;
+ }));
+ const sectionIds=descriptor.items.map(d=>d.sectionId),candidateSections=await sectionRowsFor(s,topic,sectionIds),sectionById=new Map(candidateSections.map(row=>[row.sectionId,row]));
+ const items=[];let size=bytes(topic)+bytes(candidateSections),timeMismatch=false,lastConsumedKey=null,payloadStopped=false;
+ const descriptorRows=direction==='prev'?[...descriptor.items].reverse():descriptor.items;
+ // Keep at most two existing, fully fenced reads in flight. Their result
+ // order remains descriptor order; no body cache survives this request.
+ const readable=descriptorRows.filter(d=>{const p=placements.get(d.entryId);return p&&sectionById.has(p.sectionId)&&(!providerMatches||providerMatches.has(d.entryId));});
+ let readOffset=0,readBatch=[];
+ for(const d of descriptorRows){
+  const p=placements.get(d.entryId),section=sectionById.get(d.sectionId);
+  if(!p||!section){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  if(providerMatches&&!providerMatches.has(d.entryId)){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  if(!readBatch.length){
+   const next=readable.slice(readOffset,readOffset+2);readOffset+=next.length;
+   readBatch=await Promise.all(next.map(async row=>{try{return {entry:await s.readingEntry(row.entryId)};}catch(error){return {error};}}));
+  }
+  const read=readBatch.shift();
+  if(Object.hasOwn(read,'error')){if(expression)throw read.error;lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  const e=read.entry;
+  if(e.lifecycle!=='active'){if(expression){timeMismatch=true;break;}lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  if(expression){
+   const fresh=await s.run(()=>s.repository.transaction(false,async t=>{
+    const row=await t.get('thoughts',d.entryId);
+    return row?.revision===d.entryRevision&&e.revision===row.revision&&JSON.stringify(await expressionTime(s,t,row))===JSON.stringify(d.expressionTime);
+   }));
+   if(!fresh){timeMismatch=true;break;}
+  }else if((e.sourceSentAt||null)!==(d.sourceSentAt||null)||(e.capturedAt||null)!==(d.capturedAt||null)){timeMismatch=true;break;}
+  if(needle&&![e.body,e.title,e.note,section.title].some(value=>normalized(value).includes(needle))){lastConsumedKey=d._cursorKey||lastConsumedKey;continue;}
+  const effectiveTime=expression?d.expressionTime.at:d.effectiveTime,timeBasis=expression?d.expressionTime.basis:d.timeBasis;
+  let entry={...e,effectiveTime,timeBasis,...(expression?{expressionTime:d.expressionTime}:{})};
+  if(bytes(entry)>128*1024)entry={id:e.id,revision:e.revision,large:true,title:e.title,bodyBytes:bytes(e.body),sourceSentAt:e.sourceSentAt||null,capturedAt:e.capturedAt||null,effectiveTime,timeBasis,...(expression?{expressionTime:d.expressionTime}:{}),createdAt:e.createdAt,provenanceType:e.provenanceType};
+  const item={placement:p,entry},itemBytes=bytes(item);
+  if(items.length&&size+itemBytes>256*1024){payloadStopped=true;break;}
+  items.push(item);size+=itemBytes;lastConsumedKey=d._cursorKey||lastConsumedKey;
+ }
+ if(direction==='prev')items.reverse();
+ if(timeMismatch){await invalidateForTimeMismatch(s,topicId);return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};}
+
+ const sectionPage=await topicSectionsPage(s,{topicId,cursor:sectionCursor,limit:100});
+ if(sectionPage.cursorInvalid)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ const sectionMap=new Map(sectionPage.items.map(row=>[row.sectionId,row]));for(const row of candidateSections)sectionMap.set(row.sectionId,row);
+ if(expression){
+  const fresh=await thoughtTopicExpressionPage(s,{topicId,sort,limit:1,providerKey,query:needle,expectedReadGeneration:descriptor.coverage.activeGeneration,describe:descriptorReader(s)});
+  if(fresh.cursorInvalid||fresh.indexing)return {cursorInvalid:true,tracked:[],items:[],coverage:fresh.coverage};
+ }
+ // A companion may finish before an earlier entry. Reject the whole body
+ // page if any existing mutation/recovery authority changed during hydration.
+ const finalAuthority=await s.run(()=>s.repository.transaction(false,t=>rootReadAuthority(t)));
+ if(finalAuthority!==bodyAuthority)return {cursorInvalid:true,tracked:[],items:[],coverage:descriptor.coverage,operations:descriptor.operations};
+ const boundary=payloadStopped&&lastConsumedKey?{generation:descriptor.coverage.activeGeneration,viewKey:descriptor.coverage.activeKey,sort,key:lastConsumedKey,...(expression?{year:null,providerKey,query:needle}:{})}:null;
+ const limitedNext=direction==='next'&&boundary?boundary:descriptor.nextCursor,limitedPrevious=direction==='prev'&&boundary?boundary:descriptor.previousCursor;
+ const nextCursor=wrapCursor(topic.id,needle,providerKey,limitedNext),previousCursor=wrapCursor(topic.id,needle,providerKey,limitedPrevious);
+ return {
+  currentCursor:cursor||null,chronology,...(expression?{overview:descriptor.overview}:{}),
+  sectionStarts:{},
+  topic,sections:[...sectionMap.values()],sectionCursor:sectionPage.nextCursor,
+  items,tracked,sort,query:needle,providerKey,
+  matchCount:needle||providerKey!==null?null:(descriptor.coverage?.activeCount??null),
+  nextCursor,previousCursor,
+  complete:direction==='prev'?!previousCursor:!nextCursor,
+  coverage:descriptor.coverage,
+  operations:descriptor.operations,
+  timeEdgeUnavailable:descriptor.timeEdgeUnavailable
+ };
+}

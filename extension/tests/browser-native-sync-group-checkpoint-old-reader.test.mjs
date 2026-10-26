@@ -1,0 +1,11 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import {createHash} from 'node:crypto';
+import {IDBFactory,IDBKeyRange} from './vendor/fake-indexeddb/build/esm/index.js';
+import {LibraryFoundationStore} from '../core/thought-store.js';import {local,capture} from './harness/thought-m1.mjs';
+import {BrowserNativeSyncCore} from '../core/browser-native-sync/core.js';import {SourceBootstrapJournal} from '../core/browser-native-sync/source-bootstrap-journal.js';import {buildCheckpoint} from '../core/browser-native-sync/checkpoints.js';
+globalThis.IDBKeyRange=IDBKeyRange;
+test('frozen actual 0.32 reader refuses required grouped scope before any stage write, without Git history or network',async()=>{
+ const root=new URL('./fixtures/group-checkpoint-old-reader/',import.meta.url),manifest=JSON.parse(await readFile(new URL('manifest.json',root),'utf8'));assert.equal(manifest.commit,'e7c279ae8af6bc4d4443878e0ec726c778952dc2');
+ for(const [path,proof]of Object.entries(manifest.files)){assert.match(path,/^extension\/(?:core\/[a-z0-9_/-]+\.js|package\.json)$/i);assert.equal(createHash('sha256').update(await readFile(new URL(path,root))).digest('hex'),proof.sha256);assert.match(proof.gitBlob,/^[a-f0-9]{40}$/);}
+ const s=new LibraryFoundationStore(local(),{indexedDB:new IDBFactory()});await s.consent(true);await s.finishFoundation();const core=new BrowserNativeSyncCore(s.repository,{datasetId:'synthetic_group_dataset',deviceId:'synthetic_group_device'});s.sourceBootstrapJournal=new SourceBootstrapJournal(core);await s.capture(capture((await s.status()).epoch));const objects=new Map(),transport={async putImmutable(r,b){objects.set(r.id,b.slice());},async get(r){return objects.get(r.id).slice();}},cp=await buildCheckpoint(core,transport,{grouped:{store:s}});
+ const {StagedSyncRestore}=await import(new URL('extension/core/browser-native-sync/checkpoints.js',root));const before=await s.repository.transaction(false,t=>t.all('meta'));await assert.rejects(new StagedSyncRestore(core).stageCheckpoint(cp.ref,r=>transport.get(r)),{code:'BNS_CHECKPOINT_INVALID'});assert.deepEqual(await s.repository.transaction(false,t=>t.all('meta')),before);
+});
