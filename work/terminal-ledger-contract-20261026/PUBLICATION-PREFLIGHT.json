@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-26",
+  "mainRead": "d4d45db78a2e0f9b72102d4e27ce8f3171d456ab",
+  "branch": "codex/sync-terminal-ledger-handoff-20261026",
+  "remoteBranchAbsent": true,
+  "branchWorkflowPaths": [],
+  "createOrPushMatch": false,
+  "noPullRequestOrDispatch": true,
+  "workflows": [
+    {
+      "path": ".github/workflows/paia-appearance-preview.yml",
+      "events": "on:\n  pull_request:\n    types: [opened, synchronize, reopened]\n    paths:\n      - 'extension/**'\n      - '.github/workflows/paia-appearance-preview.yml'"
+    },
+    {
+      "path": ".github/workflows/paia-assist-development.yml",
+      "events": "on:\n  workflow_dispatch:\n  push:\n    branches: ['evidence/assist-development-20261018']\n    paths:\n      - '.github/workflows/paia-assist-development.yml'\n      - 'extension/scripts/capture-assist-development.mjs'"
+    },
+    {
+      "path": ".github/workflows/paia-candidate.yml",
+      "events": "on:\n  pull_request:\n    types: [opened, synchronize, reopened]\n    paths:\n      - 'extension/**'\n      - '!extension/docs/**'\n      - 'native-hosts/**'\n      - '.github/workflows/paia-candidate.yml'\n      - '.github/workflows/paia-certification.yml'"
+    },
+    {
+      "path": ".github/workflows/paia-certification.yml",
+      "events": "on:\n  push:\n    branches: [main]\n    paths:\n      - 'extension/**'\n      - '!extension/docs/**'\n      - 'native-hosts/**'\n      - '.github/workflows/paia-certification.yml'\n      - '.github/workflows/paia-candidate.yml'\n  pull_request:\n    types: [opened, synchronize, reopened, ready_for_review]\n    paths:\n      - 'extension/**'\n      - '!extension/docs/**'\n      - 'native-hosts/**'\n      - '.github/workflows/paia-certification.yml'\n      - '.github/workflows/paia-candidate.yml'\n  workflow_dispatch:"
+    },
+    {
+      "path": ".github/workflows/paia-d7-archive-reader.yml",
+      "events": "on:\n  pull_request:\n    types: [opened, synchronize, reopened]\n    paths:\n      - 'extension/**'\n      - '.github/workflows/paia-d7-archive-reader.yml'"
+    },
+    {
+      "path": ".github/workflows/paia-float13-development.yml",
+      "events": "on:\n  workflow_dispatch:\n  push:\n    branches: ['evidence/float13-development-*']\n    paths:\n      - '.github/workflows/paia-float13-development.yml'\n      - 'extension/scripts/capture-float13-development.mjs'"
+    },
+    {
+      "path": ".github/workflows/paia-maintenance-native-development.yml",
+      "events": "on:\n  push:\n    branches: ['codex/native-maintenance-structured-20261018']\n    paths:\n      - 'extension/core/**'\n      - 'extension/background/**'\n      - 'extension/content/prompt-assist.js'\n      - 'extension/content/prompt-next.js'\n      - 'extension/content/prompt-surface.js'\n      - 'extension/ui/prompt-surface.js'\n      - 'extension/ui/prompt-assist-state.js'\n      - 'extension/ui/prompt-assist-view.js'\n      - 'extension/ui/settings-assist-state.js'\n      - 'extension/ui/settings-assist.js'\n      - 'extension/ui/settings-next.js'\n      - 'extension/tests/ai-assist-automatic-r3-chrome-e2e.test.mjs'\n      - 'extension/ui/context-cards.js'\n      - 'extension/ui/context-cards.css'\n      - 'extension/ui/context-connections-view.js'\n      - 'extension/tests/context-connections-chrome-e2e.test.mjs'\n      - 'extension/tests/cpv1-ctx4-05-maintenance-chrome-e2e.test.mjs'\n      - 'extension/tests/harness/**'\n      - 'extension/scripts/build_current_release.py'\n      - 'extension/scripts/package_assets.py'\n      - 'extension/package.json'\n      - '.github/workflows/paia-maintenance-native-development.yml'\n  workflow_dispatch:"
+    },
+    {
+      "path": ".github/workflows/paia-maintenance-promotion-evidence.yml",
+      "events": "on:\n  push:\n    branches: ['codex/maintenance-promotion-current-20261019', 'codex/context-back-sync-capacity-20261020', 'codex/maintenance-purpose-settings-20261020', 'main']\n    paths:\n      - 'extension/core/**'\n      - 'extension/background/**'\n      - 'extension/ui/settings-maintenance.js'\n      - 'extension/ui/settings-maintenance-state.js'\n      - 'extension/ui/settings-preferences.js'\n      - 'extension/tests/**'\n      - 'extension/scripts/**'\n      - 'extension/package.json'\n      - 'extension/manifest.json'\n      - 'services/ai-gateway/**'\n      - '.github/workflows/paia-maintenance-promotion-evidence.yml'\n  workflow_dispatch:"
+    },
+    {
+      "path": ".github/workflows/paia-postgres-development.yml",
+      "events": "on:\n  push:\n    branches: ['evidence/postgres-ledger-20261018']\n    paths:\n      - 'services/ai-gateway/**'\n      - '.github/workflows/paia-postgres-development.yml'\n  workflow_dispatch:"
+    },
+    {
+      "path": ".github/workflows/paia-prompt-reuse.yml",
+      "events": "on:\n  push:\n    branches: ['feat/prompt-reuse-vs09-*', main]\n    paths:\n      - 'extension/**'\n      - '!extension/docs/**'\n      - '.github/workflows/paia-prompt-reuse.yml'\n  pull_request:\n    paths:\n      - 'extension/**/prompt-*'\n      - 'extension/adapter/chatgpt-composer.js'\n      - 'extension/tests/cpv1-09-*'\n      - 'extension/tests/cpv1-12-next-*'\n      - 'extension/adapter/chatgpt-current-reply.js'\n      - 'extension/core/next-action-detector.js'\n      - 'extension/background/assist-reply-lease.js'\n      - 'extension/content/assist-result.js'\n      - 'extension/core/ai-usage/local-assist-session.js'\n      - 'extension/core/ai-usage/historical-candidate-*'\n      - 'extension/tests/nib-v4-*'\n      # Canonical recovery and its shared semantic owner consume Prompt work.\n      - 'extension/core/browser-native-sync/**'\n      - 'extension/core/ai-usage/delta.js'\n      - '.github/workflows/paia-prompt-reuse.yml'"
+    },
+    {
+      "path": ".github/workflows/paia-prompt-visual.yml",
+      "events": "on:\n  workflow_dispatch:\n    inputs:\n      runtime_ref:\n        description: Runtime Git ref to capture\n        default: main\n        required: true\n        type: string\n      visual_states:\n        description: Comma-separated frozen states (empty captures all eight)\n        default: ''\n        type: string\n  pull_request:\n    paths:\n      - 'extension/content/prompt-surface.js'\n      - 'extension/core/prompt-surface-layout.js'\n      - 'extension/ui/prompt-surface.*'\n      - 'extension/scripts/*prompt*convergence.mjs'\n      - '.github/workflows/paia-prompt-visual.yml'\n  push:\n    branches: ['evidence/prompt-reuse-visual-*']\n    paths: ['extension/scripts/capture-prompt-visual.mjs', 'extension/content/prompt-surface.js', 'extension/ui/prompt-surface.*', '.github/workflows/paia-prompt-visual.yml']"
+    },
+    {
+      "path": ".github/workflows/paia-raw-original-development.yml",
+      "events": "on:\n  push:\n    branches: ['evidence/raw-original-20261018']\n    paths:\n      - '.github/workflows/paia-raw-original-development.yml'\n      - 'extension/tests/harness/raw-generation-observer.mjs'\n      - 'extension/tests/harness/raw-source-navigation.mjs'\n      - 'extension/tests/ux-r2-reader-revisit-chrome-e2e.test.mjs'\n  workflow_dispatch:"
+    },
+    {
+      "path": ".github/workflows/paia-service-path-development.yml",
+      "events": "on:\n  push:\n    branches: ['evidence/service-paths-20261018']\n    paths:\n      - 'extension/core/**'\n      - 'extension/background/**'\n      - 'extension/content/**'\n      - 'extension/ui/**'\n      - 'extension/tests/**'\n      - 'services/ai-gateway/tests/**'\n      - '.github/workflows/paia-service-path-development.yml'\n  workflow_dispatch:"
+    },
+    {
+      "path": ".github/workflows/paia-ui-refresh-development.yml",
+      "events": "on:\n  pull_request:\n    types: [opened, synchronize, reopened]\n    paths:\n      - 'extension/ui/**'\n      - 'extension/tests/**'\n      - 'extension/scripts/**'\n      - 'extension/package.json'\n      - 'extension/package-lock.json'\n      - '.github/workflows/paia-ui-refresh-development.yml'\n      - '.github/workflows/paia-certification.yml'"
+    },
+    {
+      "path": ".github/workflows/paia-vs02-profile.yml",
+      "events": "on:\n  pull_request:\n    types: [synchronize, ready_for_review]\n    paths:\n      - 'extension/ui/archive.js'\n      - 'extension/tests/cpv1-02-6-scale-benchmark.mjs'\n      - 'extension/core/archive-query.js'\n      - '.github/workflows/paia-vs02-profile.yml'"
+    },
+    {
+      "path": ".github/workflows/paia-vs03-backup-scale.yml",
+      "events": "on:\n  pull_request:\n    types: [synchronize]\n    paths:\n      - 'extension/tests/cpv1-03-6-backup-scale-benchmark.mjs'\n      - 'extension/tests/fixtures/scale-v092.mjs'\n      - 'extension/core/backup-service.js'\n      - 'extension/core/backup-format.js'\n      - '.github/workflows/paia-vs03-backup-scale.yml'"
+    },
+    {
+      "path": ".github/workflows/paia-website.yml",
+      "events": "on:\n  pull_request:\n    paths: ['*.html', 'en/**', 'zh/**', 'assets/website/**', 'website/**', 'sitemap.xml', 'robots.txt', 'CNAME', '.github/workflows/paia-website.yml']\n  push:\n    branches: [main]\n    paths: ['*.html', 'en/**', 'zh/**', 'assets/website/**', 'website/**', 'sitemap.xml', 'robots.txt', 'CNAME', '.github/workflows/paia-website.yml']\n  workflow_dispatch:\n    inputs:\n      verify_live:\n        description: 'Read-only exact-byte and browser verification of inputarchive.com'\n        type: boolean\n        default: false"
+    }
+  ]
+}
