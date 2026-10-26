@@ -13,7 +13,7 @@ export async function prepareScene(scene,{owners,fixture}){
    else actions.push(click('.thought-compose-cancel',{dialog:{type:'confirm',messageIncludes:'文字尚未保存',accept:true}}),wait('.thought-compose-workspace','hidden'),state(['created','length'],0));
    return {handled:true,actions,readySelector:'.personal-topic-link[data-topic-id="visual-topic-1"]',evidence:{owner:'actual TopicActions compose/save/cancel',writes:id==='thought-write-save'?'one isolated synthetic Thought only':'none',nativeConfirm:id==='thought-write-cancel'}};
   }
-  actions.push(click(section),wait('#topic-body .entry-prose'));
+  actions.push(click(section),wait('#topic-body [data-entry-id="visual-entry-1"] [data-entry-field="body"]'));
   if(id==='thought-history-dark')actions.push(click('.dvn-topic-options > summary'),wait('.dvn-topic-options[open] #revision-history'));
   if(id==='thought-back-restore')actions.push(click('#back'),wait(section),state(['created','length'],0));
   if(id==='thought-dirty-section-cancel')actions.push(wait('.thought-inline-draft'),{action:'fill',selector:'.thought-inline-draft',value:fixture.inputs[0].text},{action:'select',selector:'.topic-section-select',value:'visual-section-1-2'},assert('.topic-section-select','value','visual-section-1-1'),assert('.thought-inline-draft','text',fixture.inputs[0].text),state(['created','length'],0),wait('.thought-inline-retry:not([hidden])'));
@@ -40,9 +40,9 @@ export async function prepareScene(scene,{owners,fixture}){
   const card=id.startsWith('context-selected')||id==='context-retained-dark'?'inputs':id==='context-info-save'?'info':id==='context-rules-undo'?'rules':'now';
   await owners.navigate('memory',null,null,{contextCard:card});await owners.contextCards.open(card);
   if(card==='inputs'){
-   actions.push(wait('.context-topic-row'),{action:'assertCount',selector:'.topic-access[aria-pressed="true"]',value:2});
+   actions.push(wait('.context-topic-open[data-topic-id="visual-topic-1"]'),{action:'assertCount',selector:'.topic-access[aria-pressed="true"]',value:2});
    // The two retained choices are fixture state, not authorization actions.
-   return {handled:true,actions,readySelector:'.context-topic-row',evidence:{owner:'actual ContextTopicInputs',syntheticSelectedCount:2,externalAllowed:false,choiceWrites:0,retainedPaused:id==='context-retained-dark'}};
+   return {handled:true,actions,readySelector:'.context-topic-open[data-topic-id="visual-topic-1"]',evidence:{owner:'actual ContextTopicInputs',syntheticSelectedCount:2,externalAllowed:false,choiceWrites:0,retainedPaused:id==='context-retained-dark'}};
   }
   const row='.context-item[data-item="visual-context-'+card+'"]',field=row+' .item-text';
   actions.push(wait(field),{action:'fill',selector:field,value:fixture.inputs[5].text},{action:'press',selector:field,key:'Control+Enter'});
