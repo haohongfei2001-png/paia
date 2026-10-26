@@ -1,0 +1,23 @@
+{
+  "id": "PAIA-FLOAT-UI-1.2-R1",
+  "status": "independent-design-refinement-candidate",
+  "base_main": "34f5188d52ada449b99ac88fb6451db8dabcea6f",
+  "base_tree": "38e391eef5971d7b41872a76c1ff13976ced20f2",
+  "reference_png_sha256": "dec1e0d19d373a0a6ae4219514bf9dc183f5ebe84773c8b7512f5ff96aa69c0e",
+  "circle": {"width":48,"height":48,"hit_target":48,"border":1,"fixed_across_states":true},
+  "cards": {
+    "count":2,"width":21,"height":14,"aspect_ratio":1.5,"radius":3.25,
+    "front_x":14.75,"front_y":17,"front_fixed":true,"rotation":0,
+    "rear_offsets": {"collapsed":[-2.5,0],"capsule":[-5,0],"board":[-5.25,-1.5]},
+    "horizontal_overlap_percent": {"collapsed":88.095238,"capsule":76.190476,"board":75},
+    "rear_stroke_width":0.7,"rear_stroke_opacity":0.26,"front_stroke_width":0.8
+  },
+  "capsule": {"total_width":272,"circle_height":48,"pill_height":44,"pill_body_width":216,"pill_right_from_anchor_root":54,"pill_text_padding":16,"neck_interactive":false,"preserve_selected_neck":true},
+  "board": {"width":336,"height":312,"radius":18,"right_from_48px_anchor_root":34,"bottom_from_48px_anchor_root":34,"join":"shallow optical overlap, complete circle above panel","header_content_height":43,"row_height":44,"default_visible_rows":6,"list_padding_inline":12,"row_text_padding_inline":4,"body_safe_from_circle":true},
+  "anchor_layout": {"composer_gap":12,"desktop_right_inset":4,"small_host_max_width":530,"small_host_right_inset":0,"safe_top_within_host":72,"minimum_list_board_height":92,"minimum_editor_board_height":168},
+  "typography": {"expression":14,"header_label":12,"line_height":1.55,"system_fonts_only":true},
+  "light": {"surface":"#ffffff","text":"#292b31","muted":"#6d7480","border":"#dce0e7","rule":"#edf0f3","hover":"#f3f5f8","pressed":"#e9edf3","inserted":"#eef2f8","focus":"#657999","rear_colors":["#93a2be","#8192b1"],"rear_opacities":[0.27,0.37],"front_colors":["#899bb9","#667c9f"],"front_opacities":[0.36,0.55],"edge_colors":["#ffffff","#7185a6"],"edge_opacities":[0.92,0.30]},
+  "dark": {"surface":"#2b2c30","text":"#e9ebf0","muted":"#a5aab4","border":"#454850","rule":"#3b3d43","hover":"#363940","pressed":"#41454e","inserted":"#384354","focus":"#a4b8d8","rear_colors":["#c1cee5","#a0b3d2"],"rear_opacities":[0.28,0.36],"front_colors":["#d4dff2","#9eb4d6"],"front_opacities":[0.57,0.72],"edge_colors":["#e8efff","#a9bddc"],"edge_opacities":[0.57,0.32]},
+  "motion": {"rear_transition_ms":120,"board_open_ms":120,"board_close_ms":80,"inserted_feedback_ms":480,"tooltip_delay_ms":650,"ease":"cubic-bezier(.2,.7,.2,1)","anchor_translation":0,"front_translation":0,"reduced_motion_ms":0},
+  "integration": {"production_runtime_changed":false,"canonical_plans_changed":false,"host_mock_or_data_adapter_may_ship":false,"native_undo_verified":false,"live_chatgpt_verified":false}
+}
