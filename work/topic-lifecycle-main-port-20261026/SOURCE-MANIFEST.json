@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "scope": "CPV1-TOPIC-02/PT-08 original explicit lifecycle consumer convergence",
+  "baseCommit": "3b7e25d520de6e642e7c13521c268e7ef7f21af6",
+  "baseTree": "398e501f29438a203a2785ac838cfc9befbeafab",
+  "testedCommit": "2a13b1f4a3fa77809326cfed07a96524d9e168ce",
+  "testedTree": "ad61b4c8b3b5a236b1a7ca62d5dc9b9be31afc0b",
+  "testedVersion": "0.55.16",
+  "metadataSuccessorVersion": "0.55.17",
+  "runtimeAndControlPathCount": 15,
+  "files": [
+    {
+      "path": "extension/core/ai-usage/local-maintenance-session.js",
+      "gitBlob": "53182ce8ed1791bb55235498f66be8039d0fdd58",
+      "sha256": "da16849c473afd2a16dc5cb2977b6bc106317e9dfaa78afdf7b3e98449f44104",
+      "bytes": 222110,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/ai-usage/topic-identity-source-processing.js",
+      "gitBlob": "f9d958562df416a825583320cfd5a245d4d08e0e",
+      "sha256": "b7f4ae780a28747a2f3fe9a9e1134fd322190d1117c64424435d0a7f7c26ec19",
+      "bytes": 15243,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/ia-store.js",
+      "gitBlob": "27405ffd30ed77cab95fa5fc64cc66cd8a4d22c4",
+      "sha256": "86c50b10d766d5599383b9369d1678e8f3c7a51aae3c0b47f48522a5dbc724bd",
+      "bytes": 28602,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/library-documents-owner.js",
+      "gitBlob": "1a425f7e2f7e8b1a15e071346f8c060ff0d1f807",
+      "sha256": "943a111d4ac90c5cc6465bc3fcfc1b63b7a36f0f8d22b2f4a1e2c2911ef2bf4e",
+      "bytes": 23403,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/thought-journal.js",
+      "gitBlob": "9f4d1d15c0dae2a279ec125b2462cb45b95fd330",
+      "sha256": "628f18da5b1085a1c97c8ae6fd761ab87f30b004e36abd322a037565acc933a4",
+      "bytes": 4620,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/thought-read-index.js",
+      "gitBlob": "23582dcd3e5ac584d356b85dcec0385887cc64d3",
+      "sha256": "e2cbf09201b20594729fb8e38ce70e53724887d0eca2dd480864bf5eec4c26fe",
+      "bytes": 29236,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/thought-store.js",
+      "gitBlob": "70d0ba198d5342a559990d1faeeaa2f565db16f4",
+      "sha256": "061e894e0e842cba7b83bc31b3f1312d15c337163723f15d7e2949d5d9e45b0d",
+      "bytes": 38486,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/topic-lifecycle-activity.js",
+      "gitBlob": "c24ca8dc55c8e8bfd8e13f929ba50b301e578f54",
+      "sha256": "8367e08ac036a1a7804f4c44164d60a48b98df59f381bc2e61d66875e8522f24",
+      "bytes": 8794,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/topic-lifecycle-consumer.js",
+      "gitBlob": "2a2422884dec55445359c7e2ccf7d5dd606192ec",
+      "sha256": "1e8e88cec618d138b4774e2e5da22bc800239a61055cd9eb43b3ab2e55bc7d65",
+      "bytes": 2570,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/topic-lifecycle-dispatch.js",
+      "gitBlob": "128b22a293b0eba1bcc3216458f038fcef05da6a",
+      "sha256": "70f6767791f9d416ddc32b25f255f14ab8d2d7e6c566b40a99805bceed1541ca",
+      "bytes": 3313,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/topic-lifecycle-entry-metadata.js",
+      "gitBlob": "07f2e82fee112212ececb841a3e528441f729806",
+      "sha256": "3447a04fababd994f3dda18ea3c58a0251c99287185d88f3f5f1f9eca5146864",
+      "bytes": 887,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/topic-lifecycle-policy.js",
+      "gitBlob": "4c2487f02e5b90b2d5e64da9e73ee16eb6e7fd45",
+      "sha256": "940ec59807ef5391ba9d501df701b5debb6b8cc5509f54b32ff1765b7fd6155f",
+      "bytes": 1383,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/topic-lifecycle.js",
+      "gitBlob": "9c8c81ee7c9ac5dc15f8e1c520b5903dd71022b8",
+      "sha256": "69c20dc1f802d68aabc7f733c1cc06d57d3067305d5f9352c86a076c0664ad12",
+      "bytes": 5141,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/core/topic-processing.js",
+      "gitBlob": "206723bcbed22fd5e56e0312ef060a223719df48",
+      "sha256": "342eec1a567e17371a8e8e4e95513cb937d604102cc724a6b465dc4ce2434156",
+      "bytes": 13937,
+      "kind": "runtime"
+    },
+    {
+      "path": "extension/tests/topic-lifecycle-main-ticket-binding.test.mjs",
+      "gitBlob": "bfa8dcffa97c68ea1b3afc88b5063ac603f9c884",
+      "sha256": "16b02e8617913c0406faf224ca10cf95cdf537d337daf886ade353e630942428",
+      "bytes": 10536,
+      "kind": "new-targeted-control"
+    }
+  ],
+  "execution": {
+    "command": "node --test extension/tests/topic-lifecycle-main-ticket-binding.test.mjs",
+    "attempts": 1,
+    "tests": 3,
+    "passed": 3,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 1524.276381,
+    "rawOutputFile": "first-new-main-binding.tap",
+    "rawOutputFormat": "Node default spec reporter; preserved verbatim, not regenerated as TAP",
+    "sha256": "cb96c1308567654ca76dfa59dbe45b08729ac6a9659b019417e3250ab7dee99e"
+  },
+  "metadataSuccessor": {
+    "allowedExtensionChanges": [
+      "extension/manifest.json",
+      "extension/package.json"
+    ],
+    "runtimeAndControlBytes": "unchanged from testedCommit; verified by exact Git diff and SHA256"
+  }
+}

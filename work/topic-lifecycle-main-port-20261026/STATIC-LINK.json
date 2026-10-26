@@ -1,0 +1,24 @@
+{
+  "mode": "parse-and-link-only; no evaluate()",
+  "roots": [
+    "extension/core/ai-usage/local-maintenance-session.js",
+    "extension/core/ai-usage/topic-identity-source-processing.js",
+    "extension/core/topic-lifecycle-dispatch.js",
+    "extension/core/library-documents-owner.js"
+  ],
+  "modules": 252,
+  "status": "linked",
+  "version": 1,
+  "sourceCommit": "2a13b1f4a3fa77809326cfed07a96524d9e168ce",
+  "mechanism": "Node vm.SourceTextModule parse and link only; evaluate() was never called",
+  "executionEvidence": false,
+  "notQualified": [
+    "native IndexedDB",
+    "Chrome/browser",
+    "provider/service",
+    "semantic population quality",
+    "Full CI",
+    "main integration",
+    "installation/deployment"
+  ]
+}

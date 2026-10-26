@@ -1,0 +1,14 @@
+{"control":"same-ticket","transactions":69,"prepareTransactions":51,"physicalProviders":0,"lifecycleReceipts":1}
+✔ PT08 main binding: cold original source preparation and lifecycle share one ticket through final receipt (567.207665ms)
+{"control":"consumed-original-allowance","dispatchAttempts":1,"physicalProviders":0,"mutation":false}
+✔ PT08 main binding: original consumed allowance refuses dispatch without minting a replacement ticket (117.280279ms)
+{"control":"ordinary-isolation","ordinaryTicket":null,"competingDispatcher":"REQUEST_ALREADY_IN_FLIGHT","originalResult":"settled","physicalProviders":0}
+✔ PT08 main binding: unrelated ordinary Store read and competing dispatcher cannot adopt or poison active lifecycle ticket (417.521839ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1524.276381

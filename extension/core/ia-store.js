@@ -78,10 +78,18 @@ export class IAStore extends IndexedArchiveStore {
   const plan=this.inputWorkingJournal?.revisionPlan(t,data)??await planInputRevision(t,data,{now:this.clock(),uuid:()=>this.uuid()});
   if(plan.sequence)await t.put('meta',plan.sequence);await t.put('revisions',plan.row);if(plan.prune)await this.pruneEntity(t,plan.row.entityKey);return plan.row.id;
  }
- async pruneEntity(t,key){
+ async pruneEntity(t,key,{bounded=false}={}){
   // Per-entity traversal, newest first; preserve ALL younger entries OR latest 20 important.
   const workingTime=this.inputWorkingJournal?.pruneTime(t)??null,humanTime=this.humanLibraryJournal?.pruneTime(t)??humanPruneTime(this,t);if(workingTime!==null&&humanTime!==null)throw new ArchiveError('BNS_HISTORY_OWNER_CONFLICT');
   const tx=t.tx.objectStore('revisions'),range=prefix([key]),cutoff=Date.parse(humanTime??workingTime??this.clock())-REVISION_POLICY.days*86400000;let important=0;
+  if(bounded){
+   // Explicit bounded lifecycle path: the same newest-first retention rule,
+   // using original Repository reads/deletes so its private work limit meters
+   // each physical row and operand. No history is exposed to the evaluator.
+   let after=null;do{const page=await t.rangePage('revisions','byList',range,after,100,'prev');
+    for(const {value:row}of page.rows){if(row.important)important++;if(revisionShouldPrune(row,cutoff,important))await t.delete('revisions',row.id);}after=page.next;
+   }while(after);return;
+  }
   await new Promise((resolve,reject)=>{const r=tx.index('byList').openCursor(range,'prev');r.onerror=()=>reject(new ArchiveError('STORAGE_FAILED'));r.onsuccess=()=>{const c=r.result;if(!c){resolve();return;}const row=c.value;if(row.important)important++;if(revisionShouldPrune(row,cutoff,important))c.delete();c.continue();};});
  }
  pruneRevisions(){if(this.humanLibraryJournal)return Promise.reject(new ArchiveError('BNS_HUMAN_HISTORY_RETIREMENT_UNAVAILABLE'));if(this.inputWorkingJournal)return Promise.reject(new ArchiveError('BNS_WORKING_HISTORY_RETIREMENT_UNAVAILABLE'));return this.run(async()=>{let cursor;do{cursor=await this.repository.transaction(true,async t=>{const page=await t.page('revisions',{after:cursor,limit:50});for(const key of new Set(page.rows.map(r=>r.value.entityKey)))await this.pruneEntity(t,key);return page.next??undefined;});}while(cursor);return {ok:true};});}

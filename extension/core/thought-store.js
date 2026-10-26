@@ -82,11 +82,11 @@ export class LibraryFoundationStore extends SmartFilterStore {
  async processPurgeCleanup(options={}) {await this.finishFoundation();return purgeBatch(this,options.limit??100);}
  async drainInvalidations() {let batches=0;for(;;){const r=await this.processInvalidations();if(!r.pending)return {batches};batches++;await this.repository.checkpoint('thought-invalidation-batch');}}
  async drainPurgeCleanup() {let batches=0;for(;;){const r=await this.processPurgeCleanup();if(!r.pending)return {batches};batches++;await this.repository.checkpoint('thought-purge-batch');}}
- async operation(request,fn) {
+ async operation(request,fn,{recoveryWork=null}={}) {
   if(this.humanLibraryJournal)throw new ArchiveError('BNS_HUMAN_UNSUPPORTED_MUTATION');
   if(!idOK(request?.operationId)||request.operationId.length<8)fail();
   const digest=await hashText(JSON.stringify(request));
-  return this.foundationWrite(t=>this.operationInTransaction(t,request,digest,fn));
+  return this.foundationWrite(t=>this.operationInTransaction(t,request,digest,fn),{recoveryWork});
  }
  async operationInTransaction(t,request,digest,fn){try{if(request.expectedRecoveryEpoch!==undefined&&((await t.get('meta','recovery-restore-epoch'))?.value??'initial')!==request.expectedRecoveryEpoch)throw new ArchiveError('BACKUP_CHANGED');await beginHumanOperation(this,t,request);const prior=await receipt(t,request,digest);if(prior)return prior;const result=await fn(t);if(!result.conflict)await saveReceipt(this,t,request,digest,result);await finishHumanOperation(this,t,request,result);return result;}catch(error){throw humanOperationError(request,error);}finally{releaseHumanOperation(t,request);}
  }

@@ -1,11 +1,17 @@
 import {bindMaintenanceProcessingRawDenials,assertMaintenanceProcessingRawDenialFacts} from './maintenance-processing-denial.js';
-import {readMaintenanceTopicIdentityPermit} from './local-maintenance-session.js';
+import {captureMaintenanceIdentityLifecycleSelection,readMaintenanceTopicIdentityPermit} from './local-maintenance-session.js';
 import {prefix} from '../thought-model.js';
 import {ArchiveError} from '../constants.js';
+import {TopicLifecycleDispatch} from '../topic-lifecycle-dispatch.js';
 import {contextScopeTransactionReader,assertContextScopeWorkBudgetFacts,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
 import {requireRepositoryTransactionScope,registerRepositoryFinalReadFence} from '../idb-repository.js';
 import {canonical,equal,fail,opaque} from './contracts.js';
 
+// An explicit, dormant candidate, not a scheduler or installed grant/default.
+export const TOPIC_IDENTITY_LIFECYCLE_POLICY=Object.freeze({version:'personal-topic-activity-v1',inactivityMs:90*24*60*60*1000,maxTopics:16});
+export function createTopicIdentityLifecycleDispatch(session,store,handle,{previousObservedAt=null}={}){
+ return new TopicLifecycleDispatch(store,captureMaintenanceIdentityLifecycleSelection(session,store,handle),{policy:TOPIC_IDENTITY_LIFECYCLE_POLICY,previousObservedAt});
+}
 const issuers=new WeakMap(),receipts=new WeakMap(),grantRequests=new WeakMap(),workStops=new WeakMap(),aborted=Object.getOwnPropertyDescriptor(AbortSignal.prototype,'aborted').get;
 const abort=AbortController.prototype.abort,add=EventTarget.prototype.addEventListener,remove=EventTarget.prototype.removeEventListener;
 const wall=Date.now.bind(Date),mono=performance.now.bind(performance),need=value=>{if(!value)fail('UNAVAILABLE');};

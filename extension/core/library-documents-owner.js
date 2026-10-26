@@ -1,3 +1,4 @@
+import {withOriginalRecoveryStoreAdmission} from './indexed-store.js';
 import {ArchiveError} from './constants.js';
 import {humanClock,humanPreparedGeneration} from './browser-native-sync/human-library-allocation.js';
 import {removedPlacements,restoreRemovedPlacement} from './removed-placements.js';
@@ -45,10 +46,10 @@ export function originalLibraryDocumentsConstructor(){
  if(originalConstructor)return originalConstructor;
  originalConstructor=class LibraryDocumentsStore extends LibraryFoundationStore {
  constructor(local,options={}){super(local,options);originalLibraryDocumentsStores.add(this);this.libraryDocumentMode=true;this.compatibilityStatus=null;}
- async finishFoundation(){
-  await super.finishFoundation();if(this.documentsLoaded)return;
+ async finishFoundation({recoveryWork=null}={}){
+  await super.finishFoundation({recoveryWork});if(this.documentsLoaded)return;
   for(;;){
-   const marker=await this.run(()=>this.repository.transaction(true,async t=>{
+   const enqueue=()=>this.run(()=>this.repository.transaction(true,async t=>{
     const row=await t.get('meta','library-documents-compat-v2')||{id:'library-documents-compat-v2',cursor:null,complete:false,activeTopics:0,repairedTopics:0,repairedIndexTopics:0,repairedGenerationTopics:0,repairedDefaultSections:0,unresolvedLayouts:0,indexedActiveTopics:0,indexGap:0};
     if(row.complete)return row;
     const page=await t.page('topics',{after:row.cursor??undefined,limit:100});
@@ -65,6 +66,7 @@ export function originalLibraryDocumentsConstructor(){
     if(row.complete){row.indexedActiveTopics=await t.count('topics','byIndex',prefix([0]));row.indexGap=Math.max(0,row.activeTopics-row.indexedActiveTopics);row.completedAt=this.clock();}
     await t.put('meta',row);return row;
    }));
+   const marker=await (recoveryWork===null?enqueue():withOriginalRecoveryStoreAdmission(this,recoveryWork,enqueue));
    if(marker.complete){this.compatibilityStatus=marker;this.documentsLoaded=true;return;}
    await this.repository.checkpoint('library-documents-compat-v2-batch');
   }
@@ -73,7 +75,7 @@ export function originalLibraryDocumentsConstructor(){
  async libraryStatus(){const base=await super.libraryStatus();return {...base,compatibility:await this.libraryCompatibilityStatus()};}
  async librarySafetyChange(t,row,priorFields){if(row.storageSchema!==2||row.lifecycle==='quarantined')return;if(priorFields){let contentChanged=false;for(const [field,before]of Object.entries(priorFields)){if(before!==row[field==='body'?'thoughtText':field]){row.fieldRevisions[field]++;if(field==='body')row.meaningfulContentAt=this.clock();if(field!=='note')contentChanged=true;}}if(contentChanged)row.contentRevision++;}row.searchSafetyVersion=(row.searchSafetyVersion||0)+1;await queueSearch(t,'entry',row);}
  async libraryMaintenanceWrite(fn){await this.finishFoundation();return this.run(()=>this.repository.transaction(true,fn));}
- async operation(request,fn){return super.operation(request,t=>this.libraryOperationInTransaction(t,request,fn));}
+ async operation(request,fn,options){return super.operation(request,t=>this.libraryOperationInTransaction(t,request,fn),options);}
  async libraryOperationInTransaction(t,request,fn){
   // Layout jobs lock organization only; Entry fields remain editable.
   for(const id of [request.topicId,...(request.changes?.name!==undefined||request.name!==undefined?[request.id]:[])].filter(Boolean)){const topic=await t.get('topics',id);if(topic?.layoutJobId&&!request.layoutInternal)return {conflict:true,organizationBusy:true};}
