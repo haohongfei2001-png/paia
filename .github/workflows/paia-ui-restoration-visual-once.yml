@@ -1,5 +1,5 @@
-name: PAIA UI Restoration Gap States Visual
-run-name: UI gap states visual ${{ github.sha }}
+name: PAIA UI Restoration Remaining Gap States Visual
+run-name: UI remaining gap states visual ${{ github.sha }}
 on: create
 permissions:
   contents: read
@@ -8,14 +8,14 @@ concurrency:
   cancel-in-progress: false
 jobs:
   visual:
-    if: github.event_name == 'create' && github.event.ref_type == 'branch' && github.event.ref == 'evidence/ui-gap-corrected-20261026' && github.run_attempt == 1
+    if: github.event_name == 'create' && github.event.ref_type == 'branch' && github.event.ref == 'evidence/ui-gap-remaining-20261026' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       CI: '1'
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
       PAIA_VISUAL_SOURCE_SHA: ${{ github.sha }}
-      PAIA_VISUAL_SCOPE: ui-gap-visual-20261026
+      PAIA_VISUAL_SCOPE: ui-gap-remaining-20261026
     steps:
       - uses: actions/checkout@v4
         with:

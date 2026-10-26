@@ -18,7 +18,7 @@ function requireThat(ok,message){if(!ok)throw Error(message);}
 requireThat(arg('--source')&&expected,'Required: --source <frozen worktree> --sha <exact HEAD>');
 requireThat(git('rev-parse','HEAD')===expected,'Source HEAD does not equal the approved frozen SHA');
 requireThat(!git('status','--porcelain','--','extension/ui','extension/content','extension/core','extension/background','extension/adapter','extension/icons','extension/manifest.json'),'Runtime source is dirty; freeze before launch');
-requireThat(plan.scenes.length===24&&new Set(plan.scenes.map(s=>s.id)).size===24&&plan.authorization.maxCapturesPerRound===24&&plan.authorization.maxJobMinutesIncludingSetup===10,'Manifest must contain exactly24 unique scenes within the ten-minute job');
+requireThat(plan.scenes.length===15&&new Set(plan.scenes.map(s=>s.id)).size===15&&plan.authorization.maxCapturesPerRound===15&&plan.authorization.maxJobMinutesIncludingSetup===10,'Manifest must contain exactly15 unique scenes within the ten-minute job');
 for(const file of ['prompt-frame.mjs','browser/bootstrap.mjs','browser/archive-thought.mjs','browser/prompt.mjs','browser/chrome-shim.js','browser/settings-gap.mjs','browser/gap-state.mjs','browser/gap-scenes.mjs']){
  await stat(join(home,file));execFileSync(process.execPath,['--check',join(home,file)],{stdio:'pipe'});
 }
@@ -34,7 +34,7 @@ let executablePath=process.env.CHROME_PATH;
 if(!executablePath)for(const candidate of [chromium.executablePath(),'/usr/bin/chromium','/usr/bin/chromium-browser']){try{await stat(candidate);executablePath=candidate;break;}catch{}}
 requireThat(executablePath,'No already installed Chromium executable; no installation allowed');await stat(executablePath);
 binding.environment={playwrightModule,executablePath,node:process.version};
-if(args.includes('--preflight')){console.log(JSON.stringify({status:'SOURCE_PREFLIGHT_ONLY',head:expected,scenes:24,sourceFiles:tracked.length,playwrightModule,executablePath,browserLaunched:false}));process.exit(0);}
+if(args.includes('--preflight')){console.log(JSON.stringify({status:'SOURCE_PREFLIGHT_ONLY',head:expected,scenes:15,sourceFiles:tracked.length,playwrightModule,executablePath,browserLaunched:false}));process.exit(0);}
 requireThat(round===1,'This separately approved cloud job has exactly one attempt; no round2 or retry');
 requireThat(args.includes('--execute-approved'),'Execution requires explicit --execute-approved from the coordinating parent');
 await mkdir(output,{recursive:true});
@@ -143,8 +143,10 @@ try{
    else if(action.action==='observe'){
     requireThat(scene.id==='nib-keyboard-ime-dirty-dark','OBSERVATION_SCOPE');activeObservations.push({label:action.label,geometry:await readPromptGeometry(page,base)});
    }else throw Error('Unsupported trusted action');
+   const actionFatal=await page.evaluate(()=>globalThis.__paiaVisualFatal||null);requireThat(!actionFatal,actionFatal);
   }
 
+  const sceneFatal=await page.evaluate(()=>globalThis.__paiaVisualFatal||null);requireThat(!sceneFatal,sceneFatal);
   activeAction={action:'ready',selector:result.result.readySelector};
   if(result.result.readySelector){const spec=typeof result.result.readySelector==='string'?{selector:result.result.readySelector}:result.result.readySelector;await (await target(spec)).first().waitFor({state:'visible'});}
   await page.mouse.move(0,0);
@@ -158,11 +160,13 @@ try{
   requireThat(bounds&&bounds.topics<=8&&bounds.sections.every(n=>n<=2)&&bounds.inputs<=12&&bounds.entries<=12&&bounds.contextItems<=3&&evidence.gapState.drafts.length<=4,'FINAL_SYNTHETIC_DATA_BOUND');
   requireThat(evidence.gapState.providerCalls===0&&evidence.gapState.realAccounts===0&&evidence.gapState.externalAllowed===false,'FINAL_NO_EXTERNAL_AUTHORITY');
   if(scene.group==='prompt'){
-   requireThat(!(evidence.rpc||[]).some(r=>['close','PAIA_PROMPT_SELECTION_INSERT','PAIA_PROMPT_CREATE','PAIA_PROMPT_EDIT'].includes(r.command)),'UNEXPECTED_PROMPT_WRITE_OR_CLOSE');
+   requireThat(!(evidence.rpc||[]).some(r=>['close','PAIA_PROMPT_CREATE','PAIA_PROMPT_EDIT'].includes(r.command)),'UNEXPECTED_PROMPT_WRITE_OR_CLOSE');
+   const insertRequests=(evidence.rpc||[]).filter(r=>r.command==='PAIA_PROMPT_SELECTION_INSERT'),expectsRefusal=['nib-long-notice','nib-long-notice-narrow','nib-copy-failure'].includes(scene.id);
+   requireThat(expectsRefusal?insertRequests.length===1&&insertRequests[0].handled===true&&insertRequests[0].expectedFailure==='UNAVAILABLE'&&insertRequests[0].boundary==='synthetic_no_receiver':insertRequests.length===0,'INSERT_MUST_BE_REFUSED_WITHOUT_RECEIVER');
    if(scene.id==='nib-copy-failure')requireThat(evidence.promptGeometry.clipboardDenied?.attempted===true,'CLIPBOARD_REFUSAL_NOT_REACHED');
    if(scene.id==='nib-keyboard-ime-dirty-dark')requireThat(evidence.promptGeometry.editor.visible&&evidence.promptGeometry.editor.text?.startsWith('合成输入 01')&&evidence.promptGeometry.inputEvents.some(e=>e.type==='compositionstart'&&e.trusted)&&evidence.promptGeometry.inputEvents.some(e=>e.type==='keydown'&&e.key==='Escape'&&e.trusted),'NATIVE_COMPOSITION_OR_DIRTY_GUARD_NOT_OBSERVED');
   }
-  requireThat(!evidence.fatal,evidence.fatal);requireThat(record.captures.length<24,'Capture ceiling exceeded');const filename=scene.id+'.png';await page.screenshot({path:join(directory,filename),animations:'disabled'});
+  requireThat(!evidence.fatal,evidence.fatal);requireThat(record.captures.length<15,'Capture ceiling exceeded');const filename=scene.id+'.png';await page.screenshot({path:join(directory,filename),animations:'disabled'});
   record.captures.push({scene,...evidence,requests,file:filename,sha256:hash(await readFile(join(directory,filename))),status:'CAPTURED_NOT_VISUALLY_ACCEPTED'});record.notRun=record.notRun.filter(id=>id!==scene.id);await save();console.log(JSON.stringify({event:'CAPTURED',round,scene:scene.id,file:join(directory,filename),count:record.captures.length,status:'CAPTURED_NOT_VISUALLY_ACCEPTED'}));await context.close();activePage=null;activeScene=null;activeAction=null;
  }
  record.status='CAPTURE_COMPLETE_PENDING_PIXEL_REVIEW';

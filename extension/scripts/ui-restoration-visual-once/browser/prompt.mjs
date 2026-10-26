@@ -42,12 +42,17 @@ export async function fixtureRPC(message,{scene,fixture}){
    const result=await emitHost({type:'PAIA_PROMPT_SURFACE_FORM',nonce:message.nonce,form:command.form});return handled(result);
   }
   case 'close':if(longNoticeScenes.has(scene.id)||scene.id==='nib-keyboard-ime-dirty-dark')throw Error('PROMPT_GAP_UNEXPECTED_CLOSE');return handled(await emitHost({type:'PAIA_PROMPT_SURFACE_CLOSE',nonce:message.nonce}));
-  case 'PAIA_PROMPT_SELECTION_READ':{
-   // Exercise the original pre-insertion refusal. No insertion capability,
-   // action token, receiver write or fabricated status text is supplied.
-   const ref=command.ref;
-   if(!longNoticeScenes.has(scene.id)||command.prepareInsertion!==true||command.range!==null||ref?.kind!=='manual_reuse'||ref.id!==current.items[0].id||ref.revision!==1||ref.generation!==1)throw Error('PROMPT_VISUAL_SELECTION_READ_NOT_ALLOWLISTED');
-   return {handled:true,expectedFailure:{error:'PROMPT_PAGE_REFRESH_REQUIRED'}};
+  case 'PAIA_PROMPT_SELECTION_INSERT':{
+   // The real UI sends INSERT directly. This isolated boundary only REFUSES
+   // that request: no receiver, action token, insertion implementation or ACK.
+   const ref=command.ref,keys=Object.keys(command);
+   if(!longNoticeScenes.has(scene.id)||command.range!==null||command.target!==null||
+      ref?.kind!=='manual_reuse'||ref.id!==current.items[0].id||ref.revision!==1||ref.generation!==1||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(command.operationId||'')||
+      keys.some(key=>!['type','ref','range','target','operationId'].includes(key))||current.insertionRefusals)
+    throw Error('PROMPT_VISUAL_INSERT_REFUSAL_NOT_ALLOWLISTED');
+   current.insertionRefusals=1;
+   return {handled:true,expectedFailure:{error:'UNAVAILABLE',boundary:'synthetic_no_receiver'}};
   }
   case 'PAIA_PROMPT_COPY_TEXT':{
    const item=current.items[0];
@@ -97,6 +102,6 @@ export async function prepareScene(scene,{fixture}){
  if(longNotice)actions.push({frameURL,selector:'#list .row:first-child .insert',action:'click'},{frameURL,selector:'#status button[aria-label="复制"]:not(:disabled)',action:'wait'});
  if(scene.id==='nib-copy-failure')actions.push({frameURL,selector:'#status button[aria-label="复制"]',action:'click'});
  if(imeDirty)actions.push({frameURL,selector:'#surface-more',action:'click'},{frameURL,selector:'#surface-tools:not([hidden])',action:'wait'},{frameURL,selector:'#new',action:'click'},{frameURL,selector:'#editor textarea',action:'fill',value:items[0].text},{frameURL,selector:'#editor textarea',action:'focus'},{frameURL,selector:'#editor textarea',action:'ime',value:Array.from(items[0].text)[0]},{frameURL,selector:'#editor textarea',action:'observe',label:'ime-start'},{frameURL,selector:'#editor textarea',action:'press',value:'Escape'},{frameURL,selector:'#editor textarea',action:'observe',label:'ime-escape'},{frameURL,selector:'#editor textarea',action:'ime',value:''},{frameURL,selector:'#editor textarea',action:'press',value:'Escape'});
- const statusSelector=scene.id==='nib-copy-failure'?'#status[data-quiet="false"]:has-text("未能复制，请检查浏览器权限。")':longNotice?'#status[data-quiet="false"]:has-text("请先保留草稿，再主动刷新 ChatGPT 页面；历史未确认结果仍保留。")':imeDirty?'#status[data-quiet="false"]:has-text("请先保存或取消编辑。")':null;
- return {handled:true,readySelector:scene.id==='orb-idle'?'[data-paia-prompt-surface]':{frameURL,selector:statusSelector||(scene.id.startsWith('nib-status-dirty')?'#status[data-quiet="false"]:not(:empty)':scene.id==='orb-capsule'?'#capsule-use':scene.id.startsWith('nib-search')?'.row.history':'.row:nth-child(6)')},actions,evidence:{sourceOwners:['core/prompt-surface-layout.js','content/prompt-surface.js','ui/prompt-surface.html','ui/prompt-surface.css','ui/prompt-surface.js'],syntheticBoundary:'loopback chrome.runtime RPC and nonprivileged composer discovery',sharedInputIndexes:[0,1,2,3,4,5],additionalInputs:0,expectedPreInsertionRefusal:longNotice?'PROMPT_PAGE_REFRESH_REQUIRED':null,clipboardDenied:scene.id==='nib-copy-failure',nativeCompositionRequested:imeDirty,longNoticeIsMaximumHeightClaim:false,realHostOriginQualification:false,extensionIsolationQualification:false,insertionOrProviderQualification:false}};
+ const statusSelector=scene.id==='nib-copy-failure'?'#status[data-quiet="false"]:has-text("未能复制，请检查浏览器权限。")':longNotice?'#status[data-quiet="false"]:has-text("插入结果未确认。请先检查草稿，不会自动重试。")':imeDirty?'#status[data-quiet="false"]:has-text("请先保存或取消编辑。")':null;
+ return {handled:true,readySelector:scene.id==='orb-idle'?'[data-paia-prompt-surface]':{frameURL,selector:statusSelector||(scene.id.startsWith('nib-status-dirty')?'#status[data-quiet="false"]:not(:empty)':scene.id==='orb-capsule'?'#capsule-use':scene.id.startsWith('nib-search')?'.row.history':'.row:nth-child(6)')},actions,evidence:{sourceOwners:['core/prompt-surface-layout.js','content/prompt-surface.js','ui/prompt-surface.html','ui/prompt-surface.css','ui/prompt-surface.js'],syntheticBoundary:'loopback chrome.runtime RPC and nonprivileged composer discovery',sharedInputIndexes:[0,1,2,3,4,5],additionalInputs:0,expectedInsertionRefusal:longNotice?'UNAVAILABLE':null,receiverImplemented:false,successfulInsertionAcknowledged:false,clipboardDenied:scene.id==='nib-copy-failure',nativeCompositionRequested:imeDirty,longNoticeIsMaximumHeightClaim:false,realHostOriginQualification:false,extensionIsolationQualification:false,insertionOrProviderQualification:false}};
 }

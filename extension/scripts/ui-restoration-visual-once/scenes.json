@@ -2,7 +2,7 @@
   "schema": 1,
   "authorization": {
     "maxRounds": 1,
-    "maxCapturesPerRound": 24,
+    "maxCapturesPerRound": 15,
     "maxMinutesPerRound": 6,
     "maxMinutesTotal": 6,
     "maxJobMinutesIncludingSetup": 10,
@@ -18,81 +18,9 @@
       "mutationsPerScene": 2
     },
     "automaticRetry": false,
-    "scope": "ui-gap-visual-20261026"
+    "scope": "ui-gap-remaining-20261026"
   },
   "scenes": [
-    {
-      "id": "thought-history-dark",
-      "group": "thought",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "dark"
-    },
-    {
-      "id": "context-selected",
-      "group": "context",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "light"
-    },
-    {
-      "id": "context-selected-narrow",
-      "group": "context",
-      "adapter": "gap-scenes",
-      "width": 390,
-      "height": 844,
-      "theme": "light"
-    },
-    {
-      "id": "context-retained-dark",
-      "group": "context",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "dark"
-    },
-    {
-      "id": "settings-reply-consent",
-      "group": "settings",
-      "adapter": "settings-gap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light"
-    },
-    {
-      "id": "settings-remote-consent",
-      "group": "settings",
-      "adapter": "settings-gap",
-      "width": 1280,
-      "height": 900,
-      "theme": "dark"
-    },
-    {
-      "id": "settings-next-consent",
-      "group": "settings",
-      "adapter": "settings-gap",
-      "width": 390,
-      "height": 844,
-      "theme": "light"
-    },
-    {
-      "id": "settings-capture-consent",
-      "group": "settings",
-      "adapter": "settings-gap",
-      "width": 390,
-      "height": 844,
-      "theme": "light"
-    },
-    {
-      "id": "settings-cancel-focus",
-      "group": "settings",
-      "adapter": "settings-gap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light"
-    },
     {
       "id": "nib-long-notice",
       "group": "prompt",

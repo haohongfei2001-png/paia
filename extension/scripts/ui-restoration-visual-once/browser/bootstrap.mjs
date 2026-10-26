@@ -58,8 +58,8 @@ globalThis.__paiaVisualRPC=async message=>{
    if(response?.handled){
     log.handled=true;
     if(response.expectedFailure){
-     const allowed=(scene.id==='context-now-leave-blocked'&&message.type==='PAIA_CONTEXT_CARDS_CHANGE'&&response.expectedFailure.error==='UNAVAILABLE')||(scene.id==='thought-dirty-section-cancel'&&message.type==='CONTINUE_THINKING'&&response.expectedFailure.error==='UNAVAILABLE')||(['nib-long-notice','nib-long-notice-narrow','nib-copy-failure'].includes(scene.id)&&message.type==='PAIA_PROMPT_SURFACE_RPC'&&message.command?.type==='PAIA_PROMPT_SELECTION_READ'&&response.expectedFailure.error==='PROMPT_PAGE_REFRESH_REQUIRED');
-     if(!allowed)fail('UNDECLARED_EXPECTED_FAILURE');log.expectedFailure=response.expectedFailure.error;return {ok:false,error:response.expectedFailure.error};
+     const allowed=(scene.id==='context-now-leave-blocked'&&message.type==='PAIA_CONTEXT_CARDS_CHANGE'&&response.expectedFailure.error==='UNAVAILABLE')||(scene.id==='thought-dirty-section-cancel'&&message.type==='CONTINUE_THINKING'&&response.expectedFailure.error==='UNAVAILABLE')||(['nib-long-notice','nib-long-notice-narrow','nib-copy-failure'].includes(scene.id)&&message.type==='PAIA_PROMPT_SURFACE_RPC'&&message.command?.type==='PAIA_PROMPT_SELECTION_INSERT'&&response.expectedFailure.error==='UNAVAILABLE'&&response.expectedFailure.boundary==='synthetic_no_receiver');
+     if(!allowed)fail('UNDECLARED_EXPECTED_FAILURE');log.expectedFailure=response.expectedFailure.error;if(response.expectedFailure.boundary)log.boundary=response.expectedFailure.boundary;return {ok:false,error:response.expectedFailure.error};
     }
     return {ok:true,data:structuredClone(response.data)};
    }
