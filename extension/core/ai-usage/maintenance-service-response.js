@@ -1,3 +1,4 @@
+import {evaluateAuthoredTopicReconciliation} from '../topic-authored-reconciliation.js';
 import {readMaintenanceSectionPromotionPermission} from './maintenance-section-promotion-permission.js';
 import {takeMaintenancePaidResponse} from './foundation.js';
 import {qwenFoundationProviderData} from './qwen-qualified-request.js';
@@ -40,6 +41,9 @@ const temporalSchema=object({present:{type:'boolean'},temporalScope:str(512),unc
 const schema=object({version:number(1,1),logicalJobId:str(200,1),childOperationId:str(200,1),citations:array(citation(),100),topic:topicSchema,context:object({status:choice(['APPLY','DEFER','NONE']),reason:str(160),groups:array(object({operation:choice(['ADD','UPDATE','NO_CHANGE','REMOVE_CANDIDATE','DEFER']),reason:str(160),unitKeys:array(str(450,1),50,1),topicId:str(),itemId:str(),expectedRevision:number(),card:choice(['info','rules','now']),body:str(8192),section:str(80),temporal:temporalSchema}),50)}),filter:object({status:choice(['DECIDE','DEFER','NONE']),reason:str(160),decisions:array(object({inputId:str(200,1),decision:choice(['FILTER','KEEP','INSUFFICIENT'])}),20)})});
 export const MAINTENANCE_SERVICE_RESPONSE_SCHEMA=freeze(snapshot(JSON.parse(JSON.stringify(schema))));
 boundedSchema(MAINTENANCE_SERVICE_RESPONSE_SCHEMA);
+const authoredTopicSchema=object({status:choice(['ASSESS','DEFER','NONE']),reason:str(160),version:number(1,1),kind:choice(['human_entry_same_topic']),entryId:str(200),topicId:str(200),relation:choice(['same','unresolved']),citations:array(object({entryId:str(200,1),field:choice(['body','note','title']),start:number(131072),end:number(131072,1)}),100)});
+export const MAINTENANCE_AUTHORED_TOPIC_RESPONSE_SCHEMA=freeze({...snapshot(MAINTENANCE_SERVICE_RESPONSE_SCHEMA),properties:{...snapshot(MAINTENANCE_SERVICE_RESPONSE_SCHEMA.properties),topic:authoredTopicSchema}});
+boundedSchema(MAINTENANCE_AUTHORED_TOPIC_RESPONSE_SCHEMA);
 export const MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS='Return exactly the qualified Maintenance response schema. Copy logicalJobId and childOperationId from this request. Use only the sent material and exact coverage keys. ASSESS preserves original Topic evidence and relations; all Topic citations and entry spans are indexes into the top-level citations table, whose exact sent Input field offsets are never inferred. topicCandidateSummary describes only a bounded discovery page; omitted candidates are unresolved and may not be marked completed. Historical topicCandidateInputs are Topic evidence only; preserve their sent roles. candidateRef is empty for a new boundary or exactly one sent topicCandidates ref for continuation. A selected candidate uses empty boundaryKey. Entries may use only current material.inputs, never historical candidate Inputs. Historical note citations require that exact field in the sent candidate Input. Unused Topic fields use unresolved, empty name/boundaryKey/candidateRef, empty evidence/relations/entries, empty/unknown/none claims and default empty section. NONE is only for absent facets. DEFER requires a nonempty reason and empty results. Context groups must cover each context coverage key exactly once. ADD uses empty itemId and expectedRevision 0. Existing UPDATE, NO_CHANGE and REMOVE_CANDIDATE must use the exact sent existingContextItems itemId, revision and card, with empty topicId; itemRef is only a display label and never replaces itemId. UPDATE requires a new body and section; absent temporal clears any old deadline. NO_CHANGE and REMOVE_CANDIDATE use empty body/section and absent temporal. NO_CHANGE checks only its exact selected prior-evidence subset; REMOVE_CANDIDATE requires the complete original lineage. Selected contextItems corrections retain their separate UPDATE path. Never invent existing Context Item state or use a same-name match. Use topicId "$result" only for the sole Topic created/reused by this same child; otherwise use an exact sent Topic ID. Existing authored, bound, placement and structural evidence stays in its sent Topic. Explicit DEFER groups use empty topicId/itemId/body/section, expectedRevision 0, card info and absent temporal. Absent temporal uses present false and all empty strings. Section default uses empty sectionId/name/citations/relations, aspectReason unknown and returnReason none; existing uses only sectionId. Additional Entry Topic placements use topic.additional with the exact entryIndex. No unselected fields, permission, authority or financial claims are valid.';
 // Only an actual original whole-Section capture selects this wider contract.
 // Ordinary children retain the exact historical closed schema and instructions.
@@ -47,6 +51,7 @@ export const MAINTENANCE_SECTION_PROMOTION_RESPONSE_SCHEMA=freeze({...snapshot(M
 boundedSchema(MAINTENANCE_SECTION_PROMOTION_RESPONSE_SCHEMA);
 export const MAINTENANCE_SECTION_PROMOTION_RESPONSE_INSTRUCTIONS=MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS+' Return the sectionProposal field using its separate exact captured Section DTO. '+SECTION_PROMOTION_RESPONSE_INSTRUCTIONS;
 export function maintenanceServiceResponseContract(payload,store,task=null){
+ if(task===null&&payload?.material?.authoredTopic){requireFact(!Object.hasOwn(payload.material,'sectionPromotion'),'UNAVAILABLE');return Object.freeze({schema:MAINTENANCE_AUTHORED_TOPIC_RESPONSE_SCHEMA,instructions:'Use the exact authoredTopic material and its selected human fields. Return the original response envelope, with empty top-level citations. Topic ASSESS must use kind human_entry_same_topic, exact entryId/topicId, relation same and complete entryId/field/start/end citations for every nonempty selected field; explicitly cleared fields remain present in material. Never create, move, rename or rewrite human content. If same identity is unresolved return Topic DEFER with reason, empty entryId/topicId/citations and relation unresolved. Context retains its original independent response and grant. '+MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS.slice(MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS.indexOf('Context groups must'),MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS.indexOf('Section default'))+'No unselected fields, permission, authority or financial claims are valid.'});}
  if(task===null){requireFact(!Object.hasOwn(payload?.material||{},'sectionPromotion'),'UNAVAILABLE');return Object.freeze({schema:MAINTENANCE_SERVICE_RESPONSE_SCHEMA,instructions:MAINTENANCE_SERVICE_RESPONSE_INSTRUCTIONS});}
  const prepared=promotionTasks.readMaintenanceSectionPromotionTask(task,store);
  readMaintenanceSectionPromotionPermission(prepared.permission,store,prepared.plan,prepared.binding);
@@ -76,15 +81,15 @@ function checkTopicCitation(material,c){const input=sentTopicInputs(material).fi
 function validateWire(raw,payload,binding){
  const response=snapshot(raw,{maxBytes:262144,maxKeys:16000,maxDepth:16,maxString:65536});
  requireFact(response.accepted===true&&response.operationReceiptId===binding.operationReceiptId&&Object.keys(response).length===3&&Object.hasOwn(response,'value'));
- const v=response.value;requireFact(schemaValue(Object.hasOwn(payload.material,'sectionPromotion')?MAINTENANCE_SECTION_PROMOTION_RESPONSE_SCHEMA:MAINTENANCE_SERVICE_RESPONSE_SCHEMA,v));
+ const v=response.value;requireFact(schemaValue(payload.material.authoredTopic?MAINTENANCE_AUTHORED_TOPIC_RESPONSE_SCHEMA:Object.hasOwn(payload.material,'sectionPromotion')?MAINTENANCE_SECTION_PROMOTION_RESPONSE_SCHEMA:MAINTENANCE_SERVICE_RESPONSE_SCHEMA,v));
  for(const c of v.citations)checkTopicCitation(payload.material,c);
- requireFact(v.topic.candidateRef===''||v.topic.status==='ASSESS'&&v.topic.boundaryKey===''&&(payload.material.topicCandidates||[]).some(c=>c.candidateRef===v.topic.candidateRef));
+ if(!payload.material.authoredTopic)requireFact(v.topic.candidateRef===''||v.topic.status==='ASSESS'&&v.topic.boundaryKey===''&&(payload.material.topicCandidates||[]).some(c=>c.candidateRef===v.topic.candidateRef));
  requireFact(v.logicalJobId===payload.logicalJobId&&v.childOperationId===payload.childOperationId&&v.logicalJobId===binding.logicalJobId&&v.childOperationId===binding.childOperationId,'STALE_BASE');
  for(const [facet,active]of [['topic','ASSESS'],['context','APPLY'],['filter','DECIDE']]){
   const part=v[facet],present=payload.coverage.some(u=>u.facet===facet);
   requireFact(present?part.status!=='NONE':part.status==='NONE');
   if(part.status===active)requireFact(part.reason==='');else requireFact(part.status==='DEFER'?part.reason.trim().length>0:part.reason==='');
-  if(part.status!==active)requireFact(facet==='topic'?blankTopic(part):facet==='context'?!part.groups.length:!part.decisions.length);
+  if(part.status!==active)requireFact(facet==='topic'?(payload.material.authoredTopic?part.entryId===''&&part.topicId===''&&part.relation==='unresolved'&&!part.citations.length:blankTopic(part)):facet==='context'?!part.groups.length:!part.decisions.length);
  }
  if(v.topic.status!=='ASSESS')requireFact(!v.citations.length);
  return v;
@@ -199,7 +204,8 @@ export function createMaintenanceServiceResponseAdapter(){
   requireFact(units.length>0);if(facet!=='topic')requireFact(sameIds(m.units.map(unitKey),units.map(unitKey)),'STALE_BASE');
   if(v[facet].status==='DEFER')defer(correlation,facet,units);
   let value;
-  if(facet==='topic')value=topicValue(v.topic,payload.material,m,v.citations);
+  if(facet==='topic'&&payload.material.authoredTopic){requireFact(equal(m.authoredTopic,payload.material.authoredTopic),'STALE_BASE');requireFact(!v.citations.length);value=without(v.topic,['status','reason']);evaluateAuthoredTopicReconciliation(value,m.authoredTopic);}
+  else if(facet==='topic')value=topicValue(v.topic,payload.material,m,v.citations);
   else if(facet==='filter'){
    const selected=units.map(u=>{const key=JSON.parse(u.key);requireFact(key[0]==='input');return key[1];});
    requireFact(sameIds(m.inputIds,selected),'STALE_BASE');for(const id of selected)requireFact(payload.material.inputs.some(i=>i.inputId===id));

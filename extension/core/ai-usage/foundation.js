@@ -1,7 +1,13 @@
+import {takeMaintenanceDeferredRestoreHandoff} from './local-maintenance-session.js';
+import {readMaintenanceDeferredRestoreBatch} from './maintenance-batch.js';
+import {readMaintenanceServiceProcessingPlan,assertMaintenanceServiceLifecycleFacts} from './maintenance-service-client.js';
+import {structuralSectionRestoreAllowsTopic} from './structural-context-mapping.js';
+import {topicNameRestoreAllowsTopic} from './topic-context-mapping.js';
+import {contextScopeTransactionReader,assertContextScopeWorkBudgetFacts,CONTEXT_TOPIC_SCOPE_LIMITS} from '../context-topic-scope.js';
 import {sourcePresent} from '../thought-source-presence.js';
 import {readMaintenanceQualifiedSourcePresence} from './maintenance-qualification.js';
 import {needsMaintenanceProcessingContext} from './maintenance-processing-source-denial.js';
-import {observeRepositoryWriteFence,requireRepositoryWriteFence,requireRepositoryTransactionScope,requireRepositoryTransactionSucceeded,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
+import {observeRepositoryWriteFence,requireRepositoryWriteFence,registerRepositoryFinalReadFence,requireRepositoryTransactionScope,requireRepositoryTransactionSucceeded,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
 import {qwenFoundationProviderData,qwenFoundationResponse,qwenReservationDenial} from './qwen-qualified-request.js';
 import {clientDeclarationRequestData} from './client-declaration.js';
 import {clientOperationStatusTransportOrigin,observedClientOperationStatus} from './client-operation-status-transport.js';
@@ -86,6 +92,42 @@ export class AIUsageFoundation {
  async describe({keys}={}){
   if(!Array.isArray(keys)||!keys.length||keys.length>100||keys.some(key=>typeof key!=='string'||key.length>450)||new Set(keys).size!==keys.length)fail();
   return this.read(async t=>{const items=[];for(const key of keys){const row=await t.get('meta',KNOWN_PREFIX+key);if(!row||row.descriptor.removed||row.descriptor.fenceOnly)fail('STALE_BASE');items.push({key,signature:row.signature,descriptor:row.descriptor});}return {items};});
+ }
+ // Exact source-owned successor for one unchanged restore DEFER. The broad
+ // archival guard below deliberately remains closed for source contexts.
+ async archiveDeferredRestore(token){
+  return this.write(async transaction=>{
+   const held=takeMaintenanceDeferredRestoreHandoff(token,this,transaction),metadata=readMaintenanceDeferredRestoreBatch(held.batch,this);
+   if(this.#maintenanceSourceContext===null||metadata!==held.metadata||metadata.budget!==held.budget)fail('UNAVAILABLE');
+   const t=contextScopeTransactionReader(this.s,transaction,held.budget),c=metadata.candidate;
+   const current=()=>{held.current();assertContextScopeWorkBudgetFacts(held.budget,{database:this.s.repository.db});assertMaintenanceServiceLifecycleFacts(held.lifecycleCap,held.client,this.s);const p=readMaintenanceServiceProcessingPlan(held.client,this.s);if(p.context!==this.#maintenanceSourceContext||Object.keys(held.plan).some(k=>p[k]!==held.plan[k])||p.scope!==c.unit.scope||p.contractVersion!==c.job.contractVersion||p.routeVersion===c.job.routeVersion)fail('UNAVAILABLE');};
+   const abort=()=>{try{transaction.tx.abort();}catch{}};held.signal.addEventListener('abort',abort,{once:true});const remove=()=>held.signal.removeEventListener('abort',abort);transaction.tx.addEventListener('complete',remove,{once:true});transaction.tx.addEventListener('abort',remove,{once:true});
+   const check=async()=>{
+    current();const row=await t.get('organizerWorkItems',c.row.id),job=await t.get('organizerJobs',c.row.jobId),known=await t.get('meta',KNOWN_PREFIX+c.item.key),dirty=await t.get('meta',DIRTY_PREFIX+c.item.key);current();
+    exact(row,['id','kind','jobId','state','stateKey','sequence','unit','retryCondition','signature']);
+    if(!equal(row,c.row)||row.kind!==KIND||row.state!=='DEFERRED'||row.stateKey!==0||!integer(row.sequence)||row.retryCondition!=='TOPIC_MAPPING_UNAVAILABLE'||row.id!=='aiu:defer:'+canonical([row.jobId,unitKey(row.unit)])||!equal(row.unit,c.unit)||row.unit.facet!=='topic'||row.signature!==c.item.signature||!equal(known,c.known)||!equal(dirty,c.dirty)||!equal(known.descriptor,c.item.descriptor)||!equal(dirty.descriptor,c.item.descriptor)||!(dirty.pendingFacets||['topic','context']).includes('topic'))fail('STALE_BASE');
+    if(!job||job.kind!==KIND||job.type!=='AI_MAINTENANCE'||!terminal.has(job.state)||!equal({id:job.id,kind:job.kind,type:job.type,state:job.state,routeVersion:job.routeVersion,contractVersion:job.contractVersion,childId:job.childIds?.[row.sequence],coverage:job.childCoverage?.[row.sequence],item:job.items?.find(i=>i.key===c.item.key)},c.job)||!job.childCoverage[row.sequence].some(u=>equal(u,c.unit)))fail('STALE_BASE');
+    validateCoverage([c.unit],job.type);const ack=await t.get('organizerWorkItems',qualifiedCoverageId(c.unit,job));current();if(ack?.kind===KIND&&ack.state==='ACKNOWLEDGED'&&ack.signature===row.signature&&equal(ack.unit,c.unit))fail('STALE_BASE');
+    const journal=await t.get('revisions',c.item.descriptor.journalId);current();if(!journal||!equal(Object.fromEntries(Object.keys(c.journal).map(k=>[k,journal[k]])),c.journal))fail('STALE_BASE');return row;
+   };
+   await check();
+   return held.qualify(transaction,async proof=>{
+    current();const topic=topicNameRestoreAllowsTopic(proof);if(!topic&&!structuralSectionRestoreAllowsTopic(proof)||proof.recordId!==c.item.descriptor.recordId||proof.journalId!==c.item.descriptor.journalId||c.item.descriptor.kind!==(topic?'topic':'section'))fail('UNAVAILABLE');
+    const row=await check(),history={...row,reconsideredBecause:topic?'HUMAN_TOPIC_RECONCILIATION_V1':'HUMAN_SECTION_RECONCILIATION_V1',id:'aiu:defer-history:'+row.id.slice('aiu:defer:'.length),originalId:row.id},prior=await t.get('organizerWorkItems',history.id);current();
+    if(prior&&!equal(prior,history))fail('DEFER_HISTORY_CONFLICT');
+    if(!prior)await transaction.put('organizerWorkItems',history);current();await check();await transaction.delete('organizerWorkItems',row.id);current();
+    registerRepositoryFinalReadFence(this.s.repository,transaction,{isCurrent:()=>{current();return true;},plan:function*(){
+     for(const [table,key,expected]of [['organizerWorkItems',row.id,undefined],['organizerWorkItems',history.id,history],['meta',KNOWN_PREFIX+c.item.key,c.known],['meta',DIRTY_PREFIX+c.item.key,c.dirty]]){
+      current();if(held.budget.reads>=CONTEXT_TOPIC_SCOPE_LIMITS.reads)fail('BUDGET_EXCEEDED');held.budget.reads++;const actual=yield {method:'get',table,key};current();if(expected===undefined?actual!=null:!equal(actual,expected))fail('STALE_BASE');
+     }
+     for(const table of ['organizerJobs','organizerWorkItems']){current();if(held.budget.reads>=CONTEXT_TOPIC_SCOPE_LIMITS.reads)fail('BUDGET_EXCEEDED');held.budget.reads++;const value=yield {method:'get',table,key:table==='organizerJobs'?c.row.jobId:qualifiedCoverageId(c.unit,{type:'AI_MAINTENANCE'})};current();
+      if(table==='organizerJobs'){if(!value||!terminal.has(value.state)||!equal({id:value.id,kind:value.kind,type:value.type,state:value.state,routeVersion:value.routeVersion,contractVersion:value.contractVersion,childId:value.childIds?.[row.sequence],coverage:value.childCoverage?.[row.sequence],item:value.items?.find(i=>i.key===c.item.key)},c.job))fail('STALE_BASE');}
+      else if(value?.kind===KIND&&value.state==='ACKNOWLEDGED'&&value.signature===row.signature&&equal(value.unit,c.unit))fail('STALE_BASE');
+     }return true;
+    }});
+    return {archived:1,reconsidered:1};
+   });
+  });
  }
  // Bounded scheduling-index maintenance, not job/receipt deletion or a retry.
  // Preserve every original DEFER field under a non-scheduling history key.
@@ -173,7 +215,9 @@ export class AIUsageFoundation {
   await assertOrganizeStyle(this.s,t,job);
   if(!equal(await this.authority(t,job.type,job),job.authority)||!allowCancelled&&job.cancelEpoch!==0)fail('CANCELLED');
   const sourceOnly=job.type==='AI_MAINTENANCE'&&this.#maintenanceSourceContext!==null;
-  if(sourceOnly&&job.items.some(item=>item.descriptor.kind!=='input'))fail('UNAVAILABLE');
+  // Original source selector may inspect these exact current metadata kinds.
+  // Their fields still require the private source qualification before mapping.
+  if(sourceOnly&&(job.items.length>20||new Set(job.items.flatMap(item=>item.descriptor.sourceRecordIds)).size>20||job.items.some(item=>!['input','library_entry','placement','topic','section'].includes(item.descriptor.kind))))fail('UNAVAILABLE');
   for(const item of job.items){const known=await t.get('meta',KNOWN_PREFIX+item.key);if(!known||known.signature!==item.signature||known.descriptor.removed)fail('STALE_BASE');
    if(!(sourceOnly?await this.#maintenanceSourcePresent(t,item.descriptor.sourceRecordIds):await this.s.sourcePresent(t,item.descriptor.sourceRecordIds)))fail('STALE_BASE');
    if(item.descriptor.kind==='input'){const live=await t.get('inputStates',item.descriptor.entityId);if(!live||deltaSignature(deltaDescription('inputStates',live))!==item.signature)fail('STALE_BASE');}
@@ -880,7 +924,7 @@ export class AIUsageFoundation {
    if(this.#qualifyMaintenancePlacements){
     const admitted=await this.#qualifyMaintenancePlacements(t,structuredClone({items:job.items,coverage:job.coverage}));assertOwner();if(!Array.isArray(admitted))fail();
     if(admitted.length){const checked=validateCoverage(admitted,job.type);
-     if(checked.some(u=>u.facet!=='context'||!unsupported.some(v=>equal(u,v))||job.items.find(i=>i.key===u.key)?.descriptor.kind!=='placement'))fail();
+     if(checked.some(u=>!['context','topic'].includes(u.facet)||!unsupported.some(v=>equal(u,v))||job.items.find(i=>i.key===u.key)?.descriptor.kind!=='placement'))fail();
      unsupported=unsupported.filter(u=>!checked.some(v=>equal(u,v)));
     }
    }

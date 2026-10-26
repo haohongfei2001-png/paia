@@ -1,3 +1,5 @@
+import {readAuthoredTopicReconciliation,evaluateAuthoredTopicReconciliation} from './topic-authored-reconciliation.js';
+import {readAuthoredEntryContext as readAuthoredEntryContextForTopic} from './context-authored-entry.js';
 import {chargeMaintenanceQualificationHash,maintenanceQualificationWorkBudget,maintenanceQualificationReader,assertMaintenanceQualification,assertMaintenanceQualificationFacts,readMaintenanceTopicExactReuseQualification,releaseMaintenanceQualification} from './ai-usage/maintenance-qualification.js';
 import {captureTopicExactReuseMetadata,topicExactReuseEntryMetadata} from './topic-exact-reuse-metadata.js';
 import {contextScopeTransactionReader} from './context-topic-scope.js';
@@ -88,6 +90,15 @@ export class TopicFormationService {
   if(limits&&(new TextEncoder().encode(JSON.stringify(decisionInput.inputs)).length>limits.maxContentBytes||new TextEncoder().encode(JSON.stringify(decisionInput)).length>limits.maxRequestBytes))fail();
   return {prepared,topicIds,snapshot,identities,sections,constraints,decisionInput};
  }
+ async prepareAuthoredMaterial({entryId,descriptor=null}={}, {signal=null}={}){
+  if(!idOK(entryId)||!this.#parameters)fail();assertActive(signal);
+  let processingMode;const prepared={evidence:[],authority:await this.store.run(()=>this.store.repository.transaction(false,async t=>{const authority=await this.retrieval.guard.authority(t,[]);processingMode=this.retrieval.guard.processingMode(t);return authority;}))};
+  const selected=await this.read(prepared,async t=>{const mapping=await readAuthoredEntryContextForTopic(this.store,t,entryId,descriptor);if(!mapping)fail();await this.authorizeTopics(t,prepared,[mapping.topicId]);const selected=await readAuthoredTopicReconciliation(this.store,t,entryId,descriptor);if(this.retrieval.guard.processingMode(t)!==processingMode)fail();return selected;});
+  if(!selected)fail();assertActive(signal);
+  const handle=Object.freeze({}),view={version:1,inputs:[],entries:[],identities:[],sections:[],constraints:[],authoredTopic:selected.material};
+  const limits=this.store.organizerBudget?.limits;if(limits&&(new TextEncoder().encode(JSON.stringify(selected.material.fields)).length>limits.maxContentBytes||new TextEncoder().encode(JSON.stringify(view)).length>limits.maxRequestBytes))fail();
+  this.#materials.set(handle,{authored:true,processingMode,entryId,descriptor:structuredClone(descriptor),prepared,selected,decisionInput:freeze(structuredClone(view)),signal});return handle;
+ }
  async prepareMaterial({scope,entryIds=[]}={}, {signal=null}={}){
   if(!this.#parameters||!Array.isArray(entryIds)||entryIds.length>FORMATION_WORK_LIMITS.entries||new Set(entryIds).size!==entryIds.length||entryIds.some(id=>!idOK(id)))fail();
   const selected=structuredClone(scope),entries=structuredClone(entryIds);assertActive(signal);
@@ -97,6 +108,7 @@ export class TopicFormationService {
  async checkMaterial(handle,finalRead=null){
   if(finalRead!==null&&typeof finalRead!=='function')fail();
   const m=this.#materials.get(handle);if(!m)fail();assertActive(m.signal);
+  if(m.authored){await this.read(m.prepared,async t=>{await this.authorizeTopics(t,m.prepared,[m.selected.mapping.topicId]);if(!same(await readAuthoredTopicReconciliation(this.store,t,m.entryId,m.descriptor),m.selected))fail();if(this.retrieval.guard.processingMode(t)!==m.processingMode)fail();if(finalRead)await finalRead(t);});assertActive(m.signal);return;}
   const current=await this.read(m.prepared,async t=>{await this.authorizeTopics(t,m.prepared,m.topicIds);return readFormationEvidence(this.store,t,m.prepared,m.snapshot.entries.map(e=>e.id));});
   if(!same(current,m.snapshot))fail();await validateFormationSources(current,{store:this.store,qualification:this.retrieval.guard.qualification()});assertActive(m.signal);
   // Hashes complete outside IDB, then the original authority/identity/restore
@@ -107,9 +119,37 @@ export class TopicFormationService {
  }
  async readMaterial(handle){
   await this.checkMaterial(handle);const m=this.#materials.get(handle);assertActive(m.signal);
-  return {view:structuredClone(m.decisionInput),sourceCount:new Set(m.snapshot.inputs.flatMap(i=>i.sourceIds)).size};
+  return {view:structuredClone(m.decisionInput),sourceCount:m.authored?0:new Set(m.snapshot.inputs.flatMap(i=>i.sourceIds)).size};
  }
  releaseMaterial(handle){this.#materials.delete(handle);}
+ async prepareAuthoredReconciliation(request,{signal=null}={}){
+  keys(request,['entryId','descriptor','operationId'],['entryId','descriptor','operationId']);if(!idOK(request.operationId)||request.operationId.length<8||!this.#decision||this.#busy)fail();this.#busy=true;
+  let material;
+  try{material=await this.prepareAuthoredMaterial(request,{signal});const held=this.#materials.get(material),assessment=await this.#decision.assess(held.decisionInput);await this.checkMaterial(material);const result=evaluateAuthoredTopicReconciliation(assessment,held.selected.material),operation={kind:'personal-topic-authored-reconciliation',...structuredClone(request),decisionVersion:this.#decision.version};const handle=freeze({...result,decisionVersion:this.#decision.version});this.#plans.set(handle,{authored:true,...held,request:structuredClone(request),operation,result:{...result,decisionVersion:this.#decision.version},signal});return handle;}
+  finally{if(material)this.releaseMaterial(material);this.#busy=false;}
+ }
+ async #commitAuthored(state){
+  assertActive(state.signal);if(state.cancelled)fail();const digest=await hashText(JSON.stringify(state.operation)),qualification=this.retrieval.guard.qualification();
+  let transaction=null,publication=null,published=null,root=null,processingFinal=false;const facts=[],members=[];
+  const current=()=>{assertActive(state.signal);if(state.cancelled||published&&published.database!==this.store.repository.db)fail();if(qualification)assertMaintenanceQualification(qualification,this.store);if(processingFinal)this.retrieval.guard.assertProcessingFacts(transaction);return true;};
+  const check=async t=>{current();await this.retrieval.guard.check(t,state.prepared);await this.authorizeTopics(t,state.prepared,[state.selected.mapping.topicId]);if(this.retrieval.guard.processingMode(t)!==state.processingMode)fail();if(!same(await readAuthoredTopicReconciliation(this.store,this.retrieval.guard.reader(t),state.entryId,state.descriptor),state.selected))fail();await assertTopicFormationMembers(this.retrieval.guard.reader(t),members);if(root&&await rootReadAuthority(t)!==JSON.stringify(root))fail();current();return true;};
+  const finalFence=async t=>{if(t!==transaction)fail();if(processingFinal)return current();await check(t);if(state.processingMode==='authority'){this.retrieval.guard.registerProcessingFinalFence(t,{qualification});processingFinal=true;}return true;};
+  try{const result=await this.#writeTransaction(async t=>{
+   transaction=t;await check(t);const beforeAuthority=await rootReadAuthority(t);root=JSON.parse(beforeAuthority);members.push(...await captureTopicFormationMembers(this.retrieval.guard.reader(t),[state.entryId]));
+   // Keep exact selected owner rows in the original terminal collection. The
+   // qualified reader supplies prose; no other Entry or historical Source is read.
+   const reader=this.retrieval.guard.reader(t),seen=new Set();let retained=0;
+   const retain=(table,key,row)=>{if(!row)return;const ref=JSON.stringify([table,key]);if(seen.has(ref))return;seen.add(ref);const project=value=>{if(value==null)return null;if(table==='topics'||table==='sections'){const fields=table==='topics'?['id','revision','organizationRevision','activeLayoutGeneration','lifecycle','redirectTo','layoutJobId','identity','createdBy','sourceRecordIds','name']:['id','topicId','sectionId','layoutGeneration','rank','revision','lifecycle','activeKey','redirectTo'];return Object.fromEntries(fields.filter(k=>Object.hasOwn(value,k)).map(k=>[k,structuredClone(value[k])]));}const fields=table==='thoughts'?['id','storageSchema','origin','provenanceType','bodyBinding','workingInputId','bindingRevision','bindingLength','inputRefs','sourceRecordIds','hasHumanAction','userEdited','integrity','lifecycle','freshness','staleReasons','revision','contentRevision','organizationRevision','dependencyRevision','createdAt','thoughtText','title','note','type','formation','thoughtEditedAt','fieldRevisions','authorship','protections','organizationIntents']:table==='revisions'?['id','kind','entityId','documentId','actor','sourceRecordIds','baseRevision','afterRevision','sequence','operationId','reason','fieldMask','important','before','after']:[];if(!fields.length)fail();return Object.fromEntries(fields.filter(k=>Object.hasOwn(value,k)).map(k=>[k,structuredClone(value[k])]));},expected=project(row);retained+=new TextEncoder().encode(JSON.stringify(expected)).length;if(retained>CONTEXT_LINEAGE_LIMITS.hashBytes)fail();facts.push({ref,table,key,project,expected});};
+   const tracked=Object.create(reader);tracked.get=async(table,key)=>{const row=await reader.get(table,key);retain(table,key,row);return row;};tracked.edge=async(table,...args)=>{const row=await reader.edge(table,...args);if(row)retain(table,row.id,row);return row;};
+   if(!same(await readAuthoredTopicReconciliation(this.store,tracked,state.entryId,state.descriptor),state.selected))fail();
+   facts.push(...await captureTopicFormationTerminal(this.store,reader,[],{retain:value=>structuredClone(value),current}));
+   const prior=await receipt(t,state.operation,digest),result=prior??structuredClone(state.result);if(prior&&!same(prior,state.result))fail();
+   const put=t.put.bind(t);t.put=async(table,row,...args)=>{current();if(table==='meta'){const i=rootIds.indexOf(row.id);if(i>=0)root[i]=row.value??null;}const value=await put(table,row,...args);current();return value;};
+   if(!prior)await saveReceipt(this.store,t,state.operation,digest,result);await check(t);const receiptIntent={store:'operationReceipts',id:state.operation.operationId,value:structuredClone(await t.get('operationReceipts',state.operation.operationId))};if(receiptIntent.value?.digest!==digest||!same(receiptIntent.value.result,result))fail();
+   publication=Object.freeze({});const after=structuredClone(root);if(t.backupChanged)after[5]=(after[5]||0)+1;published={store:this.store,database:this.store.repository.db,transaction:t,operationId:state.operation.operationId,beforeAuthority,stagedAuthority:JSON.stringify(root),afterAuthority:JSON.stringify(after),writes:[],members:structuredClone(members),frozen:true,committed:false};publications.set(publication,published);
+   registerTopicFormationTerminal(this.store,t,{facts,intents:new Map([[receiptIntent.id,receiptIntent]]),root,members,qualification,current,compatibilityRecheck:async()=>{if(processingFinal){this.retrieval.guard.assertProcessingCurrent(t);return current();}if(await this.retrieval.guard.processing(t,[],[])!==state.prepared.authority.processingEpoch)fail();await this.authorizeTopics(t,state.prepared,[state.selected.mapping.topicId]);current();}});await finalFence(t);return result;
+  },finalFence,()=>publication);published.committed=true;published.transaction=null;return result;}finally{if(published&&!published.committed)publications.delete(publication);}
+ }
  async prepare(request,options={}){if(this.#busy)fail();this.#busy=true;let completed=false;try{const result=await this.#prepare(request,options);completed=true;return result;}finally{if(!completed&&this.#localQualification)releaseMaintenanceQualification(this.#localQualification);this.#localQualification=null;this.#exactMutation=null;this.#busy=false;}}
  async #prepare(request,{signal=null,maintenanceCandidate=null}={}){
   keys(request,['scope','operationId','entryIds','candidateId','expectedCandidateRevision'],['scope','operationId']);
@@ -178,7 +218,7 @@ export class TopicFormationService {
  cancel(handle){const state=this.#plans.get(handle);if(!state)fail();state.cancelled=true;if(state.exactReuse)releaseMaintenanceQualification(state.exactReuse.qualification);}
  async commit(handle){if(this.#busy)fail();this.#busy=true;const state=this.#plans.get(handle);try{if(state?.exactReuse){assertMaintenanceQualification(state.exactReuse.qualification,this.store);this.#localQualification=state.exactReuse.qualification;}const result=await this.#commit(handle);if(state?.exactReuse){state.prior=structuredClone(result);releaseMaintenanceQualification(state.exactReuse.qualification);}return result;}finally{this.#localQualification=null;this.#exactMutation=null;this.#busy=false;}}
  async #commit(handle){
-  const state=this.#plans.get(handle);if(!state||state.cancelled)fail();assertActive(state.signal);
+  const state=this.#plans.get(handle);if(!state||state.cancelled)fail();assertActive(state.signal);if(state.authored)return this.#commitAuthored(state);
   const {request,operation}=state;
   const candidateOperation=state.maintenanceCandidate===null||state.maintenanceCandidate===undefined?null:readMaintenanceTopicCandidateOperation(state.maintenanceCandidate,this.store,{operationId:request.operationId,qualification:this.retrieval.guard.qualification()});
   if(!same(candidateOperation,state.candidateOperation??null))fail();

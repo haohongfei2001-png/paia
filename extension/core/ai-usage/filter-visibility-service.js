@@ -1,6 +1,13 @@
 import {createSectionPromotionRecoveryAuthority,disposeSectionPromotionRecoveryAuthority,sectionPromotionRecoveryAuthorityDrained} from './section-promotion-recovery-authority.js';
 import {createIdentityCurrentnessHub,identityCurrentnessHubOrigin,identityCurrentnessHubDrained,createHubMaintenanceIdentity} from './identity-currentness-hub.js';
 import {createAIFilterVisibilityOwner} from './filter-visibility-owner.js';
+// Read-only provenance for this fixed original worker assembly. There is no
+// public registration seam; copied or modified configurations inherit nothing.
+const sourceConfigurations=new WeakMap();
+const dataSnapshot=value=>{if(!value||![Object.prototype,null].includes(Object.getPrototypeOf(value)))return null;const descriptors=Object.getOwnPropertyDescriptors(value);if(Reflect.ownKeys(descriptors).some(key=>typeof key!=='string'||!Object.hasOwn(descriptors[key],'value')))return null;return {prototype:Object.getPrototypeOf(value),descriptors};};
+const sameSnapshot=(actual,expected)=>actual===null||expected===null?actual===expected:actual.prototype===expected.prototype&&Object.keys(actual.descriptors).length===Object.keys(expected.descriptors).length&&Object.keys(expected.descriptors).every(key=>{const a=actual.descriptors[key],b=expected.descriptors[key];return a&&['value','writable','enumerable','configurable'].every(field=>a[field]===b[field]);});
+function bindSourceConfiguration(value,source){sourceConfigurations.set(value,{source,values:dataSnapshot(value),service:dataSnapshot(value.service),context:dataSnapshot(value.service.context),topic:dataSnapshot(value.service.topic)});return value;}
+export function readAIFilterServiceSourceConfiguration(value){const held=sourceConfigurations.get(value);if(!held)return null;return sameSnapshot(dataSnapshot(value),held.values)&&sameSnapshot(dataSnapshot(value.service),held.service)&&sameSnapshot(dataSnapshot(value.service.context),held.context)&&sameSnapshot(dataSnapshot(value.service.topic),held.topic)?held.source:null;}
 // The worker owns this one transport pool. Configuration contains source-owned
 // issuers/processing only; UI messages and persisted history cannot configure it.
 export function createAIFilterServiceAssembly({getStore,consent,policy,authority,storage}){
@@ -18,13 +25,13 @@ export function createAIFilterServiceAssembly({getStore,consent,policy,authority
   const same=state=>state&&state.endpoint===endpoint&&Object.keys(raw).length===Object.keys(state.raw).length&&Object.keys(raw).every(k=>raw[k]===state.raw[k]);
   if(active&&(!same(active)||!active.live)){retire();}
   const ordinary={...raw,service:{...raw.service,filter:authority.serviceFilter}};
-  if(endpoint===null){retire();return ordinary;}
+  if(endpoint===null){retire();return bindSourceConfiguration(ordinary,configuration);}
   // Cancel is not physical settlement. A late fetch or fresh-proof promise in
   // the old pool keeps its slot and blocks construction of a replacement pool.
   if(retiring){if(!identityCurrentnessHubDrained(retiring.hub)||retiring.readOnly&&!retiring.readOnly.isDrained()||retiring.recovery&&!sectionPromotionRecoveryAuthorityDrained(retiring.recovery))return null;retiring=null;}
   if(!active){
    const hub=createIdentityCurrentnessHub({endpoint,clock:raw.clock,fetch:raw.fetch??globalThis.fetch});
-   if(!hub||identityCurrentnessHubOrigin(hub)!==raw.origin){hub?.dispose();return ordinary;}
+   if(!hub||identityCurrentnessHubOrigin(hub)!==raw.origin){hub?.dispose();return bindSourceConfiguration(ordinary,configuration);}
    const state={raw,endpoint,hub,live:true,listeners:new Set(),remove:null,readOnly:null,recovery:null};
    const current=()=>{try{return state.live&&raw.isCurrent()===true;}catch{return false;}};
    state.configuration={...ordinary,isCurrent:current,onInvalidate(fn){if(typeof fn!=='function'||state.listeners.size>=8)throw Error('UNAVAILABLE');if(!current()){fn();return ()=>{};}state.listeners.add(fn);return ()=>state.listeners.delete(fn);}};
@@ -35,7 +42,7 @@ export function createAIFilterServiceAssembly({getStore,consent,policy,authority
    // Both storage/HMAC recovery and issuer admission remain outside IDB reads.
    state.readOnly?.load().catch(()=>{});
   }
-  const identity=createHubMaintenanceIdentity(active.hub);return identity?{...active.configuration,filterIdentity:identity,...(active.recovery?{promotionRecoveryAuthority:active.recovery}:{})}:null;
+  const identity=createHubMaintenanceIdentity(active.hub);return identity?bindSourceConfiguration({...active.configuration,filterIdentity:identity,...(active.recovery?{promotionRecoveryAuthority:active.recovery}:{})},configuration):null;
  }
  return Object.freeze({configure:select,invalidate(){active?.readOnly?.invalidate();active?.hub.invalidate();},dispose(){if(disposed)return;disposed=true;retire();removeConsent();}});
 }

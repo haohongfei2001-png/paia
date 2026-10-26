@@ -1,9 +1,11 @@
+import {createTopicIdentityProcessingGrant,disposeTopicIdentityProcessingGrant} from '../core/ai-usage/topic-identity-processing-grant.js';
+import {createTopicIdentitySourceProcessing,disposeTopicIdentitySourceProcessing,settleTopicIdentitySourceWork,holdTopicIdentitySourceWork,releaseTopicIdentitySourceWork} from '../core/ai-usage/topic-identity-source-processing.js';
 import {requireMaintenanceProcessingContext} from '../core/ai-usage/maintenance-processing-source-denial.js';
 import {createMaintenanceSourceProcessing,disposeMaintenanceSourceProcessing} from '../core/ai-usage/maintenance-source-processing.js';
 import {ArchiveError} from '../core/constants.js';
 import {topicRootTarget} from '../core/topic-root-target.js';
 import {MaintenanceProcessingConsent,maintenanceProcessingConsentStatus,configureMaintenanceProcessingConsent,cancelMaintenanceProcessingConsentChange,assertMaintenanceProcessingConsentStatusFacts,beginMaintenanceProcessingDisable,cancelMaintenanceProcessingDisable} from './maintenance-processing-consent.js';
-const commandOwners=new WeakMap();
+const commandOwners=new WeakMap(),identityConfigurations=new WeakMap();
 const READ='PAIA_MAINTENANCE_PROCESSING_STATUS',WRITE='PAIA_MAINTENANCE_PROCESSING_CONFIGURE';
 const fail=code=>{throw new ArchiveError(code);};
 const data=(v,k)=>{const d=v&&Object.getOwnPropertyDescriptor(v,k);if(!d||!Object.hasOwn(d,'value'))fail('INVALID_REQUEST');return d.value;};
@@ -28,14 +30,17 @@ export class MaintenanceProcessingCommands {
   let disableIntent=null;
   if(type===WRITE&&!request.enabled&&this.#registered(sender,request.expectedGeneration))disableIntent=beginMaintenanceProcessingDisable(this.#owner,this.#store,request.expectedGeneration);
   if(this.#pending.size>=8){if(disableIntent)cancelMaintenanceProcessingDisable(disableIntent,this.#owner,this.#store);fail('RESOURCE_LIMIT');}
+  const source=commandOwners.get(this),identityStops=[];let identityStopped=false;
+  const stopIdentityWork=()=>{if(identityStopped)return;identityStopped=true;source.identityStopDepth=(source.identityStopDepth||0)+1;for(const processing of [...(source.retiredIdentityProcessing||[]),source.identityProcessing].filter(Boolean))identityStops.push([processing,holdTopicIdentitySourceWork(processing,this.#store)]);};
   const pending={sender,cancelled:false,writing:disableIntent!==null};this.#pending.add(pending);const current=()=>{if(pending.cancelled)fail('FORBIDDEN');};
   try{
-   await this.#document(sender);current();if(!(await this.#store.status()).consented)fail('CONSENT_REQUIRED');current();await this.#document(sender);current();pending.writing=type===WRITE;
+   if(disableIntent)stopIdentityWork();
+   await this.#document(sender);current();if(type===WRITE&&!request.enabled&&!disableIntent){disableIntent=beginMaintenanceProcessingDisable(this.#owner,this.#store,request.expectedGeneration);pending.writing=true;stopIdentityWork();}if(disableIntent){for(const [processing]of identityStops)await settleTopicIdentitySourceWork(processing,this.#store);source.retiredIdentityProcessing?.clear();current();}if(!(await this.#store.status()).consented)fail('CONSENT_REQUIRED');current();await this.#document(sender);current();pending.writing=type===WRITE;
    const result=type===READ?await maintenanceProcessingConsentStatus(this.#owner,this.#store):await configureMaintenanceProcessingConsent(this.#owner,this.#store,{enabled:request.enabled,expectedGeneration:request.expectedGeneration,consentVersion:request.consentVersion,confirmed:request.confirmed},{disableIntent});
    current();await this.#document(sender);current();assertMaintenanceProcessingConsentStatusFacts(result,this.#owner,this.#store);
    if(type===WRITE)try{const notify=this.#api.runtime.sendMessage?.({type:'PAIA_MAINTENANCE_PROCESSING_CHANGED'});notify?.catch?.(()=>{});}catch{}
    current();assertMaintenanceProcessingConsentStatusFacts(result,this.#owner,this.#store);this.#remember(sender,result);return result;
-  }finally{if(disableIntent)cancelMaintenanceProcessingDisable(disableIntent,this.#owner,this.#store);this.#pending.delete(pending);}
+  }finally{for(const [processing,token]of identityStops)releaseTopicIdentitySourceWork(processing,this.#store,token);if(identityStopped)source.identityStopDepth--;if(disableIntent)cancelMaintenanceProcessingDisable(disableIntent,this.#owner,this.#store);this.#pending.delete(pending);}
  }
 }
 
@@ -43,17 +48,27 @@ export class MaintenanceProcessingCommands {
 // the actual Settings Commands instance and its same Store own that capture.
 export function configureMaintenanceProcessingSource(commands,store,configuration){
  if(configuration===null)return null;
- const r=commandOwners.get(commands);if(!r||r.store!==store)fail('UNAVAILABLE');
+ const r=commandOwners.get(commands);if(!r||r.store!==store||r.identityStopDepth>0)fail('UNAVAILABLE');
  if(!configuration||![Object.prototype,null].includes(Object.getPrototypeOf(configuration)))fail('INVALID_REQUEST');
  const descriptors=Object.getOwnPropertyDescriptors(configuration);if(Reflect.ownKeys(descriptors).some(k=>typeof k!=='string'||!Object.hasOwn(descriptors[k],'value')))fail('INVALID_REQUEST');
  // Existing independently supplied issuers keep their original object identity.
  if(descriptors.processing?.value!==null)return configuration;
  if(r.configuration===configuration)return r.result;
+ if((r.retiredIdentityProcessing?.size||0)>=8)fail('RESOURCE_LIMIT');
  const service=descriptors.service?.value,context=data(service,'context'),caller=data(context,'caller');
  if(!caller||!Object.isFrozen(caller))fail('UNAVAILABLE');
  requireMaintenanceProcessingContext(context);
  const processing=createMaintenanceSourceProcessing({store,consentOwner:r.owner,caller,context});
+ const grantOwner=createTopicIdentityProcessingGrant({store,consentOwner:r.owner,caller,context,processing}),topicIdentityProcessing=createTopicIdentitySourceProcessing({store,caller,grantOwner});
  const result=Object.freeze({...Object.fromEntries(Reflect.ownKeys(descriptors).map(key=>[key,descriptors[key].value])),processing});
+ identityConfigurations.set(result,{store,processing,topicIdentityProcessing});
+ if(r.identityProcessing){const previous=r.identityProcessing;(r.retiredIdentityProcessing??=new Set()).add(previous);disposeTopicIdentitySourceProcessing(previous,store);settleTopicIdentitySourceWork(previous,store).then(()=>r.retiredIdentityProcessing.delete(previous),()=>{});}
+ if(r.identityGrant)disposeTopicIdentityProcessingGrant(r.identityGrant,store);
+ r.identityProcessing=topicIdentityProcessing;r.identityGrant=grantOwner;
  if(r.processing)disposeMaintenanceSourceProcessing(r.processing,store);
  r.configuration=configuration;r.result=result;r.processing=processing;return result;
 }
+
+// Exact static assembly only. Configuration copies cannot install identity
+// authority; absence keeps the old independently supplied route unchanged.
+export function configuredMaintenanceTopicIdentityProcessing(configuration,store){const held=identityConfigurations.get(configuration);if(!held)return null;if(held.store!==store||configuration.processing!==held.processing)fail('UNAVAILABLE');return held.topicIdentityProcessing;}

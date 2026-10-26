@@ -21,6 +21,12 @@ function recordFor(guard,t,{create=false}={}){
 }
 
 
+function processingMode(guard,t){
+ const record=recordFor(guard,t);if(!record.uses.length)fail();
+ const legacy=record.uses.some(use=>use===null),genuine=record.uses.some(use=>use!==null);
+ if(legacy&&genuine)fail();return genuine?'authority':'legacy';
+}
+
 function processingCurrent(guard,t){
   const record=recordFor(guard,t);if(!record.uses.length||record.uses.some(x=>x===null)||!record.budget)fail();
   contextScopeTransactionReader(guard.store,record.scope,record.budget);
@@ -78,6 +84,7 @@ export class TopicProcessingGuard {
   readTopicProcessingAuthority(cap,this.store,t,request);record.budget=budget;record.uses.push(Object.freeze({cap,request,epoch,restoreEpoch:held.scope.restoreEpoch}));
   return epoch;
  }
+ processingMode(t){return processingMode(this,t);}
  assertProcessingCurrent(t){return processingCurrent(this,t);}
  assertProcessingFacts(t,options){return processingFacts(this,t,options);}
  registerProcessingFinalFence(t,{qualification=null}={}){

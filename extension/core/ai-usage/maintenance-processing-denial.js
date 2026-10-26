@@ -41,7 +41,7 @@ export function createMaintenanceProcessingDenyCell(configuration){
 }
 export function retireMaintenanceProcessingDenyCell(cell){const record=cells.get(cell);need(record);record.retired=true;return true;}
 export function assertMaintenanceProcessingDenyCellFacts(cell){const record=cells.get(cell);need(record);return current(record);}
-export function bindMaintenanceProcessingRawDenials(raw,store,selected){
+export function bindMaintenanceProcessingRawDenials(raw,store,selected,parents=[]){
  need(object(raw)&&object(store)&&!raws.has(raw)&&Array.isArray(selected));
  const length=data(selected,'length'),names=keys(selected);
  need(Number.isSafeInteger(length)&&length>=1&&length<=8&&names.length===length+1&&names.every(key=>key==='length'||typeof key==='string'&&/^(0|[1-9][0-9]*)$/.test(key)&&Number(key)<length));
@@ -49,6 +49,15 @@ export function bindMaintenanceProcessingRawDenials(raw,store,selected){
  for(let i=0;i<length;i++){
   const cell=data(selected,String(i)),record=cells.get(cell);need(record&&record.store===store&&!tokens.includes(cell));current(record);
   repository??=record.repository;database??=record.database;need(record.repository===repository&&record.database===database);tokens.push(cell);records.push(record);
+ }
+ // A bounded original receipt can contribute only its already-bound deny
+ // records. This is not positive authority, a callback, a cell reader or a
+ // refresh. Copies, foreign-store parents and retired cells are rejected.
+ need(Array.isArray(parents));const parentLength=data(parents,'length'),parentNames=keys(parents);
+ need(Number.isSafeInteger(parentLength)&&parentLength>=0&&parentLength<=8&&parentNames.length===parentLength+1&&parentNames.every(key=>key==='length'||typeof key==='string'&&/^(0|[1-9][0-9]*)$/.test(key)&&Number(key)<parentLength));
+ const seenParents=new Set();for(let i=0;i<parentLength;i++){
+  const parent=data(parents,String(i)),held=raws.get(parent);need(parent!==raw&&!seenParents.has(parent)&&held&&held.store===store);seenParents.add(parent);
+  for(const record of held.records){current(record);need(record.repository===repository&&record.database===database);if(!records.includes(record)){need(records.length<8);records.push(record);}}
  }
  // Publish this private association once. No exported operation can delete,
  // append to, replace, refresh or reactivate it, including ordinary cleanup.
