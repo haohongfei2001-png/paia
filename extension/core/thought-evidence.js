@@ -1,6 +1,7 @@
 import {assertMaintenanceQualification,maintenanceQualificationReader,chargeMaintenanceQualificationHash} from './ai-usage/maintenance-qualification.js';
 import {hashText} from './dedupe.js';
 import {fail,keys,idOK,keyedHash,same} from './thought-model.js';
+import {withOriginalRecoveryStoreAdmission} from './indexed-store.js';
 
 export async function inputProjection(store,t,inputId) {
  const b=(await t.get('blocks',inputId))?.value,m=await t.get('inputStates',inputId);
@@ -14,14 +15,14 @@ export async function inputProjection(store,t,inputId) {
  }
  return {inputId,documentId:b.documentId,contentRevision:m.contentRevision,lastRemovalSequence:m.lastRemovalSequence||0,body:b.libraryText??original,note:b.note||'',sourceRecordIds:sources.sort(),identities:identities.sort(),block:b};
 }
-export async function evidenceFor(store,specs,{independentContext=false,qualification=null}={}) {
+export async function evidenceFor(store,specs,{independentContext=false,qualification=null,recoveryWork=null}={}) {
  if(qualification!==null)assertMaintenanceQualification(qualification,store);
- await store.finishFoundation();
+ await store.finishFoundation({recoveryWork});
  if(!Array.isArray(specs)||specs.length>100||new Set(specs.map(x=>x?.inputId)).size!==specs.length)fail();
  let contexts=0;
  for(const s of specs){keys(s,['inputId','role','selectedFields','anchorId'],['inputId','role','selectedFields']);if(!idOK(s.inputId)||!['primary','supporting','context_only'].includes(s.role)||!Array.isArray(s.selectedFields)||!s.selectedFields.length||new Set(s.selectedFields).size!==s.selectedFields.length||s.selectedFields.some(f=>!['body','note'].includes(f)))fail();if(s.role==='context_only')contexts++;}
  if(contexts>2)fail();
- const data=await store.run(()=>store.repository.transaction(false,async t=>{
+ const enqueue=()=>store.run(()=>store.repository.transaction(false,async t=>{
   if(qualification!==null)t=maintenanceQualificationReader(qualification,store,t,{topicLabels:true});
   const gate=(await t.get('meta','thought-library'))||{};if(gate.sealed)fail();
   const secret=(await t.get('meta','thought-suppression-key')).value,epoch=(await t.get('meta','thought-epoch'))?.value||0,rows=[];
@@ -35,6 +36,7 @@ export async function evidenceFor(store,specs,{independentContext=false,qualific
   }
   return {rows,secret,epoch};
  }));
+ const data=await (recoveryWork===null?enqueue():withOriginalRecoveryStoreAdmission(store,recoveryWork,enqueue));
  const evidence=[];
  for(let i=0;i<specs.length;i++) {
   if(qualification!==null)assertMaintenanceQualification(qualification,store);

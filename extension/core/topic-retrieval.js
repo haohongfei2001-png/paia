@@ -44,7 +44,7 @@ export class TopicIdentityRetrieval {
   const prepared=await this.prepare({scope,names});
   const state=cursor?await this.verify(prepared,cursor):{version:VERSION,authority:publicTopicAuthority(prepared.authority),requestKey:prepared.requestKey,phase:'topics',after:null,visited:0,unavailable:0,removedNameMatch:false};
   if(state.phase==='complete')fail();
-  const result=await this.store.run(()=>this.store.repository.transaction(false,async t=>{
+  const result=await this.guard.run(()=>this.store.repository.transaction(false,async t=>{
    await this.guard.check(t,prepared);t=this.guard.reader(t);const items=[];let unavailable=state.unavailable,removedNameMatch=state.removedNameMatch;
    const page=state.phase==='topics'?await t.page('topics',{after:state.after??undefined,limit}):await t.primaryRangePage('meta',{prefix:PAIR_PREFIX,after:state.after,limit});
    const topicIds=new Set(page.rows.flatMap(({value:row})=>state.phase==='topics'?[row.id]:[row.sourceId,row.targetId]));
@@ -72,13 +72,13 @@ export class TopicIdentityRetrieval {
   }));
   const proof=await this.sign(prepared,result.state);
   // Hashing occurs outside IndexedDB. Recheck after that asynchronous gap too.
-  await this.store.run(()=>this.store.repository.transaction(false,async t=>{await this.guard.check(t,prepared);if(await this.guard.processing(t,prepared.evidence,result.authorizedTopicIds)!==prepared.authority.processingEpoch)fail();}));
+  await this.guard.run(()=>this.store.repository.transaction(false,async t=>{await this.guard.check(t,prepared);if(await this.guard.processing(t,prepared.evidence,result.authorizedTopicIds)!==prepared.authority.processingEpoch)fail();}));
   return {items:result.items,nextCursor:result.state.phase==='complete'?null:proof,coverage:proof,complete:result.state.phase==='complete',creationAllowed:false,identityProof:false};
  }
  async prepareCoverage({scope,names=[],coverage}){const prepared=await this.prepare({scope,names});const verified=await this.verify(prepared,coverage,{complete:true});return {...prepared,removedNameMatch:verified.removedNameMatch};}
  async constraintProof(prepared,{nameTokens=[],relatedTopicIds=[]}={}){
   if(!Array.isArray(nameTokens)||nameTokens.length>8||nameTokens.some(x=>!signatureOK(x))||!Array.isArray(relatedTopicIds)||relatedTopicIds.length>20||relatedTopicIds.some(x=>!idOK(x)))fail();
-  const read=fn=>this.store.run(()=>this.store.repository.transaction(false,async t=>{await this.guard.check(t,prepared);return fn(this.guard.reader(t));}));
+  const read=fn=>this.guard.run(()=>this.store.repository.transaction(false,async t=>{await this.guard.check(t,prepared);return fn(this.guard.reader(t));}));
   const resolve=async(t,ids)=>{const authorized=new Set(ids),resolver={get:async(name,id)=>{if(name==='topics')authorized.add(id);return t.get(name,id);}},rows=[];for(const id of ids)rows.push(await resolveTopicIdentity(resolver,id));if(await this.guard.processing(t,prepared.evidence,[...authorized])!==prepared.authority.processingEpoch)fail();return {rows,authorizedTopicIds:[...authorized]};};
   const initial=await read(t=>resolve(t,relatedTopicIds)),targets=new Set(initial.rows.map(row=>row.id));
   let blocked=prepared.removedNameMatch===true||initial.rows.some(row=>!['active','dormant'].includes(row.lifecycle)||row.layoutJobId),after=null,topicRows=0,constraintRows=0;
@@ -104,6 +104,6 @@ export class TopicIdentityRetrieval {
  }
  async withCoverage(request,write){
   const prepared=await this.prepareCoverage(request);
-  return this.store.foundationWrite(async t=>{await this.guard.check(t,prepared);return write(t,prepared);});
+  return this.guard.write(async t=>{await this.guard.check(t,prepared);return write(t,prepared);});
  }
 }

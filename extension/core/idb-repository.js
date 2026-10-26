@@ -1,3 +1,4 @@
+import {readOriginalRecoveryStoreExecution} from './indexed-store.js';
 import {measureSourceWorkingPhysicalTree} from './browser-native-sync/source-working-physical.js';
 import {requireMaintenanceProcessingPurposeFinalFacts} from '../background/maintenance-processing-consent.js';
 import {requireTopicProcessingFinalFacts} from './topic-processing.js';
@@ -106,6 +107,10 @@ export function chargeOriginalRecoveryWork(repository,ticket,length,references=1
  p.refs+=references;p.bytes+=length;recoveryWork(ticket,repository);
 }
 export function checkOriginalRecoveryWork(repository,ticket){recoveryWork(ticket,repository);}
+// An explicit original task may only join the already-open same-ticket window.
+// This is a restriction, never a way to opt out of the physical ledger.
+export function requireOriginalRecoveryWorkWindow(repository,ticket){const p=recoveryWork(ticket,repository);if(!p.window||ordinaryRecoveryWindows.get(repository)!==ticket)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');return true;}
+export function readOriginalRecoveryTransactionWork(repository,scope){requireRepositoryTransactionScope(repository,scope);return repositoryScopes.get(scope).recoveryWork??null;}
 // Read-only time remaining on this exact original invocation; never a new clock.
 export function remainingOriginalRecoveryWork(repository,ticket){return Math.max(0,recoveryWork(ticket,repository).deadline-workClock());}
 export function tightenOriginalRecoveryWork(repository,ticket,ms){const p=recoveryWork(ticket,repository);if(!Number.isFinite(ms)||ms<=0||ms>30000){p.failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}p.deadline=Math.min(p.deadline,workClock()+ms);}
@@ -473,9 +478,13 @@ export class ArchiveRepository {
    r.onerror=()=>reject(fail());r.onblocked=()=>{blocked=true;reject(fail());};r.onsuccess=()=>{const db=r.result;if(blocked){db.close();return;}db.onversionchange=()=>{db.close();this.db=null;};resolve(db);};
   });
  }
- async transaction(write,fn,stores=this.stores){
+ async transaction(write,fn,stores=this.stores,explicitRecoveryWork=undefined){
   const writeState=repositoryWrites.get(this);if(!writeState)throw fail();
-  const recoveryTicket=ordinaryRecoveryWindows.get(this),recovery=recoveryTicket?recoveryWork(recoveryTicket,this):null;
+  const execution=readOriginalRecoveryStoreExecution(this);
+  if(execution?.interfered&&(explicitRecoveryWork!==undefined||ordinaryRecoveryWindows.has(this)))throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
+  if(explicitRecoveryWork!==undefined)requireOriginalRecoveryWorkWindow(this,explicitRecoveryWork);
+  const recoveryTicket=explicitRecoveryWork!==undefined?explicitRecoveryWork:execution===null?ordinaryRecoveryWindows.get(this):execution.recoveryWork;
+  const recovery=recoveryTicket?recoveryWork(recoveryTicket,this):null;
   if(recovery?.pending){recovery.failed=true;if(recovery.scope)workAbort(recovery.scope);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
   let recoveryPending;if(recovery){let resolve;recoveryPending={settled:new Promise(r=>resolve=r),resolve:()=>resolve()};recovery.pending=recoveryPending;}
   try{

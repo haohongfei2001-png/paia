@@ -1,0 +1,33 @@
+TAP version 13
+# Subtest: Q4 original recovery window cannot adopt an unrelated queued Store prelude
+not ok 1 - Q4 original recovery window cannot adopt an unrelated queued Store prelude
+  ---
+  duration_ms: 30.936951
+  type: 'test'
+  location: '/tmp/paia-q4-cold-worker-regression-20261026T0611Z/extension/tests/q4-recovery-store-execution-binding.test.mjs:10:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    an independent Store execution must not inherit the maintenance ticket
+    
+    {} !== null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/paia-q4-cold-worker-regression-20261026T0611Z/extension/tests/q4-recovery-store-execution-binding.test.mjs:28:42)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# {"events":["owner-queue-task-complete","independent-prelude-acquisition","owner-action-returning"],"ownerHasOriginalTicket":true,"independentInheritedTicket":true,"requests":[{"table":"meta","key":"local-control-publication:revision"},{"table":"meta","key":"local-control-publication:reservation"},{"table":"meta","key":"migration"},{"table":"meta","key":"gate"},{"table":"meta","key":"recovery-restore-epoch"},{"table":"meta","key":"local-control-publication:revision"},{"table":"meta","key":"local-control-publication:reservation"},{"table":"meta","key":"migration"},{"table":"meta","key":"gate"},{"table":"meta","key":"recovery-restore-epoch"},{"table":"meta","key":"SYNTHETIC-owner-row"}],"outcomes":[{"status":"rejected","error":{"code":"BNS_GROUP_RESOURCE_LIMIT","message":"BNS_GROUP_RESOURCE_LIMIT","stack":"Error: BNS_GROUP_RESOURCE_LIMIT\\n    at withOriginalRecoveryWork (file:///tmp/paia-q4-cold-worker-regression-20261026T0611Z/extension/core/idb-repository.js:121:72)"}},{"status":"rejected","error":{"code":"BNS_GROUP_RESOURCE_LIMIT","message":"BNS_GROUP_RESOURCE_LIMIT","stack":"Error: BNS_GROUP_RESOURCE_LIMIT\\n    at recoveryWork (file:///tmp/paia-q4-cold-worker-regression-20261026T0611Z/extension/core/idb-repository.js:92:61)\\n    at ArchiveRepository.transaction (file:///tmp/paia-q4-cold-worker-regression-20261026T0611Z/extension/core/idb-repository.js:484:33)\\n    at async file:///tmp/paia-q4-cold-worker-regression-20261026T0611Z/extension/core/indexed-store.js:104:17"}}],"firstDeadlineNotRenewed":null}
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 322.133634

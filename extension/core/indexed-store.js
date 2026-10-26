@@ -5,7 +5,7 @@ import {prepareRemoval,expandRemoval,validateRemovalEdit} from './archive-remova
 import {queryPage} from './archive-query.js';
 import {OperationAttemptLedger,validateOperationQuery} from './operation-outcome.js';
 import {captureIsExcluded,clearReadingTargets,clearPurgedReaderPolicy} from './reader-state.js';
-import {ArchiveRepository,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
+import {ArchiveRepository,requireOriginalRecoveryWorkWindow,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
 import {ADAPTER_VERSION,CONSENT_VERSION,STORAGE_KEY,ArchiveError,STATUS_CODES,ERROR_CODES} from './constants.js';
 import {validateCapture,validateEnrichment,validateChanges,canonicalChat} from './validation.js';
 import {identify,identifySource,hashText} from './dedupe.js';
@@ -41,6 +41,20 @@ const error=code=>{throw new ArchiveError(code);};
 const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(!c.settings.enabled)error('PAUSED');if(epoch!==c.settings.epoch)error('STALE_CAPTURE');};
 const localPublicationOwners=new WeakMap(),originalLocalControls=new WeakMap(),nativeControlObservations=new WeakMap(),originalControlIdentityFailures=new WeakMap();
 const promptControlExecutions=new WeakMap(),promptActiveExecutions=new WeakMap(),promptControlObservations=new WeakMap();
+const recoveryStoreAdmissions=new WeakMap(),recoveryStoreExecutions=new WeakMap(),recoveryRepositoryStores=new WeakMap();
+// A synchronous enqueue seam, not an ambient async tag. Only the original run
+// creates the execution that Repository can recognize, including its prelude.
+export function withOriginalRecoveryStoreAdmission(store,ticket,enqueue){
+ if(!originalLocalControls.has(store)||recoveryRepositoryStores.get(store.repository)!==store||typeof enqueue!=='function'||recoveryStoreAdmissions.has(store))error('BNS_GROUP_RESOURCE_LIMIT');
+ requireOriginalRecoveryWorkWindow(store.repository,ticket);recoveryStoreAdmissions.set(store,ticket);
+ try{return enqueue();}finally{recoveryStoreAdmissions.delete(store);}
+}
+export function readOriginalRecoveryStoreExecution(repository){
+ const store=recoveryRepositoryStores.get(repository);if(!store)return null;
+ if(store.repository!==repository)error('BNS_GROUP_RESOURCE_LIMIT');
+ const active=recoveryStoreExecutions.get(store);if(!active?.size)return null;if(active.size!==1||[...active][0].interfered)return Object.freeze({interfered:true});return Object.freeze({recoveryWork:[...active][0].recoveryWork});
+}
+
 // This records only an existing original rejection. It cannot qualify a read
 // or turn an adapter's own error into native evidence.
 export function originalControlIdentityFailure(store,reason){return originalControlIdentityFailures.has(reason)&&originalControlIdentityFailures.get(reason)===store;}
@@ -88,8 +102,11 @@ export function requireOriginalConsumerPublicationEvidence(store,reservation,kin
 }
 export class IndexedArchiveStore {
  #preferencePublication=null;
- constructor(local,options={}){originalLocalControls.set(this,{local,get:local.get,set:local.set,kind:local===globalThis.chrome?.storage?.local?'chrome-sdk':'original-injected-adapter'});this.local=local;this.repository=new ArchiveRepository(local,options);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;this.consumerPreferenceJournal=options.consumerPreferenceJournal??null;this.localPublicationTerminal=local===globalThis.chrome?.storage?.local||options.localPublicationTerminal===true;}
- run(fn){const task=this.tail.then(async()=>{
+ constructor(local,options={}){originalLocalControls.set(this,{local,get:local.get,set:local.set,kind:local===globalThis.chrome?.storage?.local?'chrome-sdk':'original-injected-adapter'});this.local=local;this.repository=new ArchiveRepository(local,options);recoveryRepositoryStores.set(this.repository,this);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;this.consumerPreferenceJournal=options.consumerPreferenceJournal??null;this.localPublicationTerminal=local===globalThis.chrome?.storage?.local||options.localPublicationTerminal===true;}
+ run(fn){const recoveryWork=recoveryStoreAdmissions.get(this)??null,repository=this.repository;const task=this.tail.then(async()=>{
+  if(this.repository!==repository)error('BNS_GROUP_RESOURCE_LIMIT');
+  if(recoveryWork!==null)requireOriginalRecoveryWorkWindow(repository,recoveryWork);
+  const recoveryExecution={recoveryWork,interfered:false};let recoveryActive=recoveryStoreExecutions.get(this);if(!recoveryActive){recoveryActive=new Set();recoveryStoreExecutions.set(this,recoveryActive);}if(recoveryActive.size){recoveryExecution.interfered=true;for(const prior of recoveryActive)prior.interfered=true;}recoveryActive.add(recoveryExecution);
   // Install before any prelude await. An overlapping genuine run permanently
   // supersedes this opaque execution; neither completion nor this prelude may
   // restore an older execution after a public-tail alias. Any overlap also
@@ -107,7 +124,7 @@ export class IndexedArchiveStore {
    localPublicationOwners.set(this,owner);execution.owner=owner;
    this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;if(#preferencePublication in this)this.#preferencePublication=null;this.changedSources=new Set();
    return await fn();
-  }finally{execution.active=false;active.delete(execution);if(!active.size)promptActiveExecutions.delete(this);if(promptControlExecutions.get(this)===execution)promptControlExecutions.delete(this);}
+  }finally{recoveryActive.delete(recoveryExecution);if(!recoveryActive.size)recoveryStoreExecutions.delete(this);execution.active=false;active.delete(execution);if(!active.size)promptActiveExecutions.delete(this);if(promptControlExecutions.get(this)===execution)promptControlExecutions.delete(this);}
  });this.tail=task.catch(()=>{});return task;}
  // Explicit startup repair of an original local publication, never a replay.
  // Prepared but unobserved SDK writes remain held: a restart is not an ACK.

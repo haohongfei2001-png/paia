@@ -68,11 +68,11 @@ export class HiddenTopicCandidates {
   // The optional original direct APIs remain compatible. This new cross-window
   // seam, however, always requires the original independently granted reader.
   const qualification=this.retrieval.guard.qualification();if(qualification===null)fail();
-  await this.store.run(()=>this.store.repository.transaction(false,t=>this.assertSelectionInTransaction(t,token)));
+  await this.retrieval.guard.run(()=>this.store.repository.transaction(false,t=>this.assertSelectionInTransaction(t,token)));
   const prepared=await this.retrieval.guard.prepare(scope),keyToken=await this.keyToken(prepared);
   if(!this.current(held.snapshot,prepared,keyToken))fail();
   const proof=await this.retrieval.constraintProof(prepared,{nameTokens:held.snapshot.nameTokens,relatedTopicIds:held.snapshot.relatedTopicIds});if(proof.blocked)fail();
-  await this.store.run(()=>this.store.repository.transaction(false,async t=>{await this.assertSelectionInTransaction(t,token);await this.retrieval.guard.check(t,prepared);if(!await this.retrieval.checkConstraintProof(t,prepared,proof))fail();}));
+  await this.retrieval.guard.run(()=>this.store.repository.transaction(false,async t=>{await this.assertSelectionInTransaction(t,token);await this.retrieval.guard.check(t,prepared);if(!await this.retrieval.checkConstraintProof(t,prepared,proof))fail();}));
   if(this.retrieval.guard.qualification()!==qualification)fail();
   const qualified=Object.freeze({});selections.set(qualified,{...held,prepared,keyToken,proof,qualification,parent:held});return qualified;
  }
@@ -105,7 +105,7 @@ export class HiddenTopicCandidates {
   if(row.evidence.some(e=>!same(e,current.get(e.inputId))))return false;
   return true;
  }
- async record(request){const prepared=await this.prepareRecord(request);return this.store.foundationWrite(t=>this.recordPreparedInTransaction(t,prepared));}
+ async record(request){const prepared=await this.prepareRecord(request);return this.retrieval.guard.write(t=>this.recordPreparedInTransaction(t,prepared));}
  async prepareRecord(request,{candidate=null}={}){
   keys(request,['scope','names','coverage','candidateId','expectedRevision','relatedTopicIds','boundaryKey'],['scope','coverage']);
   const selected=candidate===null?null:selection(this,candidate,{qualified:true});
@@ -119,7 +119,7 @@ export class HiddenTopicCandidates {
   // is semantic identity proof. With no key this is just an unresolved bundle.
   const boundaryToken=selected?selected.snapshot.boundaryToken:await keyedHash(prepared.authority.secret,['topic-candidate-boundary-v1',boundaryKey]);
   const id=candidateId||TOPIC_CANDIDATE_PREFIX+await keyedHash(prepared.authority.secret,boundaryKey!==null?['topic-candidate-boundary-work-v1',boundaryToken]:['topic-candidate-evidence-v1',boundaryToken,prepared.evidence.map(e=>[e.inputId,e.scopeToken]).sort((a,b)=>a[0].localeCompare(b[0]))]);
-  const rawSnapshot=await this.store.run(()=>this.store.repository.transaction(false,t=>t.get(TABLE,id))),snapshot=rawSnapshot?candidateMetadata(rawSnapshot):rawSnapshot;if(snapshot)this.validate(snapshot);
+  const rawSnapshot=await this.retrieval.guard.run(()=>this.store.repository.transaction(false,t=>t.get(TABLE,id))),snapshot=rawSnapshot?candidateMetadata(rawSnapshot):rawSnapshot;if(snapshot)this.validate(snapshot);
   if(selected&&(!same(snapshot,selected.snapshot)||!this.current(snapshot,prepared,keyToken)))fail();
   const nameTokens=unique([...(snapshot?.nameTokens||[]),...prepared.nameTokens]),related=unique([...(snapshot?.relatedTopicIds||[]),...relatedTopicIds]);
   const proof=await this.retrieval.constraintProof(prepared,{nameTokens,relatedTopicIds:related});
@@ -142,11 +142,11 @@ export class HiddenTopicCandidates {
   keys(request,['scope','names','coverage','targetId','sourceId','expectedTargetRevision','expectedSourceRevision'],['scope','coverage','targetId','sourceId','expectedTargetRevision','expectedSourceRevision']);
   if(!candidateIdOK(request.targetId)||!candidateIdOK(request.sourceId)||request.targetId===request.sourceId||!revisionOK(request.expectedTargetRevision)||!revisionOK(request.expectedSourceRevision))fail();
   const prepared=await this.retrieval.prepareCoverage(request),keyToken=await this.keyToken(prepared);
-  const snapshots=await this.store.run(()=>this.store.repository.transaction(false,async t=>[await t.get(TABLE,request.targetId),await t.get(TABLE,request.sourceId)]));
+  const snapshots=await this.retrieval.guard.run(()=>this.store.repository.transaction(false,async t=>[await t.get(TABLE,request.targetId),await t.get(TABLE,request.sourceId)]));
   if(snapshots.some(row=>!row))return {conflict:true};for(const row of snapshots)this.validate(row);
   const nameTokens=unique([...snapshots[0].nameTokens,...snapshots[1].nameTokens,...prepared.nameTokens]),relatedTopicIds=unique([...snapshots[0].relatedTopicIds,...snapshots[1].relatedTopicIds]);
   const proof=await this.retrieval.constraintProof(prepared,{nameTokens,relatedTopicIds});
-  return this.store.foundationWrite(async t=>{
+  return this.retrieval.guard.write(async t=>{
    await this.retrieval.guard.check(t,prepared);const a=await t.get(TABLE,request.targetId),b=await t.get(TABLE,request.sourceId);
    if(!a||!b||!same([a,b],snapshots)||a.revision!==request.expectedTargetRevision||b.revision!==request.expectedSourceRevision)return {conflict:true};
    if(!this.current(a,prepared,keyToken)||!this.current(b,prepared,keyToken))fail();
@@ -157,16 +157,16 @@ export class HiddenTopicCandidates {
   });
  }
  async read(id){
-  if(!candidateIdOK(id))fail();await this.store.finishFoundation();
-  const old=await this.store.run(()=>this.store.repository.transaction(false,t=>t.get(TABLE,id)));if(!old)return null;this.validate(old);
+  if(!candidateIdOK(id))fail();await this.store.finishFoundation({recoveryWork:this.retrieval.guard.recoveryWork()});
+  const old=await this.retrieval.guard.run(()=>this.store.repository.transaction(false,t=>t.get(TABLE,id)));if(!old)return null;this.validate(old);
   let prepared;try{prepared=await this.retrieval.guard.prepare(scopeFor(old.evidence));}catch(error){if(error?.code==='INVALID_REQUEST')return null;throw error;}
   const keyToken=await this.keyToken(prepared);
-  try{if(!this.current(old,prepared,keyToken))return null;const proof=await this.retrieval.constraintProof(prepared,{nameTokens:old.nameTokens,relatedTopicIds:old.relatedTopicIds});return await this.store.run(()=>this.store.repository.transaction(false,async t=>{await this.retrieval.guard.check(t,prepared);const row=await t.get(TABLE,id);if(!row||!same(row,old)||!this.current(row,prepared,keyToken)||!await this.retrieval.checkConstraintProof(t,prepared,proof))return null;return row;}));}catch(error){if(error?.code==='INVALID_REQUEST')return null;throw error;}
+  try{if(!this.current(old,prepared,keyToken))return null;const proof=await this.retrieval.constraintProof(prepared,{nameTokens:old.nameTokens,relatedTopicIds:old.relatedTopicIds});return await this.retrieval.guard.run(()=>this.store.repository.transaction(false,async t=>{await this.retrieval.guard.check(t,prepared);const row=await t.get(TABLE,id);if(!row||!same(row,old)||!this.current(row,prepared,keyToken)||!await this.retrieval.checkConstraintProof(t,prepared,proof))return null;return row;}));}catch(error){if(error?.code==='INVALID_REQUEST')return null;throw error;}
  }
  async lookupBoundary({scope,boundaryKey}){
   if(!tokenOK(boundaryKey))fail();const prepared=await this.retrieval.guard.prepare(scope),boundaryToken=await keyedHash(prepared.authority.secret,['topic-candidate-boundary-v1',boundaryKey]);
   const id=TOPIC_CANDIDATE_PREFIX+await keyedHash(prepared.authority.secret,['topic-candidate-boundary-work-v1',boundaryToken]),row=await this.read(id);
-  await this.store.run(()=>this.store.repository.transaction(false,t=>this.retrieval.guard.check(t,prepared)));return row;
+  await this.retrieval.guard.run(()=>this.store.repository.transaction(false,t=>this.retrieval.guard.check(t,prepared)));return row;
  }
  // Admission consumes a fully accounted-for evidence bundle, never identity
  // inferred from its opaque key. Prepared handles are instance/store-bound.
@@ -174,7 +174,7 @@ export class HiddenTopicCandidates {
   if(!candidateIdOK(candidateId)||!revisionOK(expectedRevision)||boundaryKey!==null&&!tokenOK(boundaryKey))fail();
   const selected=candidate===null?null:selection(this,candidate,{qualified:true});
   if(selected&&(boundaryKey!==null||candidateId!==selected.snapshot.id||expectedRevision!==selected.snapshot.revision))fail();
-  if(selected)await this.store.run(()=>this.store.repository.transaction(false,t=>this.assertSelectionInTransaction(t,candidate)));
+  if(selected)await this.retrieval.guard.run(()=>this.store.repository.transaction(false,t=>this.assertSelectionInTransaction(t,candidate)));
   const snapshot=selected?structuredClone(selected.snapshot):await this.read(candidateId);if(!snapshot||snapshot.revision!==expectedRevision)fail();
   const prepared=await this.retrieval.guard.prepare(scope),keyToken=await this.keyToken(prepared),boundaryToken=selected?snapshot.boundaryToken:await keyedHash(prepared.authority.secret,['topic-candidate-boundary-v1',boundaryKey]);
   if(!this.current(snapshot,prepared,keyToken)||snapshot.boundaryToken!==boundaryToken)fail();
@@ -190,11 +190,11 @@ export class HiddenTopicCandidates {
  }
  async discard({candidateId,expectedRevision}){
   if(!candidateIdOK(candidateId)||!revisionOK(expectedRevision))fail();
-  return this.store.foundationWrite(async t=>{const row=await t.get(TABLE,candidateId);if(!row)return {discarded:true};this.validate(row);if(row.revision!==expectedRevision)return {conflict:true};await t.delete(TABLE,candidateId);return {discarded:true};});
+  return this.retrieval.guard.write(async t=>{const row=await t.get(TABLE,candidateId);if(!row)return {discarded:true};this.validate(row);if(row.revision!==expectedRevision)return {conflict:true};await t.delete(TABLE,candidateId);return {discarded:true};});
  }
  async maintain({cursor=null,limit=50}={}){
-  if(!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&!candidateIdOK(cursor))fail();await this.store.finishFoundation();
-  const page=await this.store.run(()=>this.store.repository.transaction(false,t=>t.primaryRangePage(TABLE,{prefix:TOPIC_CANDIDATE_PREFIX,after:cursor,limit})));
+  if(!Number.isInteger(limit)||limit<1||limit>100||cursor!==null&&!candidateIdOK(cursor))fail();await this.store.finishFoundation({recoveryWork:this.retrieval.guard.recoveryWork()});
+  const page=await this.retrieval.guard.run(()=>this.store.repository.transaction(false,t=>t.primaryRangePage(TABLE,{prefix:TOPIC_CANDIDATE_PREFIX,after:cursor,limit})));
   let discarded=0;for(const {value:row}of page.rows){if(!await this.read(row.id)){const outcome=await this.discard({candidateId:row.id,expectedRevision:row.revision});if(outcome.discarded)discarded++;}}
   return {visited:page.rows.length,discarded,nextCursor:page.next,complete:!page.next};
  }

@@ -1,5 +1,6 @@
 import {prefix,fail,markHuman} from './thought-model.js';
 import {inputProjection} from './thought-evidence.js';
+import {withOriginalRecoveryStoreAdmission} from './indexed-store.js';
 export const BINDING_ROW='thought-binding:v1',REVERSE_ROW='thought-reverse-edit:v1';
 export const validReverse=row=>!!row&&row.version===1&&typeof row.enabled==='boolean'&&Object.keys(row).every(k=>['id','version','enabled'].includes(k));
 const primary=r=>r.roles?.some(x=>x!=='context_only');
@@ -31,9 +32,10 @@ export async function classifyBinding(store,t,row,previousInput=null){
  return {bodyBinding:'thought'};
 }
 export function applyBinding(row,binding){delete row.workingInputId;delete row.bindingRevision;delete row.bindingLength;Object.assign(row,binding);return row;}
-export async function migrateBindings(store,{limit=100,maxBatches=Infinity}={}){
+export async function migrateBindings(store,{limit=100,maxBatches=Infinity,recoveryWork=null}={}){
+ const run=fn=>recoveryWork===null?store.run(fn):withOriginalRecoveryStoreAdmission(store,recoveryWork,()=>store.run(fn));
  for(let i=0;i<maxBatches;i++){
-  const marker=await store.run(()=>store.repository.transaction(true,async t=>{
+  const marker=await run(()=>store.repository.transaction(true,async t=>{
    const m=await t.get('meta',BINDING_ROW)||{id:BINDING_ROW,version:1,cursor:null,complete:false,input:0,thought:0};if(m.version!==1)fail();if(m.complete)return m;
    const page=await t.page('thoughts',{after:m.cursor??undefined,limit});
    for(const {value:row}of page.rows){if(row.storageSchema!==2||row.lifecycle==='quarantined')continue;const state=await classifyBinding(store,t,row);if(!row.bodyBinding&&state.bodyBinding==='thought'&&(row.workingInputId||row.provenanceType==='input_original'||row.hasHumanAction)&&row.protections?.body)row.protections.body.locked=true;applyBinding(row,state);m[state.bodyBinding]++;await t.put('thoughts',row);}
@@ -41,7 +43,7 @@ export async function migrateBindings(store,{limit=100,maxBatches=Infinity}={}){
    if(!await t.get('meta',REVERSE_ROW))await t.put('meta',{id:REVERSE_ROW,version:1,enabled:false});return m;
   }));if(marker.complete)return marker;await store.repository.checkpoint('thought-binding-batch');
  }
- return store.run(()=>store.repository.transaction(false,t=>t.get('meta',BINDING_ROW),['meta']));
+ return run(()=>store.repository.transaction(false,t=>t.get('meta',BINDING_ROW),['meta']));
 }
 export async function bindingRead(store,t,row){
  const safe=structuredClone(row);applyBinding(safe,await classifyBinding(store,t,row));

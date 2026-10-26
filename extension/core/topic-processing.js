@@ -1,3 +1,4 @@
+import {withOriginalRecoveryStoreAdmission} from './indexed-store.js';
 import {readTopicProcessingAuthority,readTopicProcessingAuthorityFacts,topicProcessingAuthorityWorkBudget,captureTopicProcessingLeaseFacts,assertTopicProcessingLeaseFacts} from './topic-processing-authority.js';
 import {requireRepositoryTransactionScope,registerRepositoryFinalReadFence} from './idb-repository.js';
 import {contextScopeTransactionReader,assertContextScopeWorkBudgetFacts,CONTEXT_TOPIC_SCOPE_LIMITS} from './context-topic-scope.js';
@@ -61,7 +62,11 @@ export function assertTopicProcessingReadFacts(token,store){
 // No production resolver is installed by this slice. A future trusted service
 // must authorize the exact bounded Input scope and return its current epoch.
 export class TopicProcessingGuard {
- constructor(store,{resolveProcessing=null,resolveQualification=null,resolveOwnMutation=null,strictQualification=false}={}){if(typeof strictQualification!=='boolean')fail();Object.defineProperty(this,'strictQualification',{value:strictQualification});if(resolveQualification!==null&&typeof resolveQualification!=='function')fail();if(resolveOwnMutation!==null&&typeof resolveOwnMutation!=='function')fail();this.resolveOwnMutation=resolveOwnMutation;this.store=store;this.resolveProcessing=resolveProcessing;this.resolveQualification=resolveQualification;processingUses.set(this,new WeakMap());}
+ #resolveRecoveryWork;
+ constructor(store,{resolveRecoveryWork=null,resolveProcessing=null,resolveQualification=null,resolveOwnMutation=null,strictQualification=false}={}){if(resolveRecoveryWork!==null&&typeof resolveRecoveryWork!=='function')fail();this.#resolveRecoveryWork=resolveRecoveryWork;if(typeof strictQualification!=='boolean')fail();Object.defineProperty(this,'strictQualification',{value:strictQualification});if(resolveQualification!==null&&typeof resolveQualification!=='function')fail();if(resolveOwnMutation!==null&&typeof resolveOwnMutation!=='function')fail();this.resolveOwnMutation=resolveOwnMutation;this.store=store;this.resolveProcessing=resolveProcessing;this.resolveQualification=resolveQualification;processingUses.set(this,new WeakMap());}
+ recoveryWork(){return this.#resolveRecoveryWork?.()??null;}
+ run(fn){const ticket=this.recoveryWork(),enqueue=()=>this.store.run(fn);return ticket===null?enqueue():withOriginalRecoveryStoreAdmission(this.store,ticket,enqueue);}
+ write(fn){return this.store.foundationWrite(fn,{recoveryWork:this.recoveryWork()});}
  qualification(){if(this.resolveQualification===null){if(this.strictQualification)fail();return null;}const token=this.resolveQualification();assertMaintenanceQualification(token,this.store);return token;}
  reader(t){const token=this.qualification();return token===null?t:maintenanceQualificationReader(token,this.store,t,{topicLabels:!this.strictQualification,strictTopicIdentity:this.strictQualification,ownMutation:this.resolveOwnMutation?.(t,token)??null});}
  async processing(t,evidence,topicIds=[]){
@@ -113,10 +118,10 @@ export class TopicProcessingGuard {
  async prepare(scope){
   if(!Array.isArray(scope)||!scope.length||scope.length>100)fail();
   for(const s of scope){keys(s,['inputId','role','selectedFields'],['inputId','role','selectedFields']);if(!idOK(s.inputId)||!['primary','supporting'].includes(s.role))fail();}
-  await this.store.finishFoundation();
-  const authority=await this.store.run(()=>this.store.repository.transaction(false,t=>this.authority(t,scope,{checkEvidence:false})));
-  const evidence=await this.store.evidenceFor(scope,{qualification:this.qualification()});
-  await this.store.run(()=>this.store.repository.transaction(false,t=>this.check(t,{evidence,authority})));
+  await this.store.finishFoundation({recoveryWork:this.recoveryWork()});
+  const authority=await this.run(()=>this.store.repository.transaction(false,t=>this.authority(t,scope,{checkEvidence:false})));
+  const evidence=await this.store.evidenceFor(scope,{qualification:this.qualification(),recoveryWork:this.recoveryWork()});
+  await this.run(()=>this.store.repository.transaction(false,t=>this.check(t,{evidence,authority})));
   return {evidence,authority};
  }
  async check(t,prepared,{generation=true}={}){

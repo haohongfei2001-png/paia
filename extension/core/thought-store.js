@@ -5,7 +5,7 @@ import {assertMemoryPlacementChangeAllowed} from './memory/organization-guard.js
 import {initializeTopicIdentity,prepareTopicName,assertTopicIdentityBase,registerTopicName,prepareTopicRename,recordTopicRename,planHumanTopicField,resolveTopicIdentity,mapTopicIdentityBatch} from './topic-identity.js';
 import {newOrganizationIntents,recordMembershipIntent,fixMembershipSet,moveMembership} from './topic-intent.js';
 import {BINDING_ROW,applyBinding,classifyBinding,thoughtLayout,bindingRead,migrateBindings,reverseSetting,prepareBodyEdit} from './thought-binding.js';
-import {IndexedArchiveStore} from './indexed-store.js';
+import {IndexedArchiveStore,withOriginalRecoveryStoreAdmission} from './indexed-store.js';
 import {editSection,checkRestore,restoreOrganization} from './thought-organization.js';
 import {SmartFilterStore,originalFilterPromptQueueOwner} from './smart-filter-store.js';
 import {hashText} from './dedupe.js';
@@ -66,8 +66,8 @@ export function planHumanPlacementRow(topic,entry,old,section,rank,remove){retur
 export class LibraryFoundationStore extends SmartFilterStore {
  constructor(local,options={}) {super(local,{...options,thoughtLibrary:true});this.foundationLoaded=false;this.humanLibraryJournal=options.humanLibraryJournal??null;}
  run(fn) {return super.run(async()=>{if(!this.foundationLoaded&&!this.foundationFailure){try{const marker=await migrateThoughtLibrary(this,{maxBatches:1});this.foundationLoaded=marker.phase==='active';}catch{this.foundationFailure=true;}}return fn();});}
- async finishFoundation(){while(!this.foundationLoaded){await this.run(()=>Promise.resolve());if(this.foundationFailure)throw new ArchiveError('STORAGE_FAILED');if(!this.foundationLoaded)await new Promise(resolve=>setTimeout(resolve,0));}if(!this.bindingsLoaded){await migrateBindings(this);this.bindingsLoaded=true;}}
- async foundationWrite(fn){await this.finishFoundation();return IndexedArchiveStore.prototype.write.call(this,fn);}
+ async finishFoundation({recoveryWork=null}={}){while(!this.foundationLoaded){const enqueue=()=>this.run(()=>Promise.resolve());await (recoveryWork===null?enqueue():withOriginalRecoveryStoreAdmission(this,recoveryWork,enqueue));if(this.foundationFailure)throw new ArchiveError('STORAGE_FAILED');if(!this.foundationLoaded)await new Promise(resolve=>setTimeout(resolve,0));}if(!this.bindingsLoaded){await migrateBindings(this,{recoveryWork});this.bindingsLoaded=true;}}
+ async foundationWrite(fn,{recoveryWork=null}={}){await this.finishFoundation({recoveryWork});const enqueue=()=>IndexedArchiveStore.prototype.write.call(this,fn);return recoveryWork===null?enqueue():withOriginalRecoveryStoreAdmission(this,recoveryWork,enqueue);}
  thoughtLayout(layout){return thoughtLayout(this,layout);}
  reverseEditSetting(enabled){return reverseSetting(this,enabled);}
  async bindingMigrationStatus(t){const {version,complete,input,thought}=await t.get('meta',BINDING_ROW)||{};return {version,complete,input,thought};}

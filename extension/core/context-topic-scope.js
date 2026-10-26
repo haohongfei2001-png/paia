@@ -281,14 +281,14 @@ async function scopeMetadata(store,t,topicId,admitted){
  return {context,target,topics,reservations,legacyRows,topicIds,entryIds,inputIds,sections,eligible,entries};
 }
 
-async function scopeRead(store,budget,fn,stores){
+async function scopeRead(store,budget,recoveryWork,fn,stores){
  const database=budget.database||store.repository.db;
  requireFact(database&&store.repository.db===database&&!(budget.signal!==null&&signalAborted.call(budget.signal)),'not_ready');
- const result=await store.repository.transaction(false,async t=>{requireFact(store.repository.db===database&&!(budget.signal!==null&&signalAborted.call(budget.signal)),'not_ready');return fn(t);},stores);
+ const result=await store.repository.transaction(false,async t=>{requireFact(store.repository.db===database&&!(budget.signal!==null&&signalAborted.call(budget.signal)),'not_ready');return fn(t);},stores,recoveryWork??undefined);
  requireFact(store.repository.db===database&&!(budget.signal!==null&&signalAborted.call(budget.signal)),'not_ready');return result;
 }
 
-export async function readContextTopicScope(store,options={},workBudget=null){
+export async function readContextTopicScope(store,options={},workBudget=null,recoveryWork=null){
  if(workBudget!==null&&!budgetValid(workBudget))return unavailable('scope_budget');
  if(!plain(options)||Object.keys(options).some(k=>!['topicId','expectedAuthority'].includes(k))||!idOK(options.topicId)||options.expectedAuthority!=null&&!token(options.expectedAuthority))return unavailable('invalid_request');
  // Opening an uninitialized repository can itself create stores. Preparation is
@@ -304,7 +304,7 @@ export async function readContextTopicScope(store,options={},workBudget=null){
   hashBytes=new TextEncoder().encode(text).byteLength;readBudget.hashBytes+=hashBytes;readBudget.hashFields++;if(readBudget.hashBytes>MAX_HASH_BYTES)refuse('hash_budget');
   hashWork.push({text,expected,currentMirror});
  };
- try{const material=await scopeRead(store,readBudget,async transaction=>{
+ try{const material=await scopeRead(store,readBudget,recoveryWork,async transaction=>{
   try{
    const t=reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),readBudget,store);
    const admitted=await admission(store,t),{authority:currentAuthority,epoch,filter}=admitted;
@@ -347,7 +347,7 @@ export async function readContextTopicScope(store,options={},workBudget=null){
   for(const work of hashWork){currentWork(readBudget);let digest;try{digest=await hashText(work.text);}catch{refuse('hash_unavailable');}currentWork(readBudget);if(!work.currentMirror&&digest!==work.expected)material.scope.eligibility='ineligible';work.text='';}
   hashWork.length=0;
   requireFact(store.repository.db,'not_ready');
-  await scopeRead(store,readBudget,async transaction=>{
+  await scopeRead(store,readBudget,recoveryWork,async transaction=>{
    try{
     const current=await admission(store,reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),readBudget,store));
     requireFact(current.authority===capturedAdmission.authority&&current.epoch===capturedAdmission.epoch&&current.gate===capturedAdmission.gate,'stale_authority');
@@ -362,7 +362,7 @@ export async function readContextTopicScope(store,options={},workBudget=null){
 // unacquired; authored canonical validation can inspect body/journal fields but
 // retains no selected material and computes no selected-field hashes. This is
 // neither a full material eligibility certificate nor a processing grant.
-export async function readContextProcessingPreflight(store,options={},workBudget=null){
+export async function readContextProcessingPreflight(store,options={},workBudget=null,recoveryWork=null){
  const denied=reason=>({available:false,kind:'processing_preflight',reason,externalAllowed:false,bodyEligibility:'not_checked'});
  if(!plain(options)||!['expectedAuthority,inputIds,topicId','entryIds,expectedAuthority,inputIds,topicId'].includes(Object.keys(options).sort().join(','))||!idOK(options.topicId)||!token(options.expectedAuthority)||!Array.isArray(options.inputIds)||!options.inputIds.length&&!options.entryIds?.length||options.inputIds.length>CONTEXT_PROCESSING_PREFLIGHT_LIMITS.inputs||Object.keys(options.inputIds).length!==options.inputIds.length||!options.inputIds.every(idOK)||new Set(options.inputIds).size!==options.inputIds.length)return denied('invalid_request');
  if(options.entryIds!==undefined&&(!Array.isArray(options.entryIds)||!options.entryIds.length||options.entryIds.length>CONTEXT_PROCESSING_PREFLIGHT_LIMITS.inputs||Object.keys(options.entryIds).length!==options.entryIds.length||!options.entryIds.every(idOK)||new Set(options.entryIds).size!==options.entryIds.length))return denied('invalid_request');
@@ -370,7 +370,7 @@ export async function readContextProcessingPreflight(store,options={},workBudget
  if(workBudget!==null&&!budgetValid(workBudget))return denied('scope_budget');
  const budget=workBudget||createContextScopeWorkBudget({database:store.repository.db});let captured,reason='invalid_facts';
  try{
-  const result=await scopeRead(store,budget,async tx=>{
+  const result=await scopeRead(store,budget,recoveryWork,async tx=>{
    try{
    const t=reader(tx,(a,b)=>store.repository.factory.cmp(a,b),budget,store),a=await admission(store,t);captured=a;
    requireFact(a.authority===options.expectedAuthority,'stale_authority');
@@ -393,7 +393,7 @@ export async function readContextProcessingPreflight(store,options={},workBudget
    return {available:true,kind:'processing_preflight',reason:'metadata_admitted',externalAllowed:false,bodyEligibility:'not_checked',binding};
    }catch(error){reason=unavailableReasons.has(error?.scopeReason)?error.scopeReason:'invalid_facts';throw error;}
   });
-  requireFact(store.repository.db,'not_ready');await scopeRead(store,budget,async transaction=>{const t=reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),budget,store),a=await admission(store,t);requireFact(a.authority===captured.authority&&a.epoch===captured.epoch&&a.gate===captured.gate,'stale_authority');},['meta']);
+  requireFact(store.repository.db,'not_ready');await scopeRead(store,budget,recoveryWork,async transaction=>{const t=reader(transaction,(a,b)=>store.repository.factory.cmp(a,b),budget,store),a=await admission(store,t);requireFact(a.authority===captured.authority&&a.epoch===captured.epoch&&a.gate===captured.gate,'stale_authority');},['meta']);
   return result;
  }catch(error){return denied(unavailableReasons.has(error?.scopeReason)?error.scopeReason:reason);}
 }

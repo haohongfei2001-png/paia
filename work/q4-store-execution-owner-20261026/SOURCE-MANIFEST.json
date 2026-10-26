@@ -1,0 +1,241 @@
+{
+  "version": "0.55.16",
+  "base": "fcf4edd6bcd4619d9a7b710890b70e0424bbf472",
+  "baseTree": "cfa4cdf6bae2218bfd4d5b38cf89d3334ff0266d",
+  "expectedRemoteMain": "d4d45db78a2e0f9b72102d4e27ce8f3171d456ab",
+  "ownerTestedSource": "e8723176a8e89efbd6e4857c8c9afbc88e9eed03",
+  "inventoryTestedSource": "fb2ce9ac18b12437e1001261e5ae856ea6598615",
+  "assembledSource": "d080e7f69e7b8b29e6f111e4f0475140f0170382",
+  "runtimeFiles": 16,
+  "testFiles": 4,
+  "priorFailures": [
+    {
+      "job": "121422534607",
+      "test": "services/ai-gateway/tests/maintenance-source-processing.test.mjs:57",
+      "logSha256": "845602d241e33e1d8fe53b99ceddf18d0b72c7eb45b7c19948049f69a76a4cc4"
+    },
+    {
+      "job": "121422534511",
+      "logSha256": "c1ca706088f9f33f8d696a56ea62e9605697c56aba4346edfd53a27bfe3e88ba"
+    },
+    {
+      "job": "121422557927",
+      "logSha256": "5a3bba8bcd9d951001b2fdfcc5b202bf4cabd615c308e85171ca139259f2bf33"
+    }
+  ],
+  "executions": [
+    {
+      "kind": "initial-observation-only-diagnostic",
+      "executions": 1,
+      "pass": 1,
+      "fail": 0,
+      "exit": 0,
+      "ciFirstCauseReproduced": false
+    },
+    {
+      "kind": "base-deterministic-counterexample",
+      "executions": 1,
+      "pass": 0,
+      "fail": 1,
+      "exit": 1
+    },
+    {
+      "kind": "fixed-owner-selected-control-and-original-cold-worker",
+      "executions": 1,
+      "pass": 2,
+      "fail": 0,
+      "exit": 0,
+      "command": "node --test --test-concurrency=1 --test-reporter=tap --test-name-pattern='^(?:Q4 original recovery window cannot adopt an unrelated queued Store prelude|actual cold worker source registry with processing null consumes saved explicit Settings ON and one paid child)$' extension/tests/q4-recovery-store-execution-binding.test.mjs services/ai-gateway/tests/maintenance-source-processing.test.mjs"
+    },
+    {
+      "kind": "inventory-only",
+      "executions": 1,
+      "pass": 24,
+      "fail": 0,
+      "exit": 0,
+      "command": "cd extension && node --test --test-concurrency=1 --test-reporter=tap tests/human-current-native-source-inventory.test.mjs"
+    }
+  ],
+  "runtime": {
+    "node": "v24.19.0",
+    "ciNodeTarget": "22",
+    "existingPg": "8.23.1",
+    "installations": 0
+  },
+  "files": [
+    {
+      "path": "extension/core/ai-usage/context-correction.js",
+      "bytes": 16219,
+      "sha256": "7dd76bfb696889ff11d5a465db88ca91ad2be0fe6679ce9374b48dd80972b6a9",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/ai-usage/foundation.js",
+      "bytes": 130953,
+      "sha256": "98a1ebcc8af29c24d7238903257dd24b237bf22d2b57bb2e0a5f6482b4ca4f09",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/ai-usage/local-maintenance-session.js",
+      "bytes": 209500,
+      "sha256": "f1e63c774194b591f46440aa946a8da5245f56d78cbbf7e2ebcdd447ce808e66",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/ai-usage/maintenance-existing-context.js",
+      "bytes": 29922,
+      "sha256": "bb54a600ce8904664d35febde80b2313b133bb22fe5478441c16110f969cbfca",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/context-item-lineage.js",
+      "bytes": 25560,
+      "sha256": "9d0d1e8fc9459412881daa84446daec5c45baaf7a4fb93862100cce66199500f",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/context-maintenance.js",
+      "bytes": 38121,
+      "sha256": "f595e906f2713a1663a680fd3019e14d7d4fa7f4232b1731b09f3e2be2671853",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/context-topic-scope.js",
+      "bytes": 42742,
+      "sha256": "0a3833e73f7c1af352af335cb4b492f861a2be179c6fb6e60dca9ecccbad7a2d",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/idb-repository.js",
+      "bytes": 64008,
+      "sha256": "423933bf06ed14ac65fd984151e9ba1164ffa2994a52ea6ec3ac355de8b6d739",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/indexed-store.js",
+      "bytes": 57384,
+      "sha256": "6b56a7ecf47a74790f7e053ba478bff4f06839ce17916a2792fd7aa69160e691",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/thought-binding.js",
+      "bytes": 7599,
+      "sha256": "4c082b3ca20d1acd8d8a5a4b2832e5280b2d445c1efc3abf718822ef8b54af76",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/thought-evidence.js",
+      "bytes": 8932,
+      "sha256": "ecf14f355e29e905ccd21617949e392b94ae7189cf2ccb72695d36b98267ce11",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/thought-store.js",
+      "bytes": 38448,
+      "sha256": "21740e515535684b3403d5abb64dcb36519c6da2f90295032f1349a2d9c9e4dd",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/topic-candidates.js",
+      "bytes": 23401,
+      "sha256": "e0184575aa4f9ab4306704f99ac1830d54ed2131bef789f4fabcac9db386474a",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/topic-formation.js",
+      "bytes": 55219,
+      "sha256": "a221747532205f8d3aebd5fa2cc0469c09a469d3d45d14d5975abebe71757c0d",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/topic-processing.js",
+      "bytes": 12366,
+      "sha256": "7f240709a246be06ada822c602032e36e173007ebd7e21096dc0010e72486364",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/core/topic-retrieval.js",
+      "bytes": 11377,
+      "sha256": "e08deb6f9f24bcafc7dec8d0b2382be451d9e0be235ed3f389b42dfdd2572351",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/tests/q4-recovery-store-execution-binding.test.mjs",
+      "bytes": 5095,
+      "sha256": "161231357149c0496498839db6b5fda7199541c79ab5a57df203672f479c18eb",
+      "scope": "owner-tested-source"
+    },
+    {
+      "path": "extension/tests/human-current-native-source-inventory.test.mjs",
+      "bytes": 5265,
+      "sha256": "583a70fc1ac6ae902316d1aaaba6118ee539ea060b0d4e171c10f956fd1db7da",
+      "scope": "inventory-tested-source"
+    },
+    {
+      "path": "extension/tests/native-sync/human-current-checkpoint-recovery-native.test.mjs",
+      "bytes": 7182,
+      "sha256": "03aee2ccf5e1340988b164868def9df3ee23e5be1c0a7d2d17a99e896538af9e",
+      "scope": "inventory-tested-source"
+    },
+    {
+      "path": "extension/tests/native-sync/human-current-scope-checkpoint-native.test.mjs",
+      "bytes": 6875,
+      "sha256": "8e5f06775758cd9a5f2329eec8ceff4d3d491bdc9090ab2451574d8095cd74f4",
+      "scope": "inventory-tested-source"
+    },
+    {
+      "path": "extension/manifest.json",
+      "bytes": 2985,
+      "sha256": "85f111c3197cd47282dac18cd44b8cfa77016cc271a805912a39fd848a04d40f",
+      "scope": "version-metadata"
+    },
+    {
+      "path": "extension/package.json",
+      "bytes": 747,
+      "sha256": "3399c47439e416053649a7b3be68f7fc0f1eb82a5b0f95356e67cb13854e2875",
+      "scope": "version-metadata"
+    },
+    {
+      "path": "work/q4-store-execution-owner-20261026/REPORT.md",
+      "bytes": 6206,
+      "sha256": "aa6c621b9e56050a72e60fdd2f643623a65ca165932c852fe3b22d351a06fe1b",
+      "scope": "public-evidence"
+    },
+    {
+      "path": "work/q4-store-execution-owner-20261026/after-selected-once.tap",
+      "bytes": 2169,
+      "sha256": "5238e7ff3859d578b0aa5930d769f4f0f37fd4a3ef9c1c6de2b8a0bcd41d804a",
+      "scope": "public-evidence"
+    },
+    {
+      "path": "work/q4-store-execution-owner-20261026/before-control-source.txt",
+      "bytes": 3238,
+      "sha256": "0ee64bb977cf1e5e963fed987cf846ec178487ffab6ce40aadc5663a5fbfad3b",
+      "scope": "public-evidence"
+    },
+    {
+      "path": "work/q4-store-execution-owner-20261026/before-owner-control.tap",
+      "bytes": 2560,
+      "sha256": "f4296d4db831237f9725b44021dc98b6f8ae5cc16002c17138aef5610fc27712",
+      "scope": "public-evidence"
+    },
+    {
+      "path": "work/q4-store-execution-owner-20261026/control-source-delta.patch",
+      "bytes": 6844,
+      "sha256": "11bc0439f6584a7a2c95bb3062638850daea88e9391207d4437287b2f5bef7dc",
+      "scope": "public-evidence"
+    },
+    {
+      "path": "work/q4-store-execution-owner-20261026/initial-diagnostic-once.tap",
+      "bytes": 414,
+      "sha256": "26dfeb674bb9a90fb814cf7ccb5ccb7e03e4e0dfe720e09992ebd8911433ca2c",
+      "scope": "public-evidence"
+    },
+    {
+      "path": "work/q4-store-execution-owner-20261026/inventory-targeted-test.tap",
+      "bytes": 8628,
+      "sha256": "3c9fd1b1a566f7b3836dc453c37fcd7b7aa528b29ae4bd6a4b92616b27c66693",
+      "scope": "public-evidence"
+    }
+  ]
+}

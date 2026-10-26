@@ -12,7 +12,7 @@ import {relativeImports} from './native-sync/retention-native-proof.mjs';
 // Only unrelated Git metadata is stubbed; inventory bytes come from this tree.
 const root=fileURLToPath(new URL('..',import.meta.url));
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
-const backgrounds=['background/ai-filter-consent.js','background/maintenance-processing-consent.js'];
+const backgrounds=['background/ai-filter-consent.js','background/maintenance-processing-commands.js','background/maintenance-processing-consent.js'];
 const core='core/library-documents-store.js';
 const pairs=[
  ['human-current-checkpoint-recovery-native.test.mjs','current-human-checkpoint-recovery-native-fixture.mjs'],

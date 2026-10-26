@@ -61,17 +61,17 @@ export class TopicFormationService {
  #parameters;
  #writeTransaction;
  #baseQualification;#localQualification=null;#resolveExactReuse;#exactMutation=null;#busy=false;
- constructor(store,{resolveProcessing=null,decision=null,parameters=null,writeTransaction=null,resolveQualification=null,resolveExactReuse=null}={}){
+ constructor(store,{resolveRecoveryWork=null,resolveProcessing=null,decision=null,parameters=null,writeTransaction=null,resolveQualification=null,resolveExactReuse=null}={}){
   if(writeTransaction!==null&&typeof writeTransaction!=='function')fail();
   // Constructor-private delegation only; the original callback retains every
   // domain guard and can share its native transaction with exact facet ACK.
-  this.#writeTransaction=writeTransaction??(fn=>store.foundationWrite(fn));
+  this.#writeTransaction=writeTransaction??(fn=>this.retrieval.guard.write(fn));
   if(resolveExactReuse!==null&&typeof resolveExactReuse!=='function')fail();this.#resolveExactReuse=resolveExactReuse;this.#baseQualification=resolveQualification;const qualified=resolveQualification===null?null:()=>this.#localQualification??resolveQualification();
-  this.store=store;this.retrieval=new TopicIdentityRetrieval(store,{resolveProcessing,resolveQualification:qualified,resolveOwnMutation:()=>this.#exactMutation});this.candidates=new HiddenTopicCandidates(store,{resolveProcessing,resolveQualification});
+  this.store=store;this.retrieval=new TopicIdentityRetrieval(store,{resolveRecoveryWork,resolveProcessing,resolveQualification:qualified,resolveOwnMutation:()=>this.#exactMutation});this.candidates=new HiddenTopicCandidates(store,{resolveRecoveryWork,resolveProcessing,resolveQualification});
   if(decision!==null){keys(decision,['version','assess'],['version','assess']);if(typeof decision.assess!=='function'||typeof decision.version!=='string'||!/^[-a-zA-Z0-9_.]{1,80}$/.test(decision.version))fail();this.#decision=Object.freeze({...decision});}
   this.#parameters=parameters===null?null:formationParameters(parameters);
  }
- async read(prepared,fn){return this.store.run(()=>this.store.repository.transaction(false,async t=>{const reader=this.retrieval.guard.reader(t);await this.retrieval.guard.check(reader,prepared);return fn(reader);}));}
+ async read(prepared,fn){return this.retrieval.guard.run(()=>this.store.repository.transaction(false,async t=>{const reader=this.retrieval.guard.reader(t);await this.retrieval.guard.check(reader,prepared);return fn(reader);}));}
  async authorizeTopics(t,prepared,ids){for(let i=0;i<ids.length;i+=100)if(await this.retrieval.guard.processing(t,prepared.evidence,ids.slice(i,i+100))!==prepared.authority.processingEpoch)fail();}
  // Local constructor-owned material seam. Opaque handles cannot mint
  // processing permission, a provider decision, or domain mutation authority.
@@ -92,7 +92,7 @@ export class TopicFormationService {
  }
  async prepareAuthoredMaterial({entryId,descriptor=null}={}, {signal=null}={}){
   if(!idOK(entryId)||!this.#parameters)fail();assertActive(signal);
-  let processingMode;const prepared={evidence:[],authority:await this.store.run(()=>this.store.repository.transaction(false,async t=>{const authority=await this.retrieval.guard.authority(t,[]);processingMode=this.retrieval.guard.processingMode(t);return authority;}))};
+  let processingMode;const prepared={evidence:[],authority:await this.retrieval.guard.run(()=>this.store.repository.transaction(false,async t=>{const authority=await this.retrieval.guard.authority(t,[]);processingMode=this.retrieval.guard.processingMode(t);return authority;}))};
   const selected=await this.read(prepared,async t=>{const mapping=await readAuthoredEntryContextForTopic(this.store,t,entryId,descriptor);if(!mapping)fail();await this.authorizeTopics(t,prepared,[mapping.topicId]);const selected=await readAuthoredTopicReconciliation(this.store,t,entryId,descriptor);if(this.retrieval.guard.processingMode(t)!==processingMode)fail();return selected;});
   if(!selected)fail();assertActive(signal);
   const handle=Object.freeze({}),view={version:1,inputs:[],entries:[],identities:[],sections:[],constraints:[],authoredTopic:selected.material};
@@ -157,7 +157,7 @@ export class TopicFormationService {
   if(request.candidateId!==undefined&&(!idOK(request.candidateId)||!Number.isSafeInteger(request.expectedCandidateRevision)||request.expectedCandidateRevision<0)||request.candidateId===undefined&&request.expectedCandidateRevision!==undefined)fail();
   assertActive(signal);request=structuredClone(request);
   const candidateOperation=maintenanceCandidate===null?null:readMaintenanceTopicCandidateOperation(maintenanceCandidate,this.store,{operationId:request.operationId,qualification:this.retrieval.guard.qualification()});
-  if(candidateOperation){if(!same(request.scope,candidateOperation.scope)||request.candidateId!==undefined&&request.candidateId!==candidateOperation.candidateId||request.expectedCandidateRevision!==undefined&&request.expectedCandidateRevision!==candidateOperation.candidateRevision)fail();if(candidateOperation.candidateId)Object.assign(request,{candidateId:candidateOperation.candidateId,expectedCandidateRevision:candidateOperation.candidateRevision});await this.store.run(()=>this.store.repository.transaction(false,t=>assertMaintenanceTopicCandidateOperation(maintenanceCandidate,this.store,t,{operationId:request.operationId,qualification:this.retrieval.guard.qualification()})));}
+  if(candidateOperation){if(!same(request.scope,candidateOperation.scope)||request.candidateId!==undefined&&request.candidateId!==candidateOperation.candidateId||request.expectedCandidateRevision!==undefined&&request.expectedCandidateRevision!==candidateOperation.candidateRevision)fail();if(candidateOperation.candidateId)Object.assign(request,{candidateId:candidateOperation.candidateId,expectedCandidateRevision:candidateOperation.candidateRevision});await this.retrieval.guard.run(()=>this.store.repository.transaction(false,t=>assertMaintenanceTopicCandidateOperation(maintenanceCandidate,this.store,t,{operationId:request.operationId,qualification:this.retrieval.guard.qualification()})));}
   const operation={kind:'personal-topic-formation',...request,decisionVersion:this.#decision.version,parameters:this.#parameters};
   const initial=await this.retrieval.guard.prepare(request.scope),prior=await this.store.priorOperation(operation);
   if(prior){await this.read(initial,t=>this.authorizeTopics(t,initial,prior.topicIds||[]));assertActive(signal);const handle=freeze({...prior,replayed:true});this.#plans.set(handle,{request,operation,signal,prior,maintenanceCandidate,candidateOperation});return handle;}
@@ -188,10 +188,10 @@ export class TopicFormationService {
    // This producer exists only at the original owner-selected index seam, after
    // the original response assessment. No caller-supplied Entry selector mints it.
    if(candidateOperation)fail();const base=this.#baseQualification?.();if(!base)fail();
-   const captured=await this.store.run(()=>this.store.repository.transaction(false,async transaction=>{const t=contextScopeTransactionReader(this.store,transaction,maintenanceQualificationWorkBudget(base,this.store));await this.retrieval.guard.check(t,prepared);const metadata=await captureTopicExactReuseMetadata(t,{matches:exactMatches,sentInputIds:prepared.evidence.map(x=>x.inputId),maxInputs:Math.min(20,this.store.organizerBudget.limits.maxInputs),charge:text=>chargeMaintenanceQualificationHash(base,this.store,text)});return {metadata,authority:await rootReadAuthority(t)};}));
+   const captured=await this.retrieval.guard.run(()=>this.store.repository.transaction(false,async transaction=>{const t=contextScopeTransactionReader(this.store,transaction,maintenanceQualificationWorkBudget(base,this.store));await this.retrieval.guard.check(t,prepared);const metadata=await captureTopicExactReuseMetadata(t,{matches:exactMatches,sentInputIds:prepared.evidence.map(x=>x.inputId),maxInputs:Math.min(20,this.store.organizerBudget.limits.maxInputs),charge:text=>chargeMaintenanceQualificationHash(base,this.store,text)});return {metadata,authority:await rootReadAuthority(t)};}));
    const selection=Object.freeze({}),h={store:this.store,repository:this.store.repository,database:this.store.repository.db,base,signal,released:false,view:freeze({operationId:request.operationId,matches:structuredClone(exactMatches),sentInputIds:prepared.evidence.map(x=>x.inputId),...captured})};exactReuseSelections.set(selection,h);
    try{const qualification=await this.#resolveExactReuse(selection,base);readMaintenanceTopicExactReuseQualification(qualification,this.store,selection,base);this.#localQualification=qualification;
-    const evidence=await this.store.evidenceFor(captured.metadata.inputs.map(x=>({inputId:x.id,role:'primary',selectedFields:['body']})),{qualification});
+    const evidence=await this.store.evidenceFor(captured.metadata.inputs.map(x=>({inputId:x.id,role:'primary',selectedFields:['body']})),{qualification,recoveryWork:this.retrieval.guard.recoveryWork()});
     for(const {collections}of captured.metadata.members)for(const d of collections.find(x=>x.table==='dependencies').rows){const e=evidence.find(x=>x.inputId===d.inputId);if(!e||!same(e.fieldDigests,d.fieldDigests)||e.scopeToken!==d.scopeToken||e.versionToken!==d.versionToken)fail();}
     const local=await this.read(prepared,async t=>{await checkEvidenceInTransaction(this.store,t,evidence);const snapshot=await readFormationEvidence(this.store,t,{evidence},implicit),rows=[];for(const id of implicit)rows.push(freeze(structuredClone(await t.get('thoughts',id))));return {snapshot,rows};});
     for(const entry of local.snapshot.entries){for(const d of entry.dependencies){const input=local.snapshot.inputs.find(x=>x.id===d.inputId);if(!input||entry.body!==input.fields.body)fail();}for(const r of entry.references){const input=local.snapshot.inputs.find(x=>x.id===r.inputId);if(!input||r.kind!=='exact_excerpt'||r.span?.start!==0||r.span.end!==input.fields.body.length)fail();}}

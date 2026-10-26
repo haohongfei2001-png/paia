@@ -1,0 +1,30 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {IDBFactory,IDBKeyRange,IDBObjectStore} from './vendor/fake-indexeddb/build/esm/index.js';
+import {local} from './harness/thought-m1.mjs';
+import {IndexedArchiveStore} from '../core/indexed-store.js';
+import {createOriginalRecoveryWork,withOriginalRecoveryWork,currentOriginalRecoveryWork,remainingOriginalRecoveryWork,checkOriginalRecoveryWork} from '../core/idb-repository.js';
+globalThis.IDBKeyRange=IDBKeyRange;
+const gate=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
+
+test('Q4 original recovery window cannot adopt an unrelated queued Store prelude',async t=>{
+ const s=new IndexedArchiveStore(local(),{indexedDB:new IDBFactory(),name:'SYNTHETIC-Q4-execution-binding'}),r=s.repository;
+ t.after(()=>r.close());await s.consent(true);await s.run(()=>r.transaction(true,tx=>tx.put('meta',{id:'SYNTHETIC-owner-row',value:1}),['meta']));
+ const ownerDone=gate(),finishOwner=gate(),pollAcquired=gate(),releasePoll=gate(),returning=gate(),events=[],requests=[];
+ const originalOpen=r.open,originalGet=IDBObjectStore.prototype.get;let pollTicket=null,ownerTicket=null;
+ t.after(()=>{releasePoll.resolve();r.open=originalOpen;});
+ t.mock.method(IDBObjectStore.prototype,'get',function(key){if(this.transaction.db===r.db)requests.push({table:this.name,key});return originalGet.call(this,key);});
+ const ticket=createOriginalRecoveryWork(r),first=remainingOriginalRecoveryWork(r,ticket);
+ const work=withOriginalRecoveryWork(r,ticket,async()=>{
+  await s.run(()=>r.transaction(false,async tx=>{ownerTicket=currentOriginalRecoveryWork(r);assert.equal((await tx.get('meta','SYNTHETIC-owner-row')).value,1);},['meta']));
+  events.push('owner-queue-task-complete');ownerDone.resolve();await finishOwner.promise;events.push('owner-action-returning');returning.resolve();return 'owner-done';
+ });
+ work.catch(()=>{});await ownerDone.promise;
+ r.open=async function(){events.push('independent-prelude-acquisition');pollTicket=currentOriginalRecoveryWork(r);pollAcquired.resolve();await releasePoll.promise;return originalOpen.call(this);};
+ const poll=s.run(()=>r.transaction(false,tx=>tx.get('meta','SYNTHETIC-owner-row'),['meta']));poll.catch(()=>{});
+ await pollAcquired.promise;finishOwner.resolve();await returning.promise;releasePoll.resolve();
+ const outcomes=await Promise.allSettled([work,poll]);r.open=originalOpen;
+ t.diagnostic(JSON.stringify({events,ownerHasOriginalTicket:ownerTicket===ticket,independentInheritedTicket:pollTicket===ticket,requests,outcomes:outcomes.map(x=>({status:x.status,...(x.status==='rejected'?{error:{code:x.reason.code,message:x.reason.message,stack:x.reason.stack}}:{value:x.value})})),firstDeadlineNotRenewed:outcomes[0].status==='fulfilled'?remainingOriginalRecoveryWork(r,ticket)<=first:null}));
+ assert.equal(ownerTicket,ticket);assert.equal(pollTicket,null,'an independent Store execution must not inherit the maintenance ticket');
+ assert.deepEqual(outcomes.map(x=>x.status),['fulfilled','fulfilled']);assert.equal(outcomes[0].value,'owner-done');assert.equal(outcomes[1].value.value,1);checkOriginalRecoveryWork(r,ticket);assert.ok(remainingOriginalRecoveryWork(r,ticket)<=first);
+});

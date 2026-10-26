@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: actual cold worker source registry with processing null consumes saved explicit Settings ON and one paid child
+ok 1 - actual cold worker source registry with processing null consumes saved explicit Settings ON and one paid child
+  ---
+  duration_ms: 2908.189069
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3581.578518

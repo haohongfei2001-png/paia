@@ -1,0 +1,23 @@
+TAP version 13
+# Subtest: Q4 original recovery window cannot adopt an unrelated queued Store prelude
+ok 1 - Q4 original recovery window cannot adopt an unrelated queued Store prelude
+  ---
+  duration_ms: 36.521345
+  type: 'test'
+  ...
+# {"events":["owner-queue-task-complete","independent-prelude-acquisition","owner-direct-read-complete","owner-action-returning"],"ownerHasOriginalTicket":true,"independentWindowVisible":true,"independentScopeInheritedTicket":false,"directHasOriginalTicket":true,"ownerReferences":12,"requests":[{"table":"meta","key":"local-control-publication:revision"},{"table":"meta","key":"local-control-publication:reservation"},{"table":"meta","key":"migration"},{"table":"meta","key":"gate"},{"table":"meta","key":"recovery-restore-epoch"},{"table":"meta","key":"local-control-publication:revision"},{"table":"meta","key":"local-control-publication:reservation"},{"table":"meta","key":"migration"},{"table":"meta","key":"gate"},{"table":"meta","key":"recovery-restore-epoch"},{"table":"meta","key":"SYNTHETIC-owner-row"},{"table":"meta","key":"SYNTHETIC-owner-row"},{"table":"meta","key":"local-control-publication:revision"},{"table":"meta","key":"local-control-publication:reservation"},{"table":"meta","key":"migration"},{"table":"meta","key":"gate"},{"table":"meta","key":"recovery-restore-epoch"},{"table":"meta","key":"local-control-publication:revision"},{"table":"meta","key":"local-control-publication:reservation"},{"table":"meta","key":"migration"},{"table":"meta","key":"gate"},{"table":"meta","key":"recovery-restore-epoch"},{"table":"meta","key":"SYNTHETIC-owner-row"}],"outcomes":[{"status":"fulfilled","value":"owner-done"},{"status":"fulfilled","value":{"id":"SYNTHETIC-owner-row","value":1}}],"firstDeadlineNotRenewed":true}
+# Subtest: actual cold worker source registry with processing null consumes saved explicit Settings ON and one paid child
+ok 2 - actual cold worker source registry with processing null consumes saved explicit Settings ON and one paid child
+  ---
+  duration_ms: 2635.410058
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3457.427498

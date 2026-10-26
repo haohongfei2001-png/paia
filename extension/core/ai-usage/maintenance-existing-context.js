@@ -161,7 +161,7 @@ async function evidenceFor(h,t,m,material,closures,inputHashes,sources){
  need(validContextEvidenceSpecs([...result.values()]));return [...result.values()];
 }
 function semanticItem(item,index){return {itemRef:'c'+index,itemId:item.id,revision:item.revision,card:item.card,origin:item.origin,protected:item.protected,userEdited:item.userEdited,lifecycle:item.lifecycle,body:item.body,section:item.section,...contextTemporalProjection(item)};}
-export async function captureMaintenanceExistingContext(store,handle,{read:reader,signal=null,assertProcessing,scope,material,limits=store.organizerBudget?.limits,publications=[],settledItems=[],qualification=null}={}){
+export async function captureMaintenanceExistingContext(store,handle,{read:reader,signal=null,assertProcessing,scope,material,limits=store.organizerBudget?.limits,publications=[],settledItems=[],qualification=null,recoveryWork=null}={}){
  const h=state(handle);need(h.store===store&&typeof reader==='function'&&typeof assertProcessing==='function'&&(signal===null||signal instanceof AbortSignal),'UNAVAILABLE');
  need(equal(selectedScope(scope),h.scope)&&equal(scope.existingContextItems||[],maintenanceExistingContextScope(handle)),'UNAVAILABLE');
  if(h.captured){live(h);await reader(t=>assertMaintenanceExistingContext(store,t,handle,{publications,settledItems}));return handle;}
@@ -180,7 +180,7 @@ export async function captureMaintenanceExistingContext(store,handle,{read:reade
   }if(allowed)possible.push(m);}
   if(!possible.length){h.captured=true;return handle;}
   for(const topicId of new Set(possible.flatMap(m=>[m.maintenance.provenance,m.maintenance.invalidation].filter(Boolean).flatMap(p=>p.evidence.map(e=>e.topicId))))){
-   const evidence=possible.flatMap(m=>[m.maintenance.provenance,m.maintenance.invalidation].filter(Boolean).flatMap(p=>p.evidence)).filter(e=>e.topicId===topicId),preflight=await readContextProcessingPreflight(store,{topicId,inputIds:[...new Set(evidence.filter(e=>!entryEvidence(e)).map(e=>e.inputId))],...(evidence.some(e=>e.kind==='humanEntry')?{entryIds:[...new Set(evidence.filter(e=>e.kind==='humanEntry').map(e=>e.entryId))]}:{}),expectedAuthority:effective.authority},h.budget);live(h);need(preflight.available&&sameContextTopicBinding(preflight.binding,closures.get(topicId).binding));
+   const evidence=possible.flatMap(m=>[m.maintenance.provenance,m.maintenance.invalidation].filter(Boolean).flatMap(p=>p.evidence)).filter(e=>e.topicId===topicId),preflight=await readContextProcessingPreflight(store,{topicId,inputIds:[...new Set(evidence.filter(e=>!entryEvidence(e)).map(e=>e.inputId))],...(evidence.some(e=>e.kind==='humanEntry')?{entryIds:[...new Set(evidence.filter(e=>e.kind==='humanEntry').map(e=>e.entryId))]}:{}),expectedAuthority:effective.authority},h.budget,recoveryWork);live(h);need(preflight.available&&sameContextTopicBinding(preflight.binding,closures.get(topicId).binding));
   }
   // A lawful own Topic publication can introduce another already-selected
   // Input into this graph. Freeze its original granted fields/Source now, not
@@ -206,7 +206,7 @@ export async function captureMaintenanceExistingContext(store,handle,{read:reade
   need(validContextEvidenceSpecs(collected.evidence));
   // Exactly one original lineage capture and its original request-wide work
   // budget, never a fresh allowance for every selected Item.
-  const lineage=await captureContextEvidence(store,collected.evidence,{epoch:h.admission.epoch,expectedAuthority:effective.authority,signal,workBudget:h.budget});h.lineage=lineage.captured;live(h);
+  const lineage=await captureContextEvidence(store,collected.evidence,{epoch:h.admission.epoch,expectedAuthority:effective.authority,signal,workBudget:h.budget,recoveryWork});h.lineage=lineage.captured;live(h);
   h.items=collected.items.map(item=>({...item,currentProvenance:{epoch:lineage.provenance.epoch,evidence:item.evidence.map(e=>copy(lineage.provenance.evidence.find(x=>evidenceId(x)===evidenceId(e))))}}));
   h.snapshot={sources,closures:[...closures.values()].filter(Boolean)};h.captured=true;
   await read(h,t=>assertMaintenanceExistingContext(store,t,handle,{publications}));return handle;

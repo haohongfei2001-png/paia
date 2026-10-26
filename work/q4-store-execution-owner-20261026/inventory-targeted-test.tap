@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: original before snapshot covers complete independently collected fixture closure
+ok 1 - human-current-checkpoint-recovery-native.test.mjs: original before snapshot covers complete independently collected fixture closure
+  ---
+  duration_ms: 249.229921
+  type: 'test'
+  ...
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: unchanged original core and background served bytes are both re-read
+ok 2 - human-current-checkpoint-recovery-native.test.mjs: unchanged original core and background served bytes are both re-read
+  ---
+  duration_ms: 70.478493
+  type: 'test'
+  ...
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: source background/ai-filter-consent.js change after serving is refused by original runtime recheck
+ok 3 - human-current-checkpoint-recovery-native.test.mjs: source background/ai-filter-consent.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 3.568731
+  type: 'test'
+  ...
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: release background/ai-filter-consent.js change after serving is refused by original runtime recheck
+ok 4 - human-current-checkpoint-recovery-native.test.mjs: release background/ai-filter-consent.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 1.579184
+  type: 'test'
+  ...
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: source background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+ok 5 - human-current-checkpoint-recovery-native.test.mjs: source background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 1.668675
+  type: 'test'
+  ...
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: release background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+ok 6 - human-current-checkpoint-recovery-native.test.mjs: release background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 1.401022
+  type: 'test'
+  ...
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: source background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+ok 7 - human-current-checkpoint-recovery-native.test.mjs: source background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 1.612623
+  type: 'test'
+  ...
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: release background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+ok 8 - human-current-checkpoint-recovery-native.test.mjs: release background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 1.478485
+  type: 'test'
+  ...
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: unlisted served path still refuses before a runtime read
+ok 9 - human-current-checkpoint-recovery-native.test.mjs: unlisted served path still refuses before a runtime read
+  ---
+  duration_ms: 72.517308
+  type: 'test'
+  ...
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/ai-filter-consent.js
+ok 10 - human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/ai-filter-consent.js
+  ---
+  duration_ms: 131.336177
+  type: 'test'
+  ...
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-commands.js
+ok 11 - human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-commands.js
+  ---
+  duration_ms: 140.552712
+  type: 'test'
+  ...
+# Subtest: human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-consent.js
+ok 12 - human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-consent.js
+  ---
+  duration_ms: 188.167046
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: original before snapshot covers complete independently collected fixture closure
+ok 13 - human-current-scope-checkpoint-native.test.mjs: original before snapshot covers complete independently collected fixture closure
+  ---
+  duration_ms: 110.291329
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: unchanged original core and background served bytes are both re-read
+ok 14 - human-current-scope-checkpoint-native.test.mjs: unchanged original core and background served bytes are both re-read
+  ---
+  duration_ms: 50.523585
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: source background/ai-filter-consent.js change after serving is refused by original runtime recheck
+ok 15 - human-current-scope-checkpoint-native.test.mjs: source background/ai-filter-consent.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 1.440008
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: release background/ai-filter-consent.js change after serving is refused by original runtime recheck
+ok 16 - human-current-scope-checkpoint-native.test.mjs: release background/ai-filter-consent.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 1.161999
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: source background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+ok 17 - human-current-scope-checkpoint-native.test.mjs: source background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 1.868128
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: release background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+ok 18 - human-current-scope-checkpoint-native.test.mjs: release background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 1.342145
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: source background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+ok 19 - human-current-scope-checkpoint-native.test.mjs: source background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 1.25047
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: release background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+ok 20 - human-current-scope-checkpoint-native.test.mjs: release background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+  ---
+  duration_ms: 1.096974
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: unlisted served path still refuses before a runtime read
+ok 21 - human-current-scope-checkpoint-native.test.mjs: unlisted served path still refuses before a runtime read
+  ---
+  duration_ms: 56.589389
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/ai-filter-consent.js
+ok 22 - human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/ai-filter-consent.js
+  ---
+  duration_ms: 99.664985
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-commands.js
+ok 23 - human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-commands.js
+  ---
+  duration_ms: 112.501687
+  type: 'test'
+  ...
+# Subtest: human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-consent.js
+ok 24 - human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-consent.js
+  ---
+  duration_ms: 119.947737
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1555.205256

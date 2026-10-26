@@ -116,8 +116,8 @@ async function cancellable(work,signals){
  * Scope and processing flags in request JSON are never accepted as authority.
  */
 export class ContextMaintenanceService {
- #s;#cards;#verifier;#attempts;#writeTransaction;#resolveQualification;
- constructor(store,{processingVerifier=null,writeTransaction=null,resolveQualification=null}={}){need(writeTransaction===null||typeof writeTransaction==='function','INVALID_REQUEST');need(resolveQualification===null||typeof resolveQualification==='function','INVALID_REQUEST');this.#resolveQualification=resolveQualification;this.#s=store;this.#cards=new ContextCardsService(store);this.#verifier=processingVerifier;this.#writeTransaction=writeTransaction??(fn=>this.#s.repository.transaction(true,fn));if(!attempts.has(store))attempts.set(store,new Map());this.#attempts=attempts.get(store);}
+ #s;#cards;#verifier;#attempts;#writeTransaction;#resolveQualification;#resolveRecoveryWork;
+ constructor(store,{processingVerifier=null,writeTransaction=null,resolveQualification=null,resolveRecoveryWork=null}={}){need(writeTransaction===null||typeof writeTransaction==='function','INVALID_REQUEST');need(resolveQualification===null||typeof resolveQualification==='function','INVALID_REQUEST');need(resolveRecoveryWork===null||typeof resolveRecoveryWork==='function','INVALID_REQUEST');this.#resolveQualification=resolveQualification;this.#resolveRecoveryWork=resolveRecoveryWork;this.#s=store;this.#cards=new ContextCardsService(store);this.#verifier=processingVerifier;this.#writeTransaction=writeTransaction??(fn=>this.#s.repository.transaction(true,fn));if(!attempts.has(store))attempts.set(store,new Map());this.#attempts=attempts.get(store);}
  async #verify(caller,scope,signals=[]){
   const timeout=new AbortController(),timer=setTimeout(()=>timeout.abort(),CONTEXT_MAINTENANCE_LIMITS.verificationMs);
   try{
@@ -157,14 +157,14 @@ export class ContextMaintenanceService {
    const c=structuredClone(validate(input)),serialized=JSON.stringify(c),prior=this.#attempts.get(c.operationId);
    if(prior){need(prior.serialized===serialized&&prior.caller===caller&&prior.verifier===this.#verifier&&prior.signal===signal,'INVALID_REQUEST');if(prior.authority)this.#current(caller,prior.authority,null,true);return prior.promise;}
    need(this.#attempts.size<CONTEXT_MAINTENANCE_LIMITS.pending,'CONTEXT_LIMIT');
-   const attempt={serialized,caller,verifier:this.#verifier,signal,promise:null,authority:null},boundedCall=new AbortController(),abort=()=>boundedCall.abort();this.#attempts.set(c.operationId,attempt);
+   const attempt={serialized,caller,verifier:this.#verifier,signal,promise:null,authority:null,recoveryWork:this.#resolveRecoveryWork===null?null:this.#resolveRecoveryWork()},boundedCall=new AbortController(),abort=()=>boundedCall.abort();this.#attempts.set(c.operationId,attempt);
    if(signal?.aborted)abort();else signal?.addEventListener('abort',abort);
    const timer=setTimeout(abort,CONTEXT_MAINTENANCE_LIMITS.requestMs);
    attempt.promise=Promise.resolve().then(()=>this.#apply(caller,c,serialized,boundedCall.signal,attempt)).catch(error=>{throw new ArchiveError(['INVALID_REQUEST','CONTEXT_INVALIDATED','CONTEXT_LIMIT','STORAGE_FAILED','STORAGE_FULL','CONSENT_REQUIRED','STALE_BASE','UNAVAILABLE'].includes(error?.code)?error.code:'STORAGE_FAILED');}).finally(()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);if(this.#attempts.get(c.operationId)===attempt)this.#attempts.delete(c.operationId);});return attempt.promise;
   }catch(error){return Promise.reject(error);}
  }
  async #apply(caller,c,serialized,signal,attempt){
-  const scope=scopeFor(c),authority=await this.#verify(caller,scope,signal?[signal]:[]);
+  const recoveryWork=attempt.recoveryWork,scope=scopeFor(c),authority=await this.#verify(caller,scope,signal?[signal]:[]);
   attempt.authority=authority;
   const deadline=new AbortController(),phase=new AbortController(),phaseSources=[...new Set([signal,authority.revocationSignal,deadline.signal].filter(Boolean))],cancelPhase=()=>phase.abort();
   for(const source of phaseSources){if(source.aborted)cancelPhase();else source.addEventListener('abort',cancelPhase);}
@@ -175,7 +175,7 @@ export class ContextMaintenanceService {
   need(contextLineageReady(this.#s));const database=this.#s.repository.db;
   const digest=await historical(()=>hashText(serialized)),scopeDigest=await historical(()=>hashText(JSON.stringify(scope))),associationDigest=await historical(()=>hashText(JSON.stringify(c.associationIds))),query={operationId:c.operationId,digest,epoch:c.epoch,associationDigest};
   need(contextLineageReady(this.#s)&&this.#s.repository.db===database);
-  const prior=await contextLineageRead(this.#s,async t=>{await this.#cards.admitted(t,c.epoch);const value=await this.#receipt(t,query,authority,scopeDigest,c);this.#current(caller,authority,null,true);return value;},['meta','operationReceipts'],database);
+  const prior=await contextLineageRead(this.#s,async t=>{await this.#cards.admitted(t,c.epoch);const value=await this.#receipt(t,query,authority,scopeDigest,c);this.#current(caller,authority,null,true);return value;},['meta','operationReceipts'],database,recoveryWork);
   if(prior)return prior;
   this.#current(caller,authority,phase.signal);
   const qualification=this.#resolveQualification===null?null:this.#resolveQualification();if(qualification!==null)assertMaintenanceQualification(qualification,this.#s);
@@ -183,15 +183,15 @@ export class ContextMaintenanceService {
   // The added exact final-facts snapshot must obey the original metadata-only
   // rejection order. Sharing this budget cannot acquire body rows before the
   // original off-scope, exclusion, Topic restriction and tombstone preflight.
-  const admission=await contextLineageRead(this.#s,t=>contextLineageAdmission(this.#s,contextScopeTransactionReader(this.#s,t,workBudget),c.epoch),['meta'],database);
+  const admission=await contextLineageRead(this.#s,t=>contextLineageAdmission(this.#s,contextScopeTransactionReader(this.#s,t,workBudget),c.epoch),['meta'],database,recoveryWork);
   for(const topicId of scope.topics){
    const specs=c.evidence.filter(e=>e.topicId===topicId),entryIds=specs.filter(e=>e.kind==='humanEntry').map(e=>e.entryId);
-   const preflight=await cancellable(()=>readContextProcessingPreflight(this.#s,{topicId,inputIds:specs.filter(e=>!['humanEntry','boundEntry'].includes(e.kind)).map(e=>e.inputId),...(entryIds.length?{entryIds}:{}),expectedAuthority:admission.authority},workBudget),[phase.signal]);
+   const preflight=await cancellable(()=>readContextProcessingPreflight(this.#s,{topicId,inputIds:specs.filter(e=>!['humanEntry','boundEntry'].includes(e.kind)).map(e=>e.inputId),...(entryIds.length?{entryIds}:{}),expectedAuthority:admission.authority},workBudget,recoveryWork),[phase.signal]);
    need(preflight.available&&specs.every(e=>same(e.expectedTopicBinding,preflight.binding)));this.#current(caller,authority,phase.signal);
   }
-  const material=await cancellable(()=>contextLineageRead(this.#s,async t=>{await fenceContextLineage(this.#s,admission,{transaction:t});return selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget,qualification);},undefined,database),[phase.signal]);this.#current(caller,authority,phase.signal);
-  captured=await cancellable(()=>captureContextEvidence(this.#s,c.evidence,{epoch:c.epoch,expectedAuthority:admission.authority,signal:phase.signal,workBudget}),[phase.signal]);this.#current(caller,authority,phase.signal);
-  await cancellable(()=>contextLineageRead(this.#s,async t=>{need(same(await selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget,qualification),material));},undefined,database),[phase.signal]);
+  const material=await cancellable(()=>contextLineageRead(this.#s,async t=>{await fenceContextLineage(this.#s,admission,{transaction:t});return selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget,qualification);},undefined,database,recoveryWork),[phase.signal]);this.#current(caller,authority,phase.signal);
+  captured=await cancellable(()=>captureContextEvidence(this.#s,c.evidence,{epoch:c.epoch,expectedAuthority:admission.authority,signal:phase.signal,workBudget,recoveryWork}),[phase.signal]);this.#current(caller,authority,phase.signal);
+  await cancellable(()=>contextLineageRead(this.#s,async t=>{need(same(await selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget,qualification),material));},undefined,database,recoveryWork),[phase.signal]);
 
   const current=await this.#verify(caller,scope,[phase.signal]);need(identity(current)===identity(authority));this.#current(caller,current,phase.signal);
   let transaction=null,transactionReader=null,expiryTimer=null,expectedItem=null,publication=null,publicationState=null;
@@ -288,13 +288,13 @@ export class ContextMaintenanceService {
  }
  async outcome(caller,input){
   need(exact(input,['operationId','digest','epoch','scope'])&&uuid(input.operationId)&&digestOK(input.digest)&&epochOK(input.epoch)&&validScope(input.scope),'INVALID_REQUEST');
-  const query=structuredClone(input),authority=await this.#verify(caller,query.scope),database=this.#s.repository.db,scopeDigest=await hashText(JSON.stringify(query.scope));need(contextLineageReady(this.#s));
+  const recoveryWork=this.#resolveRecoveryWork===null?null:this.#resolveRecoveryWork(),query=structuredClone(input),authority=await this.#verify(caller,query.scope),database=this.#s.repository.db,scopeDigest=await hashText(JSON.stringify(query.scope));need(contextLineageReady(this.#s));
   return contextLineageRead(this.#s,async t=>{
    await this.#cards.admitted(t,query.epoch);let receipt;
    try{receipt=await this.#receipt(t,query,authority,scopeDigest);}catch(error){if(error?.code==='INVALID_REQUEST')return {state:'unknown',externalAllowed:false};throw error;}
    this.#current(caller,authority,null,true);
    if(receipt)return {state:'committed',result:receipt,externalAllowed:false};
    return {state:this.#attempts.has(query.operationId)?'unknown':'not_committed',externalAllowed:false};
-  },['meta','operationReceipts'],database);
+  },['meta','operationReceipts'],database,recoveryWork);
  }
 }

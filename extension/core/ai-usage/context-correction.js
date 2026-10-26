@@ -116,8 +116,8 @@ async function editSnapshot(store,t,m){
  await t.scanPrimary('meta','memory:',row=>{if(['config','topic','section','entry','input'].includes(row.kind))legacy.push(row);});
  return {item,receipt,...(m.proof.kind==='restore'?{removalReceipt:await t.get('operationReceipts',m.proof.removalReceiptId)}:{}),inputs,topics,memberships,sources,legacy,filter};
 }
-export async function captureContextEditMaterial(store,m,{read,signal,workBudget=null}){
- const lineage=await captureContextEvidence(store,contextEditEvidence(m),{epoch:m.proof.epoch,signal,workBudget});
+export async function captureContextEditMaterial(store,m,{read,signal,workBudget=null,recoveryWork=null}){
+ const lineage=await captureContextEvidence(store,contextEditEvidence(m),{epoch:m.proof.epoch,signal,workBudget,recoveryWork});
  try{
   if(!equal(lineage.provenance,m.provenance))fail('STALE_BASE');
   const snapshot=await read(async t=>{await fenceContextLineage(store,lineage.captured,{transaction:t});return editSnapshot(store,t,m);});
