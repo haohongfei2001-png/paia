@@ -58,18 +58,33 @@ export function readOriginalGenerationControlWork(repository){return Object.free
 const controlReceipts=new WeakMap(),controlPlans=new WeakMap(),controlReads=new WeakMap();
 function receiptFor(repository,row){const r=controlReceipts.get(repository);return r&&!r.failed&&r.taskId===row.taskId&&equal(r.identity,row.identity)&&equal(r.pending,row.controlPending)&&equal(r.row,row)?r:null;}
 export function prepareOriginalGenerationControl(repository,scope,before,after,{terminal=false}={}){
- requireOriginalTaskControlScope(repository,scope,terminal);originalGenerationTaskData(after);if(after.version!==2)return after;
+ requireOriginalTaskControlScope(repository,scope,terminal);originalGenerationTaskData(after);
+ // The original publication consumer already prepays its whole closure. Bind
+ // terminal settlement to that exact debit; the old control debt below is a
+ // separate receipt, never permission to refund the publication reservation.
+ let terminalEnvelope=null;
+ if(terminal){
+  originalGenerationTaskData(before);
+  if(before.version!==2||before.phase!=='applying'||before.pending?.kind!=='publication'||before.pending.ms>30000||!equal(after,originalGenerationTaskSettle(before,before.pending,{bytes:before.pending.bytes,activeMs:before.pending.ms},'verified')))fail();
+  terminalEnvelope=Object.freeze({...before.pending});
+ }
+ if(after.version!==2)return after;
  if(controlPlans.has(scope))fail();if(before!==null){originalGenerationTaskData(before);if(before.version!==2||before.taskId!==after.taskId||!equal(before.identity,after.identity)||!equal(before.controlPending,after.controlPending)||before.controlSequence!==after.controlSequence||before.controlBurned!==after.controlBurned)fail();}
  const held=controlReceipts.get(repository);if(held?.failed)fail('BNS_GROUP_RESOURCE_LIMIT');const old=before?.controlPending??null,receipt=old?receiptFor(repository,before):null;
  if(receipt?.reading||receipt?.settling)fail('BNS_GROUP_RESOURCE_LIMIT');if(receipt&&!terminal){const bytes=receipt.pending.bytes-receipt.bytes,ms=Math.floor(receipt.pending.ms-receipt.activeMs);if(bytes<=0||ms<=0)fail('BNS_GROUP_RESOURCE_LIMIT');registerRepositoryWorkLimit(repository,scope,{bytes,ms});}
  let next=clone(after);if(old){if(receipt){if(receipt.bytes>old.bytes||Math.ceil(receipt.activeMs)>old.ms)fail('BNS_GROUP_RESOURCE_LIMIT');next.workBytes-=old.bytes-receipt.bytes;next.activeMs-=old.ms-Math.ceil(receipt.activeMs);}else next.controlBurned++;}
  next.controlPending=null;
  if(!terminal){if(next.controlSequence===16384||next.workBytes+2*1024*1024>QUALIFIED_HUMAN_TASK_LIMITS.workBytes||next.activeMs+30000>QUALIFIED_HUMAN_TASK_LIMITS.activeMs)fail('BNS_GROUP_RESOURCE_LIMIT');next.controlSequence++;next.workBytes+=2*1024*1024;next.activeMs+=30000;next.controlPending={sequence:next.controlSequence,bytes:2*1024*1024,ms:30000};}
- originalGenerationTaskData(next);controlPlans.set(scope,{repository,before,after:clone(next),receipt,terminal});if(receipt)receipt.settling=scope;return next;
+ originalGenerationTaskData(next);controlPlans.set(scope,{repository,before,after:clone(next),receipt,terminal,terminalEnvelope});if(receipt)receipt.settling=scope;return next;
 }
 export function completeOriginalGenerationControl(repository,scope){
- const p=controlPlans.get(scope);if(!p||p.repository!==repository)fail();const work=readOriginalCommittedTransactionWork(repository,scope);
+ const p=controlPlans.get(scope);if(!p||p.repository!==repository||p.failed)fail();const work=readOriginalCommittedTransactionWork(repository,scope);
  if(p.receipt&&controlReceipts.get(repository)!==p.receipt)fail();
+ // This verifies an already committed original receipt. It does not roll back
+ // a committed transaction, mint a new allowance or perform a cold write.
+ if(p.terminal&&(!number(work.references)||work.references>4096||!number(work.bytes)||work.bytes>p.terminalEnvelope.bytes||!Number.isFinite(work.activeMs)||work.activeMs<0||Math.ceil(work.activeMs)>p.terminalEnvelope.ms)){
+  p.failed=true;if(p.receipt)p.receipt.failed=true;fail('BNS_GROUP_RESOURCE_LIMIT');
+ }
  // Only a committed successor consumes the predecessor receipt. Failed native
  // writes retain both the durable debt and its one-use original receipt.
  controlPlans.delete(scope);if(p.terminal){controlReceipts.delete(repository);return;}
