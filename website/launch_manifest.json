@@ -1,7 +1,0 @@
-{
-  "chrome_store_url": null,
-  "release_version": null,
-  "delivery_checked_at": "2026-10-13",
-  "allowed_store_host": "chromewebstore.google.com",
-  "note": "No verified public installation target found in repository or releases. Keep the download action honestly unavailable, with demo/help available. Set a verified product-specific store URL only after publication."
-}

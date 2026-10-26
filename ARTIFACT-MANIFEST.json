@@ -1,0 +1,236 @@
+{
+  "artifactVersion": "20261026T0541Z-4ca6121a-v2",
+  "files": [
+    {
+      "file": "PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip",
+      "bytes": 18737881,
+      "sha256": "be1fb2882a114d702c021ffd965f7b67b2103f9bd1cf70d4c8a3a2ff98a0d1d9"
+    },
+    {
+      "file": "README.md",
+      "bytes": 8480,
+      "sha256": "b758305f7187394064b836d29f22d87e4272e3064201f8eea30b8f7f56f53685"
+    },
+    {
+      "file": "SOURCE-IDENTITY.json",
+      "bytes": 946,
+      "sha256": "2c1c98a6f6e6c8e893dd7d392630cea94307ccbbf1fc0f5113340c27174f1035"
+    },
+    {
+      "file": "FILE-MANIFEST.json",
+      "bytes": 1264918,
+      "sha256": "fbf898cc7f2afa15d681f967a54c1608b1d4fa62dbd873d87b1eda3b12589ad5"
+    },
+    {
+      "file": "KEY-SOURCE-DELTA-from-a8d122c.patch",
+      "bytes": 69660,
+      "sha256": "66f9490df64d204a005c5c17ad480596fd1bcca677e062668caf15101a4bd9ff"
+    },
+    {
+      "file": "IDB-INTERFACE-REFERENCE-main05514-to-dev.patch",
+      "bytes": 68758,
+      "sha256": "2eb5dc51e99251cf4e5dd62a46e80778917faba219178236264545add388d734"
+    },
+    {
+      "file": "SELECTION.json",
+      "bytes": 423738,
+      "sha256": "877a9c12d0755f51a6185525d4a33ee3c90c7f0f9f33b244d850cf0f5a188868"
+    }
+  ],
+  "originalBlobCount": 2222,
+  "originalBlobBytes": 55329235,
+  "archiveEntryCount": 2229,
+  "sourceTests": "NOT_RUN",
+  "archiveIntegrity": "VERIFIED_BYTES_ONLY",
+  "transport": {
+    "mode": "ordered-binary-parts",
+    "partBytesMaximum": 524288,
+    "reconstructedFile": "PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip",
+    "reconstructedBytes": 18737881,
+    "reconstructedSha256": "be1fb2882a114d702c021ffd965f7b67b2103f9bd1cf70d4c8a3a2ff98a0d1d9",
+    "partCount": 36,
+    "archiveRepacked": false
+  },
+  "parts": [
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part001",
+      "bytes": 524288,
+      "sha256": "6e0832802e3a98819110bbe58c70bcc935702b38656ebace78ea3d1077c1e40f"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part002",
+      "bytes": 524288,
+      "sha256": "2d73669b006fc6eee6c5f593427e564a40666f195c3957a657dbaecf20b34ea1"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part003",
+      "bytes": 524288,
+      "sha256": "d8f6ac65cec889f50e44c684af1c7b12b91763c4b9bb531d02b484772f6332f6"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part004",
+      "bytes": 524288,
+      "sha256": "4e16cb0f6318a56d1d0f4f99bdbaf1765ec9de817c6ba87ee19c6a6e99bf7882"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part005",
+      "bytes": 524288,
+      "sha256": "68a462485c35432a65153d2203cc7ca8ea8ec7a9ac2fcfee0bf4637fe701c942"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part006",
+      "bytes": 524288,
+      "sha256": "d85ff2eb6d66b8fe70760f6f0161bce864e7e69637f2b7c21b9e52f0fd7ad259"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part007",
+      "bytes": 524288,
+      "sha256": "593bbbc2a06c0c80e6728ebdde46553b98fb38a2b96ba4e4884c12388271e0dc"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part008",
+      "bytes": 524288,
+      "sha256": "a84aae9e4dab841e2f9238d5cb6aaabc95c1be09d374c817a03caa239f9fa80c"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part009",
+      "bytes": 524288,
+      "sha256": "e820ca5e84b9393926c7fcb8259f6d07475848564270a1d65a9e9c3d23496646"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part010",
+      "bytes": 524288,
+      "sha256": "44b3810706e0a7af79fb2980728c915e0b8b01b7c3c0410d7267fd9afa3dfa00"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part011",
+      "bytes": 524288,
+      "sha256": "0f857817b6c824a2cebd3d866550f54df84ded27c8bc3f90dcdea328fcf20240"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part012",
+      "bytes": 524288,
+      "sha256": "624552b59a35d9c4e21de54bf9b80c8166866f15259199f2cdbb6a2aa6ba3a8c"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part013",
+      "bytes": 524288,
+      "sha256": "d43de97bcfc51036e39d2cbecf8c5f260307b7fc241dc95b9398fedaaf91f6ac"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part014",
+      "bytes": 524288,
+      "sha256": "de200aed3c3d1fce174b69dce6a36cc1bd5e89992986961475274733b38d0bf8"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part015",
+      "bytes": 524288,
+      "sha256": "dc19960f7d6714d38354f30a06ca121f38e92d4ccdcf1a9b03f1e1b08aff2aa8"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part016",
+      "bytes": 524288,
+      "sha256": "a3bf0f5031f6f9add3e56258b4eda2d246b27466283ec3b8c1484d483be65470"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part017",
+      "bytes": 524288,
+      "sha256": "52339178198f96926155e90f80244ded7e8b873527bdbefa9d634aa4d44cdf6a"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part018",
+      "bytes": 524288,
+      "sha256": "73346678c3a2cb7564b5bd4349191dc9f746dd4f9fdd40cfa25a3f0be1e05844"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part019",
+      "bytes": 524288,
+      "sha256": "b5ede8801c4d1deb047274062957089459419ea173f24fffaa8731d7ad5828e9"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part020",
+      "bytes": 524288,
+      "sha256": "e2f3693312f726e5e3573119ca029b2df0f25065afa9f704c0fe249cbaeaa455"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part021",
+      "bytes": 524288,
+      "sha256": "5f62f1b27f23c9be69847b16dc56b41f2b8ffd179829396de56184ad51a5fd42"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part022",
+      "bytes": 524288,
+      "sha256": "4a4b119b4c2ed101e9cb4c15b442905dc0f4b6149f59aa83fe8e775e883db864"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part023",
+      "bytes": 524288,
+      "sha256": "48dff982b2c770d578511948c458c70d57aa6d5c0620285f891c655bf17d0294"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part024",
+      "bytes": 524288,
+      "sha256": "a54416efa36f1793fc2e75dfa6679058aff9b06f52389a36b40045563969e665"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part025",
+      "bytes": 524288,
+      "sha256": "a3c8f090f2e01a694f688eb0bb084c2af16973c94959fd711e39a5a8017cc331"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part026",
+      "bytes": 524288,
+      "sha256": "1db652a1f8b9a460b84c1f3dc1e9ee158ee425e9ba561dc8843592c5bb9c0eca"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part027",
+      "bytes": 524288,
+      "sha256": "b83c4643b7493eb13c8ac2a60367e9c14d6a8301295a4a3454af9d7f80c784e8"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part028",
+      "bytes": 524288,
+      "sha256": "6ea226a3937210ed6ae69460178f0065f0eeb06bb5868d82e7a1c2f59c57949e"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part029",
+      "bytes": 524288,
+      "sha256": "e9f4a02b08b4218febbea3be4ad17037b0333ba8a51505a0943d6050de97af3d"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part030",
+      "bytes": 524288,
+      "sha256": "117faff2ef6458dcf7729e2c4088bb57165cce2101e490ecc0e58e25ca0ef47f"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part031",
+      "bytes": 524288,
+      "sha256": "bf557245293486a79f0c67aeb29995975abf72ce7ee80d4259b4dff1e93c3d5a"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part032",
+      "bytes": 524288,
+      "sha256": "07732b6189bff9a879ac076b7192133656cbd9cc9f5df29b5b28c58a0bf184db"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part033",
+      "bytes": 524288,
+      "sha256": "9b9eef95899878620ad11a9af28d36222f3f90b77b95307f29a193e730377915"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part034",
+      "bytes": 524288,
+      "sha256": "ea386d0d4ec692bbff9beecaa0f20a7a1a793700f69f59816695d29da05bda6a"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part035",
+      "bytes": 524288,
+      "sha256": "5f670fc811b30bfe1926ca44e17c1327934d536b6f45d9807d249bb3a2ede397"
+    },
+    {
+      "file": "parts/PAIA-Sync-Codex-Handoff-20261026T0541Z-4ca6121a-v2.zip.part036",
+      "bytes": 387801,
+      "sha256": "049112666ede34d4768e861f9bc88df04a02762fdcb59c6f12bb7690f3a42674"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "artifactVersion": "20261026T0541Z-4ca6121a-v2",
+  "sourceCommit": "4ca6121aba860856d749f2dc788a77e9c3eb8947",
+  "sourceTree": "8ae26e2ba3100e3335559ac4a7146b819e63270a",
+  "sourceBranch": "codex/dot-seven-plan-continuation-20261025",
+  "sourcePackageVersion": "0.55.9",
+  "oldCodexCommit": "a8d122c025cba42ad0cbbff4b20546a886d5353e",
+  "publishedMainCommit": "5dcabcab23545583da0afe22e965ecf47f1e6c0f",
+  "localMainEquivalentCommit": "f906c92ec863be8a55d3c5f04f4361f244f6a943",
+  "mainTree": "e42b02a025e51e26dedaa66e396b07e930039fd5",
+  "mainPackageVersion": "0.55.14",
+  "sourceStatusPorcelain": "",
+  "sourceUntrackedCount": 0,
+  "sourceStashMetadata": "",
+  "verification": "NOT_RUN: no tests/build/browser/network/provider/user data",
+  "mainCiStatus": "Root reported four signed-consumer CI failures; NOT full green. No CI run in this packaging task.",
+  "history": "No git history or bundle; exact selected tracked git blobs only."
+}

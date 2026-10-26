@@ -1,9 +1,0 @@
-# Settings and auxiliary pages — SET2-UI-1.4 references
-
-**2026-10-16 / PAIA-CONTENT-FIRST-1.0 / owner-requested refinement.** [Adoption](SETTINGS_CONSUMER_V2_ADOPTION.md), [plan](SETTINGS_CONSUMER_V2_PLAN.md), shared UX and [shared artifact manifest](CONTENT_FIRST_REFERENCES_2026-10-16.md) retain original responsibilities.
-
-Unified `PAIA_内容优先_统一原型.html`:613922 bytes,SHA-256 `9310d3541fc0da926101c440b3c9a4bd4e6144847b6e377c998fccd5dd49ed0d`. Package `PAIA_内容优先_设计包.zip`:1353010 bytes,SHA-256 `be1f2faa881aafe143c58a9408079452005d35266430a4d5826c52faae5f7484`. Screens09/10/14 demonstrate aligned directory/settings rows, Data and narrow current-category view. Three embedded page prototypes are modified existing designs, not new app architecture.
-
-Complete preceding manifest is retained in [PRE_CONTENT_FIRST](SETTINGS_CONSUMER_V2_REFERENCES_PRE_CONTENT_FIRST_2026-10-16.md), blob `ff729c61d45c9904f0460ab1fd9a1d18966e0660`. Prior exact package identities, Settings/33 auxiliary-state/BNS/Context matrices remain normative where compatible; repeated title/copy/empty header areas and old reader search are superseded. All meaningful consent, Source, conflict/restore previews, legal/help and actual error states remain.
-
-The new package includes15 PNGs and44 limited synthetic tests, not production, durable storage, full accessibility, physical-device, cloud/client or installed acceptance. File-URL execution was blocked in the test environment; the same HTML was loaded with set_content. The unified iframe/store/scene controls are demo-only. No public original-asset/font upload by this documentation task; obtain exact conversation bytes when needed and verify hashes rather than invent a sandbox/repository path. Current written requirements prevail over incidental prototype controls or errors.

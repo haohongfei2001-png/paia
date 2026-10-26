@@ -1,9 +1,0 @@
-# Input Archive — IAH-1.4 current references
-
-**OWNER_APPROVED / 2026-10-13.** [Shared white reference manifest](WHITE_REFINEMENT_REFERENCES_2026-10-13.md), [ADOPTION](INPUT_ARCHIVE_HOME_ADOPTION.md), [UX](INPUT_ARCHIVE_HOME_UX.md) and [PLAN](INPUT_ARCHIVE_HOME_PLAN.md) identify the final target. Existing IAH-1.3 interaction semantics are unchanged.
-
-Current independent original: `PAIA_输入档案_白色精修.html`, 147177 bytes, SHA-256 `d3aff7a30aba8724f005b37f129128d398c35c3cd13e4f0aaf72bd8a2e7e1e18`. Use package screens 05/06/07/08/09/13/17/19 for neutral Archive, source switching, results, continuous Reader, source check, white comparison, narrow and dark. Screen 12 is old-blue comparison evidence, not a final or selectable production theme. The generated concept collage is not adopted.
-
-The complete former manifest is preserved in [PRE_WHITE](INPUT_ARCHIVE_HOME_REFERENCES_PRE_WHITE_2026-10-13.md), exact blob `ea2fd5dcd99188ef90e3b4d6632187431d65f2c1`. Earlier hashes, ten-state mapping and all nonpictured safety/coverage/editor/source/recovery requirements remain evidence and normative obligations where compatible. Old simultaneous-provider trees, excessive paragraph spacing and full-blue color are not current pixel targets.
-
-The shared manifest records all actual new hashes, 29-payload integrity checking, supplied-image equality and evidence limitations. Original files remain in the owner-controlled conversation; this plan commit does not upload their bytes or fonts. Exact attachment access must be verified rather than inferred from a hash/name. New rendering uses original production services and current data, not sample routes/stores/providers. The synthetic report does not certify source precision, full traversal, CAS/purge/restore, physical IME or installed service. Preserve actual source/release and complete retained verification.

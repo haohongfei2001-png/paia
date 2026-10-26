@@ -1,9 +1,0 @@
-# Thought Library — TL-PT1-UI-1.3 current references
-
-**OWNER_APPROVED / 2026-10-13.** Current target: [shared white refinement manifest](WHITE_REFINEMENT_REFERENCES_2026-10-13.md), [visual authority](THOUGHT_LIBRARY_PT1_VISUAL_AUTHORITY.md) and [existing Topic plan](TOPIC_ARCHITECTURE_PLAN.md).
-
-Use `PAIA_思想库_白色精修.html` (95286 bytes, SHA-256 `d4c99ec834b4af42eba8ece001a9165e644d0ce9b9e18c46e9cc8e9ec6e43541`) or the refined unified viewer. Package screens 01/02/15 govern Home/Reader/narrow; shared screen 19 informs the dark roles, not removal of other page dark coverage. Screen 12 is blue comparison only. The generated six-panel collage and previous rejected dashboards are not references.
-
-The full preceding manifest, including exact original HTML/PNG hashes and earlier approval limits, is preserved byte-for-byte in [PRE_WHITE](THOUGHT_LIBRARY_PT1_VISUAL_REFERENCES_PRE_WHITE_2026-10-13.md), blob `703ce219a411a5dc6bd7002effacc742b9cd5152`. It is historical evidence and preserves nonconflicting sparse/long/state mappings, not a competing final palette. The earlier refinement's no-count/single-activity-order/normal-reading requirements remain mandatory even if an older image differs.
-
-The shared manifest records all exact new hashes, review scope, attachment availability and prototype limitations. Original assets remain in the owner-controlled conversation; this documentation does not publish them or fonts. Do not claim cross-agent file access merely from these names. Use the explicit current contract for independent preparation, and verify original bytes for exact comparison. Synthetic tests/fixtures do not prove production ownership, activity computation, body integrity, live AI or installation. Preserve the complete existing acceptance matrix and actual source/release verification.

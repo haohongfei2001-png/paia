@@ -1,1 +1,0 @@
-node --test --test-concurrency=1 --test-reporter=tap extension/tests/ai-cost-03-section-restore-topic.test.mjs extension/tests/ai-cost-03-topic-name-restore-topic.test.mjs

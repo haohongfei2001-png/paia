@@ -1,9 +1,0 @@
-# Input Archive — IAH-1.5 references
-
-**2026-10-16 / PAIA-CONTENT-FIRST-1.0 / owner-requested refinement.** [Adoption](INPUT_ARCHIVE_HOME_ADOPTION.md), [interaction](INPUT_ARCHIVE_INTERACTION_CONTRACT.md), [visual UX](INPUT_ARCHIVE_HOME_UX.md) and [plan](INPUT_ARCHIVE_HOME_PLAN.md) now include Reader-search retirement. Exact new files are listed in [shared manifest](CONTENT_FIRST_REFERENCES_2026-10-16.md).
-
-Independent `PAIA_输入档案_内容优先.html`:150803 bytes,SHA-256 `d5c313126d1daa76fb3ef6d1274120e9b484d0180c23f9229c3ec20d77a5812e`. Screens06/07/08/13 demonstrate neutral discovery, Reader without either search, retained discovery results and narrow Reader. Original dark/source/history/unknown/error/long-text states and all nonpictured safety obligations remain; a smaller screenshot set never cancels them.
-
-Full prior manifest is byte-preserved in [PRE_CONTENT_FIRST](INPUT_ARCHIVE_HOME_REFERENCES_PRE_CONTENT_FIRST_2026-10-16.md), blob `74d2dea5827001dc190e7d1475a34344acc17f17`. Prior exact files/tests are history; duplicate Archive heading, global search during reading and current-Conversation Find are no longer final pixel targets. Exact result landing, Back query/scope/anchor, source selection and existing data/editor safeguards remain.
-
-The demo retains some hidden inert nodes to keep old controller references valid. Production must remove reader-specific UI subscriptions safely, not copy a CSS-only patch, delete shared queries or claim hidden active search is retired.44 synthetic assertions are not true-site, cross-origin, native IME, durable storage or installed verification. No actual archive/provider/capture/permission action occurs. Exact original files remain in the conversation and are not publicly uploaded; hashes do not imply access. Use existing production owners, not mock source labels/data/serializer/iframe architecture.

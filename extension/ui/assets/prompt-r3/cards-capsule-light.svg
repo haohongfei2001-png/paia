@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="PAIA horizontal double cards: capsule">
-<title>PAIA-FLOAT-UI-1.2-R1 · capsule · light</title>
-<desc>Exactly two equal horizontal cards. Foreground is fixed; only rear offset changes. 48px is the selected component size.</desc>
-<defs><linearGradient id="rear" x2=".18" y2="1"><stop stop-color="#93a2be" stop-opacity="0.27"/><stop offset="1" stop-color="#8192b1" stop-opacity="0.37"/></linearGradient><linearGradient id="front" x2=".2" y2="1"><stop stop-color="#899bb9" stop-opacity="0.36"/><stop offset="1" stop-color="#667c9f" stop-opacity="0.55"/></linearGradient><linearGradient id="edge" x2=".25" y2="1"><stop stop-color="#ffffff" stop-opacity="0.92"/><stop offset="1" stop-color="#7185a6" stop-opacity="0.3"/></linearGradient></defs>
-<circle cx="24" cy="24" r="23.5" fill="#ffffff" stroke="#dce0e7"/>
-<rect data-layer="rear" x="14.75" y="17" width="21" height="14" rx="3.25" transform="translate(-5 0)" fill="url(#rear)" stroke="#7185a6" stroke-opacity=".26" stroke-width=".7"/>
-<rect data-layer="front" x="14.75" y="17" width="21" height="14" rx="3.25" fill="url(#front)" stroke="url(#edge)" stroke-width=".8"/>
-</svg>

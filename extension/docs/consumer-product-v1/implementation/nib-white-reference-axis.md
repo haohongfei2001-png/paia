@@ -1,9 +1,0 @@
-# NIB reference text axis and search control
-
-The recovered approved NIB v4 package and the actual source/release Prompt screenshots revealed that inherited rows put original text approximately 35px from the outer frame rather than the reference's 18px. This small presentation slice restores the 18px axis and uses the existing shared search glyph with the same localized accessible name.
-
-The existing row drag handle remains an independent flex action, with a 22px fine-pointer target and 44px coarse-pointer target. Insert, reorder, copy, edit and More remain separate, stable hit targets; no action or body owner is removed. The existing expanded orb remains because it owns whole-panel dragging and accessible positioning. The patch does not change canonical Prompt membership, insertion, persistence, recovery or permissions.
-
-All 12 non-native NIB v4 files passed 109 tests; the complete Prompt surface/security/family and position-presenter files passed another 68 (overlap is not implied as full certification). Native source/release assertions now verify the actual 18px axis, five non-overlapping native hit boxes, glyph/accessibility and unchanged text geometry on hover, before continuing the original edit and real drag journeys. Native evidence remains pending hosted execution; installed local Chromium cannot launch in this sandbox.
-
-The immediately preceding hosted run on `68e557bca43c16781bcfbbda027aa896650e15b0` also exposed four Root-return/create tests whose controllers had not initialized a Root renderer. The same follow-up preserves synchronous clearing when a renderer exists while allowing the original early-open DOM cleanup when it does not. No restoration or creation assertion is changed. The complete five-file Root return/create/preview set reproduces the failure before the two-line correction and passes all 92 tests afterward. The failed hosted runs are retained as evidence.
