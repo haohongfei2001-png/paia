@@ -1,0 +1,17 @@
+2026-10-27T05:27:43.7614698Z FAIL ai-maintenance-owner-integration.test.mjs: Context receives immutable actual same-child Topic result only after exact ACK
+2026-10-27T05:27:43.7615571Z Error [ERR_TEST_FAILURE]: Expected values to be strictly equal:
+2026-10-27T05:27:43.7615946Z + actual - expected
+2026-10-27T05:27:43.7616175Z 
+2026-10-27T05:27:43.7617614Z + 'PARTIAL'
+2026-10-27T05:27:43.7617883Z - 'COMMITTED'
+2026-10-27T05:27:43.7618171Z 
+2026-10-27T05:27:43.7618442Z Caused by: AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+2026-10-27T05:27:43.7618918Z + actual - expected
+2026-10-27T05:27:43.7619079Z 
+2026-10-27T05:27:43.7619172Z + 'PARTIAL'
+2026-10-27T05:27:43.7619384Z - 'COMMITTED'
+2026-10-27T05:27:43.7619519Z 
+2026-10-27T05:27:43.7620194Z     at TestContext.<anonymous> (file:///home/runner/work/paia/paia/extension/tests/ai-maintenance-owner-integration.test.mjs:76:50)
+2026-10-27T05:27:43.7620760Z     at async Test.run (node:internal/test_runner/test:1054:7)
+2026-10-27T05:27:43.7621172Z     at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+2026-10-27T05:27:43.7621769Z FAILURE_METADATA {"failureType":"testCodeFailure"}

@@ -1,0 +1,27 @@
+{
+  "baseTree": "1c8e3b8d1d39b415e8fffc56205df7d1a97b1579",
+  "publishedBase": "af75ee7a0fafc867cdfe376e2611408ab3a7f12a",
+  "runtimeCommit": "8b038afa0017f59d3d8674f3836cd97d40e78790",
+  "runtime": {
+    "path": "extension/core/ai-usage/local-maintenance-session.js",
+    "sha256": "84260fe69b7ab6f8ef31480ce6cc5adaad65568c0a462cd92b19b4ed0651945d",
+    "before_sha256": "fb6b1e935ec33bcf3c147f228ed16aa024f7c9a44bf443b125b358956f706177"
+  },
+  "unchangedTest": {
+    "path": "extension/tests/ai-maintenance-owner-integration.test.mjs",
+    "sha256": "9f7d19fb103813a831f7bd5cc1a22aaf8610d517bcbdf1ad33c7b558191271ce"
+  },
+  "originalFailureSha256": "3afcf5092754ed7e05eac0effefd913e4088170d72db164eeeee01435a00559a",
+  "localCase": {
+    "sha256": "83f1870f7f2e02346d5950ce0ef96742ea7440be0a43722fb7be0746a4e7856d",
+    "result": "1/1 PASS, fail0 skip0; one execution only",
+    "command": "node --test --test-reporter=tap --test-name-pattern='^Context receives immutable actual same-child Topic result only after exact ACK$' extension/tests/ai-maintenance-owner-integration.test.mjs",
+    "duration_ms": 896.522004
+  },
+  "originalWorkflowResults": {
+    "40455228054": "success",
+    "40455228518": "success",
+    "40455228468": "failure",
+    "40455228677": "failure"
+  }
+}
