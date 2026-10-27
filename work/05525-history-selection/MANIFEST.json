@@ -1,0 +1,48 @@
+{
+  "base": "2688625c69387cb45235480193d2af84960a783e",
+  "baseTree": "bcaf849d8281fb63a06bb6ce2b89d9b0b8ed725e",
+  "publishedBase": "3d735e6f98fff8cd012543991bb8bceb53fdd99b",
+  "source": "455e92e03d027e0d468c668d90b8ad6413f07064",
+  "files": [
+    {
+      "path": "extension/docs/consumer-product-v1/implementation/WORKING-HISTORY-SELECTION-OWNER-20261027.md",
+      "bytes": 3690,
+      "sha256": "23d235362753f933fd7f092e4d7f1ef1b416b68116615c1fc22fe92f4fd4e6d6",
+      "blob": "4a9764001d2936ae3f1ee2e3dbe3069d8ba4a526",
+      "mode": "100644"
+    },
+    {
+      "path": "extension/tests/working-history-selection-owner.test.mjs",
+      "bytes": 12784,
+      "sha256": "7a86fefc28b1ee4d193c646c062beb7f5c33f4e303552f1b4029d5eee26b3c79",
+      "blob": "91edc7849bbcc63e2e854a89fb4f517d3b773553",
+      "mode": "100644"
+    },
+    {
+      "path": "extension/ui/working-history.js",
+      "bytes": 5008,
+      "sha256": "403f1b14421e1f8f3119753dedd88c637db6b233a91f0cec5367d5ed0b8aa3d1",
+      "blob": "37ea4166eca163ca7b32356c700c4be991856bef",
+      "mode": "100644"
+    }
+  ],
+  "evidenceHashes": {
+    "baseline-incomplete-retained.log": "4c2fd8afeb1058a67cd8d8c9db30db5d3d22e0290822789345db160fd35da54b",
+    "baseline-incomplete-note.txt": "10272344beb9ae2195a6985af745a1666a42b6a7703bbc54000c74854e9ff098",
+    "baseline-failure.tap": "a504481673065ec2587f3f92087bb0cfab9486200ea22974e6ea32501b24fcd2",
+    "changed-owner-tests.tap": "0c61894cd6032a8bbe02ee952a19246ce0472d3de84ea9d772b54aa0f553d7b9"
+  },
+  "unchangedNullConfigurations": {
+    "extension/core/ai-usage/assist-service-configuration.js": "75c427fad618799fa52a6b4951d50869af2c41d1cfa0c52ca493571fd918c580",
+    "extension/core/ai-usage/historical-service-configuration.js": "c07bbf91a865ffc07c644b3127c160790816f93319555aadb6be1c7ebda50dd8",
+    "extension/core/ai-usage/maintenance-service-configuration.js": "d94bc0c0e8ab1393a011822c4114176efcf724c8020459f1f70fac8fdd4e17a5",
+    "extension/core/ai-usage/organize-service-configuration.js": "aa072890a1a7ee8488236ce9415db2da6f565f2aae6eb563875939bc81711030"
+  },
+  "tests": {
+    "baseline": "2 fail / 2; initial incomplete fixture log also retained",
+    "changed": "12 pass / 12, zero skips, 177.987586ms",
+    "command": "timeout 10s node --test --test-reporter=tap extension/tests/working-history-selection-owner.test.mjs",
+    "browser": "NOT_RUN",
+    "existingSuites": "NOT_RUN"
+  }
+}

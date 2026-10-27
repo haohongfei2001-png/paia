@@ -1,0 +1,5 @@
+# 0.55.25 History selection ownership
+
+Only the latest explicitly selected working revision may display and confirm its preview in the existing Archive History modal. A late earlier read cannot append an obsolete confirmation, steal focus, or report an error for the newer selection. While the original restore is genuinely pending, switching preview cannot hide it or start another restore. This is modal-local UI ownership only: the existing DocumentEditor remains the sole write owner; original CAS and UNKNOWN behavior remain. An already dispatched write cannot be recalled.
+
+Evidence remains separate: an initial incomplete fixture's held await was interrupted and retained; two original negative controls then failed; the new corrected owning file passed 12/12, zero skips. Packaging checks source/test hashes and exact original hunk without replaying tests. No browser, original suite, real service or new cloud run was performed. Four service configurations remain byte-identical and return null. Version, version_name and package version agree at 0.55.25. This candidate is not yet authorized for publication and has no changed-head CI result.

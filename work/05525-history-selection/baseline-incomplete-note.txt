@@ -1,0 +1,1 @@
+First bounded negative-control attempt recorded first defect, then fixture incorrectly awaited the deliberately held second preview. Stopped own exec session 37244 with Ctrl-C, exit130. Corrected only non-awaiting invocation for the negative control; no production change. Original log retained.

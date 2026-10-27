@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: newer History selection owns the only confirmation when the older preview settles last
+ok 1 - newer History selection owns the only confirmation when the older preview settles last
+  ---
+  duration_ms: 5.483343
+  type: 'test'
+  ...
+# Subtest: an admitted History restore cannot be replaced by another preview while its result is pending
+ok 2 - an admitted History restore cannot be replaced by another preview while its result is pending
+  ---
+  duration_ms: 1.559794
+  type: 'test'
+  ...
+# Subtest: before/after choices in the same row retain only the latest exact side
+ok 3 - before/after choices in the same row retain only the latest exact side
+  ---
+  duration_ms: 0.838172
+  type: 'test'
+  ...
+# Subtest: replaced confirmation callbacks cannot restore or remove the newer comparison
+ok 4 - replaced confirmation callbacks cannot restore or remove the newer comparison
+  ---
+  duration_ms: 0.738706
+  type: 'test'
+  ...
+# Subtest: old preview error is silent while the current preview error remains actionable and retryable
+ok 5 - old preview error is silent while the current preview error remains actionable and retryable
+  ---
+  duration_ms: 2.205453
+  type: 'test'
+  ...
+# Subtest: Cancel removes only the chosen preview and restores its invoker without writing
+ok 6 - Cancel removes only the chosen preview and restores its invoker without writing
+  ---
+  duration_ms: 0.607213
+  type: 'test'
+  ...
+# Subtest: closing History or replacing its rows retires late reads without feedback or focus theft
+ok 7 - closing History or replacing its rows retires late reads without feedback or focus theft
+  ---
+  duration_ms: 0.860926
+  type: 'test'
+  ...
+# Subtest: already-dispatched restore is not cancelled or replayed by departure, and late failure stays silent
+ok 8 - already-dispatched restore is not cancelled or replayed by departure, and late failure stays silent
+  ---
+  duration_ms: 0.742922
+  type: 'test'
+  ...
+# Subtest: pending read buttons and newly appended rows remain blocked for the in-flight restore
+ok 9 - pending read buttons and newly appended rows remain blocked for the in-flight restore
+  ---
+  duration_ms: 0.878772
+  type: 'test'
+  ...
+# Subtest: unchanged comparison preserves exact Source-backed text, note, exclusion and prepared write identity
+ok 10 - unchanged comparison preserves exact Source-backed text, note, exclusion and prepared write identity
+  ---
+  duration_ms: 1.238421
+  type: 'test'
+  ...
+# Subtest: unavailable Source never admits a confirmation and title restoration keeps its original semantics
+ok 11 - unavailable Source never admits a confirmation and title restoration keeps its original semantics
+  ---
+  duration_ms: 0.53664
+  type: 'test'
+  ...
+# Subtest: a current failed restore preserves the original draft guidance and blocks a duplicate confirmation
+ok 12 - a current failed restore preserves the original draft guidance and blocks a duplicate confirmation
+  ---
+  duration_ms: 0.857231
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 177.987586
