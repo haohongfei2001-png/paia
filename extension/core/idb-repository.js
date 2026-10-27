@@ -1,4 +1,14 @@
-import {readOriginalRecoveryStoreExecution} from './indexed-store.js';
+import {readOriginalRecoveryStoreExecution,readOriginalLocalToolsSelectionExecution} from './indexed-store.js';
+import {originalBootstrapHostSupported,originalBootstrapNow,originalBootstrapWeakMap,originalBootstrapWeakGet,originalBootstrapWeakSet,originalBootstrapDescriptor,originalBootstrapHasOwn,originalBootstrapPrototype,originalBootstrapPlainPrototype,originalBootstrapSafeInteger,originalBootstrapFinite,originalBootstrapCreate,originalBootstrapFreeze,originalBootstrapApply,originalBootstrapArrayIs,originalBootstrapNames,originalBootstrapSymbols} from '../background/native-host-bootstrap.js';
+import {chargeOriginalApplicationSelectionRepositoryStringPair} from '../background/application-selection-reservation-coordination.js';
+import {beginOriginalApplicationSelectionPointGroup,chargeOriginalApplicationSelectionPointGroupQuery,chargeOriginalApplicationSelectionPointGroupResult,finishOriginalApplicationSelectionPointGroup} from '../background/application-selection-reservation-coordination.js';
+import {readOriginalApplicationSelectionPhaseFinalFence} from '../background/application-selection-reservation-coordination.js';
+import {readOriginalApplicationSelectionPhase,bindOriginalApplicationSelectionPhaseScope,requireOriginalApplicationSelectionPhaseScope,requireOriginalApplicationSelectionRepositoryPhaseWork,requireOriginalApplicationSelectionRepositoryWork,chargeOriginalApplicationSelectionRepositoryWork,trackOriginalApplicationSelectionRepositoryWork,requireOriginalApplicationSelectionMember,requireOriginalApplicationSelectionDriverDispatch,requireOriginalApplicationSelectionDriverLocal,requireOriginalApplicationSelectionDriverLocalDispatch,chargeOriginalApplicationSelectionDriverWork,trackOriginalApplicationSelectionDriverWork} from '../background/application-selection-reservation-coordination.js';
+import {APPLICATION_SELECTION_MARKER,readOriginalApplicationSelectionAuthority,requireOriginalApplicationSelectionMutation} from './browser-native-sync/application-generation-selection.js';
+import {readOriginalCheckpointCompileWork,settleOriginalCheckpointCompileWork} from './browser-native-sync/canonical-generation-checkpoint-stage.js';
+import {originalPhasedHumanReadWork,settleOriginalPhasedHumanReadWork,readOriginalPhasedHumanClosureWork} from './browser-native-sync/canonical-generation-phased-human.js';
+import {prepareOriginalActiveRepositoryWrite,releaseOriginalActiveRepositoryWrite,readOriginalPublicationClosureWork} from './browser-native-sync/canonical-generation-publication.js';
+import {CANONICAL_REPOSITORY_PROTECTION,CANONICAL_REPOSITORY_GATE,readOriginalGenerationRepositoryAuthority,originalGenerationRepositoryAdmission,originalGenerationRepositoryMutation,originalGenerationRepositorySettlement} from './browser-native-sync/canonical-generation-repository-gate.js';
 import {measureSourceWorkingPhysicalTree} from './browser-native-sync/source-working-physical.js';
 import {requireMaintenanceProcessingPurposeFinalFacts} from '../background/maintenance-processing-consent.js';
 import {requireTopicProcessingFinalFacts} from './topic-processing.js';
@@ -55,6 +65,7 @@ function bindSemanticWriteReceipt(repository,result){
 // internal slots; public factory fields, names and tags cannot establish them.
 const NativeIDBTransaction=globalThis.IDBTransaction;
 const nativeTransactionAbort=NativeIDBTransaction?.prototype.abort;
+const nativeAbortSignalAborted=Object.getOwnPropertyDescriptor(globalThis.AbortSignal.prototype,'aborted').get;
 const nativeTransactionDb=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'db')?.get;
 const nativeTransactionMode=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'mode')?.get;
 const nativeTransactionError=NativeIDBTransaction&&Object.getOwnPropertyDescriptor(NativeIDBTransaction.prototype,'error')?.get;
@@ -106,7 +117,15 @@ export function chargeOriginalRecoveryWork(repository,ticket,length,references=1
  if(!Number.isSafeInteger(length)||length<0||!Number.isSafeInteger(references)||references<0){p.failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
  p.refs+=references;p.bytes+=length;recoveryWork(ticket,repository);
 }
+export function bindOriginalRecoveryWorkApplicationSelection(repository,ticket,action,owner,kind){const p=recoveryWork(ticket,repository);requireOriginalApplicationSelectionMember(action,owner,kind);requireOriginalApplicationSelectionRepositoryWork(action,repository);if(p.scope||p.pending||p.applicationSelectionAction&&p.applicationSelectionAction!==action)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');p.applicationSelectionAction=action;p.applicationSelectionMember=owner;p.applicationSelectionKind=kind;}
 export function checkOriginalRecoveryWork(repository,ticket){recoveryWork(ticket,repository);}
+// Read-only local test diagnostics; no currentness admission and no authority.
+// Failed/settled work remains observable without changing its original ledger.
+export function readOriginalRecoveryWorkSelectionAccounting(repository,ticket){
+ const p=originalBootstrapWeakGet(ordinaryRecoveryWork,ticket);
+ if(!p||p.repository!==repository||!p.applicationSelectionAction||p.applicationSelectionKind!=='local-import'&&p.applicationSelectionKind!=='local-backup'&&p.applicationSelectionKind!=='local-integrity')throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');
+ return originalBootstrapFreeze({references:p.refs,bytes:p.bytes,deadline:p.deadline,failed:p.failed,closed:p.closed,pending:!!p.pending,scope:!!p.scope,window:!!p.window});
+}
 // An explicit original task may only join the already-open same-ticket window.
 // This is a restriction, never a way to opt out of the physical ledger.
 export function requireOriginalRecoveryWorkWindow(repository,ticket){const p=recoveryWork(ticket,repository);if(!p.window||ordinaryRecoveryWindows.get(repository)!==ticket)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');return true;}
@@ -135,31 +154,219 @@ export async function withOriginalRecoveryWork(repository,ticket,action){
 }
 const repositoryScopes=new WeakMap();
 const repositoryNativeScopes=new WeakMap();
-// Optional finite envelope on the original scope. No new transaction, source
-// authority or mutable exported meter; all requests and terminal work debit it.
-const workClock=globalThis.performance.now.bind(globalThis.performance);
-function workAbort(record){if(record.recoveryWork)ordinaryRecoveryWork.get(record.recoveryWork).failed=true;if(record.workLimit)record.workLimit.failed=true;record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}}
-function workRefuse(record){workAbort(record);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
-function workCheck(record){
- if(record?.recoveryWork)try{recoveryWork(record.recoveryWork,record.repository);}catch{workRefuse(record);}
- const b=record?.workLimit;if(b&&(workClock()-b.started>=b.ms||b.refs>b.references||b.bytes>b.byteLimit))workRefuse(record);
+// Fixed three-original-holder read, not a general multi-ticket admission. The
+// execution is minted only by IndexedStore's original local-tools queue; all
+// three existing restrictions keep their own first budget and pending lifetime.
+const localToolsExecutions=originalBootstrapWeakMap(),localToolsScopes=originalBootstrapWeakMap();
+function localToolsCurrent(g,workChecking=false){
+ if(g.closed||g.facts.current()!==true)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
+ for(const p of g.participants){const r=recoveryWork(p.ticket,g.repository);if(r.applicationSelectionAction!==g.action||r.applicationSelectionMember!==p.owner||r.applicationSelectionKind!==p.kind)throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');}
+ // The caller's ordinary workCheck supplies the same fresh full repository
+ // predicate after these callback-capable original identity/current checks.
+ if(!workChecking)requireOriginalApplicationSelectionRepositoryWork(g.action,g.repository);
 }
-function workCharge(scope,refs=0,value,hasValue=false,acceptedResult=false){
+export async function runOriginalLocalToolsSelectionRead(execution){
+ const facts=readOriginalLocalToolsSelectionExecution(execution);if(!facts||originalBootstrapWeakGet(localToolsExecutions,execution))throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');
+ const {repository,action,participants}=facts;if(participants.length!==3||participants[0].kind!=='local-import'||participants[1].kind!=='local-backup'||participants[2].kind!=='local-integrity')throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');
+ const restrictions=participants.map(p=>{requireOriginalApplicationSelectionRecoveryWork(repository,p.ticket,action,p.owner,p.kind);return recoveryWork(p.ticket,repository);});
+ if(new Set(restrictions).size!==3||restrictions.some(p=>p.pending||p.scope||p.window))throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
+ let release;const pending={settled:new Promise(resolve=>{release=resolve;})},g={facts,repository,action,participants,restrictions,pending,closed:false,next:0,reading:false};
+ originalBootstrapWeakSet(localToolsExecutions,execution,g);for(const p of restrictions)p.pending=pending;
+ try{localToolsCurrent(g);const value=await facts.run();localToolsCurrent(g);return value;}
+ catch(error){for(const p of restrictions)p.failed=true;throw error;}
+ finally{g.closed=true;for(const p of restrictions){if(p.pending===pending)p.pending=null;}release();}
+}
+export function originalLocalToolsSelectionRepositoryRead(execution,phase){
+ const g=originalBootstrapWeakGet(localToolsExecutions,execution);if(!g||g.closed||g.reading||phase!==(g.next===0?'before':g.next===1?'after':null))throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');
+ localToolsCurrent(g);for(const p of g.restrictions)if(p.refs>=4096||p.bytes>=2*1024*1024)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');g.reading=true;g.next++;
+ const task=promptTransactionMethod.value.call(g.repository,false,phase==='before'?g.facts.before:g.facts.after,phase==='before'?['meta']:['meta','importTasks'],undefined,null,g.participants[0].ticket,null,null,null,execution);
+ return (async()=>{try{return await task;}finally{g.reading=false;}})();
+}
+export function readOriginalLocalToolsSelectionMetaRows(execution,scope){
+ const g=originalBootstrapWeakGet(localToolsExecutions,execution),joined=originalBootstrapWeakGet(localToolsScopes,repositoryScopes.get(scope));
+ if(!g||g.closed||joined?.group!==g||g.next!==2)throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');
+ localToolsCurrent(g);requireReadableScope(scope);
+ return ['gate','recovery-restore-epoch','backup-data-generation','backup-recovery-settings','local-control-publication:reservation','local-control-publication:revision'].map(key=>{if(!originalBootstrapHasOwn(joined.rows,key))throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');return joined.rows[key];});
+}
+
+const originalMetaGroupWork=originalBootstrapWeakMap(),originalMetaGroupSettlements=originalBootstrapWeakMap(),originalMetaGroupThen=Promise.prototype.then;
+// Describes only a synchronous accounting call from the original native driver.
+// The opaque group never leaves this module except to its fixed meter owner;
+// late result charging must NOT depend on currentness, expiry or abort status.
+export function readOriginalApplicationSelectionPointGroup(group,action,repository,scope){
+ const g=originalBootstrapWeakGet(originalMetaGroupWork,group);
+ return g&&!g.closed&&g.meterActive&&g.action===action&&g.repository===repository&&g.scope===scope?g.count:null;
+}
+function metaGroupMeter(g,method,args){g.meterActive=true;try{return originalBootstrapApply(method,undefined,args);}finally{g.meterActive=false;}}
+function metaGroupCurrent(g){
+ const r=g.record;
+ if(r.scope!==g.scope||r.repository!==g.repository||r.applicationSelectionAction!==g.action||r.workLimit!==g.budget||r.recoveryWork!==g.ticket||!sameScope(r))workRefuse(r);
+ requireReadableScope(g.scope);
+}
+function metaGroupBill(g,index,value,result=false){
+ const r=g.record,b=g.budget,refs=result?0:1;if(!result){metaGroupCurrent(g);b.refs++;}
+ let failed=false,length=0;
+ try{metaGroupMeter(g,result?chargeOriginalApplicationSelectionPointGroupResult:chargeOriginalApplicationSelectionPointGroupQuery,[g.group,index,value]);}
+ catch{failed=true;}
+ // Preserve the independent scope/recovery roots and tighter ceilings. A
+ // failed action debit never erases a completed original scope measurement;
+ // mutable raw results cannot reuse the action meter's earlier byte count.
+ const operand=result?value:['meta',value];
+ try{length=measureSourceWorkingPhysicalTree(operand,Math.min(2*1024*1024,b.byteLimit)).B;b.bytes+=length;}catch{failed=true;}
+ if(g.recovery){g.recovery.refs+=refs;g.recovery.bytes+=length;}
+ // Only the common META native roots belong to the other two restrictions.
+ // Their independent original per-root ceilings and late charges are retained;
+ // importTasks is read solely under the original import ticket below.
+ if(g.localTools)for(const p of g.localTools.extra){let bytes=0;try{bytes=measureSourceWorkingPhysicalTree(operand,p.rootLimit).B;}catch{failed=true;}p.work.refs+=refs;p.work.bytes+=bytes;}
+ if(failed)workRefuse(r);metaGroupCurrent(g);
+}
+export async function readOriginalApplicationSelectionMetaGroup(scope,keys){
+ const size=keys&&originalBootstrapDescriptor(keys,'length'),count=size&&originalBootstrapHasOwn(size,'value')?size.value:0;
+ if(!originalBootstrapArrayIs(keys)||!originalBootstrapSafeInteger(count)||count<1||count>6||originalBootstrapNames(keys).length!==count+1||originalBootstrapSymbols(keys).length)throw new ArchiveError('INVALID_REQUEST');
+ const owned=originalBootstrapCreate(null),values=[undefined,undefined,undefined,undefined,undefined,undefined];values.length=count;
+ for(let i=0;i<count;i++){const d=originalBootstrapDescriptor(keys,''+i);if(!d||!originalBootstrapHasOwn(d,'value')||typeof d.value!=='string')throw new ArchiveError('INVALID_REQUEST');owned[i]=d.value;}
+ const record=originalBootstrapWeakGet(repositoryScopes,scope);
+ if(!record?.applicationSelectionAction){for(let i=0;i<count;i++)values[i]=await scope.get('meta',owned[i]);return values;}
+ requireRepositoryTransactionDataMethods(record.repository,scope);requireReadableScope(scope);
+ if(!record.workLimit)workRefuse(record);
+ const ticket=record.recoveryWork,recovery=ticket?originalBootstrapWeakGet(ordinaryRecoveryWork,ticket):null;
+ if(ticket&&(!recovery||recovery.repository!==record.repository))workRefuse(record);
+ const group=originalBootstrapFreeze(originalBootstrapCreate(null)),g={group,scope,record,repository:record.repository,action:record.applicationSelectionAction,budget:record.workLimit,ticket,recovery,count,localTools:originalBootstrapWeakGet(localToolsScopes,record),meterActive:false,closed:false};
+ originalBootstrapWeakSet(originalMetaGroupWork,group,g);
+ return new Promise((resolve,reject)=>{
+  let accepting=true,pending=0,failed=false,failure,finished=false;
+  const refuse=error=>{if(!failed){failed=true;failure=error;}record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}};
+  const finish=()=>{
+   if(accepting||pending||finished)return;finished=true;
+   try{metaGroupMeter(g,finishOriginalApplicationSelectionPointGroup,[group]);}catch(error){refuse(error);}finally{g.closed=true;}
+   if(!failed)try{metaGroupCurrent(g);}catch(error){refuse(error);}
+   if(failed)reject(failure);else{if(g.localTools)for(let i=0;i<count;i++)g.localTools.rows[owned[i]]=values[i];resolve(values);}
+  };
+  const observe=(request,index)=>{
+   pending++;let settled=false;
+   try{
+    request.onerror=()=>{if(settled)return;settled=true;try{refuse(fail(request.error));}catch(error){refuse(error);}finally{pending--;finish();}};
+    request.onsuccess=()=>{if(settled)return;settled=true;try{
+     const raw=request.result;metaGroupBill(g,index,raw,true);values[index]=raw;
+    }catch(error){refuse(error);}finally{pending--;finish();}};
+   }catch(error){
+    refuse(error);
+    // If handler installation itself failed after native acceptance, wait on
+    // the ORIGINAL transaction outcome, not a caller completion promise. A
+    // completed successful request still has its actual raw result charged.
+    const drained=()=>{if(settled)return;settled=true;try{if(request.readyState==='done'&&!request.error)metaGroupBill(g,index,request.result,true);}catch(error){refuse(error);}finally{pending--;finish();}};
+    try{originalBootstrapApply(originalMetaGroupThen,originalBootstrapWeakGet(originalMetaGroupSettlements,record),[drained,drained]);}
+    catch(error){refuse(error);if(!settled){settled=true;pending--;finish();}}
+   }
+  };
+  try{
+   // Capture ONE real object-store receiver/method, but do not treat lookup or
+   // a prior request's return/handler assignments as a fresh authority check.
+   const target=record.transaction.objectStore('meta'),get=target.get;
+   metaGroupMeter(g,beginOriginalApplicationSelectionPointGroup,[g.action,g.repository,scope,group]);
+   for(let i=0;i<count;i++){
+    if(failed)break;const key=owned[i];metaGroupBill(g,i,key);
+    const request=originalBootstrapApply(get,target,[key]);observe(request,i);scope.metrics.reads++;
+   }
+  }catch(error){refuse(error);}finally{accepting=false;finish();}
+ });
+}
+const fixedFinalProducers=originalBootstrapWeakMap();
+const canonicalPrefix='canonical-generation:',canonicalUpper=canonicalPrefix+'\uffff',canonicalQualification='canonical-generation:qualified-graph:v1';
+// Original-driver provenance only, never an exported readiness receipt. Neither
+// mutable WeakMap methods nor a caller's tx-like object can install this record.
+const originalPointReadScopes=originalBootstrapWeakMap(),pointUnsupported={};
+const pointData=(value,key)=>{const d=originalBootstrapDescriptor(value,key);return d&&originalBootstrapHasOwn(d,'value')?d.value:pointUnsupported;};
+function pointAbsent(value,key){
+ if(originalBootstrapDescriptor(value,key))return false;
+ const parent=originalBootstrapPrototype(value);
+ return parent===null||originalBootstrapPlainPrototype(parent)&&!originalBootstrapDescriptor(parent,key)&&originalBootstrapPrototype(parent)===null;
+}
+function pointReadFacts(point,scope){
+ const r=point.record,b=point.budget;
+ if(!b||!nativeRepositoryBrand(point.repository)||pointData(scope,'tx')!==point.transaction||pointData(point.repository,'db')!==point.database||
+  pointData(r,'scope')!==scope||pointData(r,'repository')!==point.repository||pointData(r,'transaction')!==point.transaction||pointData(r,'identity')!==point.identity||
+  pointData(r,'applicationSelectionAction')!==point.action||pointData(r,'selectionPhase')!==point.phase||pointData(r,'workLimit')!==b||!pointAbsent(r,'recoveryWork')||
+  pointData(r,'terminalFailed')!==false||pointData(r,'nativeSettled')!==false||pointData(r,'unwound')!==false)return false;
+ const phase=pointData(r,'phase');if(phase!=='callback'&&(phase!=='terminal'||pointData(r,'driverReading')!==true))return false;
+ const started=pointData(b,'started'),ms=pointData(b,'ms'),refs=pointData(b,'refs'),bytes=pointData(b,'bytes'),references=pointData(b,'references'),byteLimit=pointData(b,'byteLimit');
+ return originalBootstrapFinite(started)&&originalBootstrapFinite(ms)&&ms>0&&ms<=30000&&originalBootstrapSafeInteger(refs)&&refs>=0&&originalBootstrapSafeInteger(bytes)&&bytes>=0&&
+  originalBootstrapSafeInteger(references)&&references>0&&references<=4096&&originalBootstrapSafeInteger(byteLimit)&&byteLimit>0&&byteLimit<=2*1024*1024&&
+  (pointAbsent(b,'failed')||pointData(b,'failed')===false);
+}
+function pointReadBudget(point,scope){
+ if(!pointReadFacts(point,scope))workRefuse(point.record);
+ const b=point.budget;if(originalBootstrapNow()-b.started>=b.ms||b.refs>b.references||b.bytes>b.byteLimit)workRefuse(point.record);
+}
+function workGet(scope,table,key){
+ const point=originalBootstrapHostSupported()&&typeof table==='string'&&typeof key==='string'?originalBootstrapWeakGet(originalPointReadScopes,scope):null;
+ if(!point||!pointReadFacts(point,scope)){requireReadableScope(scope);workCharge(scope,1,[table,key],true,false,true);return;}
+ // The SAME original staged entry A precedes new work. Only captured native
+ // scalar bookkeeping follows it through the former post-meter-A position.
+ requireReadableScope(scope,point);const b=point.budget;b.refs++;
+ let length;try{length=chargeOriginalApplicationSelectionRepositoryStringPair(point.action,point.repository,table,key);}
+ catch{
+  // The old dual ledger still measures its scope operand after an action-debit
+  // failure. This failure-only fallback can call mutable code, but ALWAYS
+  // aborts: it can never admit a request or omit a needed continuation guard.
+  try{b.bytes+=measureSourceWorkingPhysicalTree([table,key],Math.min(2*1024*1024,b.byteLimit)).B;}catch{}
+  workRefuse(point.record);
+ }
+ // A completed operand larger than this scope's tighter ceiling was not added
+ // by its old bounded meter. Preserve that independent failure accounting.
+ if(length>b.byteLimit)workRefuse(point.record);b.bytes+=length;pointReadBudget(point,scope);
+}
+// Optional finite work envelope belongs to the original scope, never mutable
+// diagnostics. It meters request references and physical payload operands/results,
+// including repeated reads and finalizer work; not browser heap or disk bytes.
+const workClock=globalThis.performance.now.bind(globalThis.performance);
+function workAbort(record){const joined=originalBootstrapWeakGet(localToolsScopes,record);if(joined)for(const p of joined.group.restrictions)p.failed=true;if(record.recoveryWork)ordinaryRecoveryWork.get(record.recoveryWork).failed=true;if(record.workLimit)record.workLimit.failed=true;record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}}
+function workRefuse(record){workAbort(record);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
+function workCheck(record){const joined=record&&originalBootstrapWeakGet(localToolsScopes,record);if(joined)try{localToolsCurrent(joined.group,true);}catch{workRefuse(record);}if(record?.applicationSelectionAction)try{if(record.selectionPhase)requireOriginalApplicationSelectionRepositoryPhaseWork(record.applicationSelectionAction,record.repository,record.selectionPhase,record.scope);else requireOriginalApplicationSelectionRepositoryWork(record.applicationSelectionAction,record.repository);}catch{workRefuse(record);}if(record?.recoveryWork)try{recoveryWork(record.recoveryWork,record.repository);}catch{workRefuse(record);}const b=record?.workLimit;if(b&&(workClock()-b.started>=b.ms||b.refs>b.references||b.bytes>b.byteLimit))workRefuse(record);}
+export function chargeOriginalApplicationSelectionScopeOperands(scope,value,references=0){
+ const record=repositoryScopes.get(scope);if(!record||record.scope!==scope)return false;
+ if(record.applicationSelectionAction)chargeOriginalApplicationSelectionRepositoryWork(record.applicationSelectionAction,record.repository,value,references,true);return true;
+}
+// A physical-read choice from the original private prepared snapshot, never
+// authority or readiness. Keep only table membership on this exact live scope;
+// no row is copied, traversed again, truncated or trusted by its expected count.
+export function selectOriginalApplicationSelectionPrimaryPage(scope,action,table,expectedCount){
+ const record=repositoryScopes.get(scope);
+ if(!record||record.scope!==scope||!action||record.applicationSelectionAction!==action||record.phase!=='callback'||record.terminalFailed||record.nativeSettled||record.unwound||!sameScope(record)||typeof table!=='string'||!record.transaction.objectStoreNames.contains(table)||!Number.isSafeInteger(expectedCount)||expectedCount<0)throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');
+ requireRepositoryTransactionScope(record.repository,scope);
+ if(expectedCount<=3)(record.primaryCursorTables??=new Set()).add(table);else record.primaryCursorTables?.delete(table);
+}
+function workCharge(scope,refs=0,value,hasValue=false,acceptedResult=false,prechecked=false){
  const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx),b=record?.workLimit;if(!b)return;
  if(record.scope!==scope)workRefuse(record);
- // NEW requests must be current before acquisition. An already accepted IDB
- // result debits its original ledger before any expiry/identity refusal, even
- // when cancellation arrived while the physical request was pending.
- if(!acceptedResult){if(!sameScope(record))workRefuse(record);workCheck(record);}
- let failed=false,length=0;b.refs+=refs;
- if(hasValue)try{length=measureSourceWorkingPhysicalTree(value,Math.min(2*1024*1024,b.byteLimit)).B;b.bytes+=length;}catch{failed=true;}
- const recovery=ordinaryRecoveryWork.get(record.recoveryWork);
- if(!recovery||recovery.repository!==record.repository)failed=true;else{recovery.refs+=refs;recovery.bytes+=length;}
+ // Admission checks precede NEW work. A result of an already accepted request
+ // first debits its immutable original record, for ordinary recovery as well
+ // as selection, even after expiry/revocation or physical identity loss.
+ // A qualified shadow/action-only scope need not own an ordinary ticket.
+ // `prechecked` is private callsite bookkeeping, not cached readiness: only
+ // enumerated SAME synchronous-chain sites pass it after a full entry/result
+ // guard. Metering can run Proxy traps, so the full post-meter workCheck below
+ // is unconditional and always precedes the actual native request/continuation.
+ if(!acceptedResult){if(!sameScope(record))workRefuse(record);if(record.applicationSelectionAction&&prechecked){if(record.terminalFailed||b.failed||workClock()-b.started>=b.ms||b.refs>b.references||b.bytes>b.byteLimit)workRefuse(record);}else workCheck(record);}
+ let failed=false;b.refs+=refs;
+ if(record.applicationSelectionAction)try{chargeOriginalApplicationSelectionRepositoryWork(record.applicationSelectionAction,record.repository,hasValue?value:undefined,refs,hasValue);}catch{failed=true;}
+ let length=0;if(hasValue)try{length=measureSourceWorkingPhysicalTree(value,Math.min(2*1024*1024,b.byteLimit)).B;b.bytes+=length;}catch{failed=true;}
+ if(record.recoveryWork){const recovery=ordinaryRecoveryWork.get(record.recoveryWork);if(!recovery||recovery.repository!==record.repository)failed=true;else{recovery.refs+=refs;recovery.bytes+=length;}}
  if(failed||!sameScope(record))workRefuse(record);workCheck(record);
 }
 function workResult(scope,value){workCharge(scope,0,value,true,true);return value;}
 function workRow(scope,value){workCharge(scope,1,value,true,true);return value;}
-function workCursor(scope,cursor){if(!repositoryScopes.get(scope)?.workLimit)return;workCharge(scope,cursor?1:0,cursor?{key:cursor.key,primaryKey:cursor.primaryKey,value:cursor.value}:null,true,true);}
+function workCursor(scope,cursor){
+ // An unmetered driver keeps its original lazy field reads (notably the
+ // limit+1 and skipped-row branches, which need not materialize a value).
+ if(!repositoryScopes.get(scope)?.workLimit)return cursor;
+ // Snapshot once: the exact tuple debited here is the tuple consumed by the
+ // original cursor driver. Continuation never re-reads its payload getters.
+ const row=cursor?{key:cursor.key,primaryKey:cursor.primaryKey,value:cursor.value}:null;
+ workCharge(scope,cursor?1:0,row,true,true);
+ return row;
+}
+function workSame(scope,a,b){chargeOriginalApplicationSelectionScopeOperands(scope,[a,b],0);return JSON.stringify(a)===JSON.stringify(b);}
 // Native key ranges are operand values, not capabilities. Capture browser
 // accessors at definition time. Synthetic IDB ranges have four own data slots;
 // no unknown prototype getter is invoked to project a request operand.
@@ -172,17 +379,20 @@ function queryOperand(value){
  if(Reflect.ownKeys(descriptors).length===4&&keys.every(k=>Object.hasOwn(descriptors[k]??{},'value')))return Object.fromEntries(keys.map(k=>[k,descriptors[k].value]));
  return value; // The original physical meter refuses unsupported shapes.
 }
-function workQuery(scope,refs,operands){if(repositoryScopes.get(scope)?.workLimit)workCharge(scope,refs,operands.map(queryOperand),true);}
+function workQuery(scope,refs,operands,prechecked=false){if(repositoryScopes.get(scope)?.workLimit)workCharge(scope,refs,operands.map(queryOperand),true,false,prechecked);}
 function finiteWorkQuery(scope,limit){if(repositoryScopes.get(scope)?.workLimit&&(!Number.isSafeInteger(limit)||limit<1||limit>100))workRefuse(repositoryScopes.get(scope));}
-function registerOriginalWorkLimit(repository,scope,{references=4096,bytes=2*1024*1024,ms=30000}={},readonly=false){
+export function registerRepositoryWorkLimit(repository,scope,limits){return registerOriginalWorkLimit(repository,scope,limits,false);}
+function registerOriginalWorkLimit(repository,scope,{references=4096,bytes,ms=30000}={},readonly=false){
  const record=scopeRecord(repository,scope);requireRepositoryTransactionDataMethods(repository,scope);
- if(record.phase!=='callback'||record.identity.mode!==(readonly?'readonly':'readwrite')||record.terminalFailed||!Number.isSafeInteger(references)||references<1||references>4096||!Number.isSafeInteger(bytes)||bytes<1||bytes>2*1024*1024||!Number.isFinite(ms)||ms<=0||ms>30000)workRefuse(record);
- // Tightening never renews the original preparation clock or consumed work.
+ // Only admission from the fixed original owner can install this private ceiling.
+ // Omitted internal limits preserve that ceiling; explicit limits only tighten.
+ if(bytes===undefined)bytes=record.qualifiedRecoveryWork?.bytes??2*1024*1024;
+ if(record.phase!=='callback'||record.identity.mode!==(readonly?'readonly':'readwrite')||record.terminalFailed||!Number.isSafeInteger(references)||references<1||references>4096||!Number.isSafeInteger(bytes)||bytes<1||bytes>(record.qualifiedRecoveryWork?.bytes??2*1024*1024)||!Number.isFinite(ms)||ms<=0||ms>30000)workRefuse(record);
+ // Re-registration may tighten limits but never reset consumption or the clock.
  if(record.workLimit){const b=record.workLimit;b.references=Math.min(b.references,references);b.byteLimit=Math.min(b.byteLimit,bytes);b.ms=Math.min(b.ms,ms);}
- else record.workLimit={started:workClock(),references,byteLimit:bytes,ms,refs:0,bytes:0};workCheck(record);
+ else{const budget={started:workClock(),references,byteLimit:bytes,ms,refs:0,bytes:0};record.workLimit=budget;const point=originalBootstrapWeakGet(originalPointReadScopes,scope);if(point?.record===record)point.budget=budget;}workCheck(record);
  clearTimeout(record.workLimit.timer);record.workLimit.timer=setTimeout(()=>{if(!record.nativeSettled)workAbort(record);},Math.max(1,record.workLimit.ms-(workClock()-record.workLimit.started)));
 }
-
 function refuseTerminal(record){
  record.terminalFailed=true;try{record.transaction.abort();}catch{}
  throw new ArchiveError('STALE_BASE');
@@ -193,7 +403,56 @@ function requireWritableScope(scope){
  workCheck(record);if(record?.finalReadFences.length&&!sameScope(record))refuseTerminal(record);
  if(record&&(record.phase==='terminal'||record.phase==='terminal-compatibility'||record.terminalFailed))refuseTerminal(record);
 }
-function requireReadableScope(scope){const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);workCheck(record);if(record&&(record.terminalFailed||record.finalReadFences.length&&!sameScope(record)||record.phase==='terminal'&&!record.driverReading))refuseTerminal(record);}
+function requireShadowMutation(scope,table,key,method){
+ const r=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);if(!r)return;
+ if(r.selection?.authority?.action){if(!r.selectionPhase)throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');requireOriginalApplicationSelectionPhaseScope(r.selectionPhase,r.repository,scope);}
+ if(r.selection?.authority&&!(r.activeGateFinalizer===true&&table==='meta'&&key===CANONICAL_REPOSITORY_GATE&&method==='put'))requireOriginalApplicationSelectionMutation(r.selection.authority,table,key,method);
+ else if(table==='meta'&&key===APPLICATION_SELECTION_MARKER)throw new ArchiveError('GENERATION_SELECTION_WRITE_DENIED');
+ if(r.shadow){const current=readOriginalGenerationRepositoryAuthority(r.shadow.token,r.repository,scope);if(current!==r.shadow.authority)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');if(!(current.kind==='active-library'&&r.activeGateFinalizer===true&&table==='meta'&&key===CANONICAL_REPOSITORY_GATE&&method==='put'))originalGenerationRepositoryMutation(current,table,key,method);}
+ else if(table==='meta'&&key===CANONICAL_REPOSITORY_PROTECTION)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+}
+async function beginSelectionWrite(repository,scope,record,token){
+ const authority=readOriginalApplicationSelectionAuthority(token,repository,scope);if(authority?.action){if(!record.selectionPhase)throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');requireOriginalApplicationSelectionPhaseScope(record.selectionPhase,repository,scope);}const marker=await scope.get('meta',APPLICATION_SELECTION_MARKER);
+ if(marker!=null&&!authority)throw new ArchiveError('GENERATION_SELECTION_PENDING');
+ record.selection={token,authority,marker};
+}
+async function finishSelectionWrite(repository,scope,record){
+ const s=record.selection,marker=await scope.get('meta',APPLICATION_SELECTION_MARKER);
+ if(s.authority&&readOriginalApplicationSelectionAuthority(s.token,repository,scope)!==s.authority||!s.authority&&marker!=null)throw new ArchiveError('GENERATION_SELECTION_WRITE_DENIED');
+ registerFixedFinalReadFence(repository,scope,{isCurrent:()=>!s.authority||readOriginalApplicationSelectionAuthority(s.token,repository,scope)===s.authority,plan:function*(){if(!workSame(scope,yield {method:'get',table:'meta',key:APPLICATION_SELECTION_MARKER},marker))throw new ArchiveError('GENERATION_SELECTION_CHANGED');return true;}},'selection',marker);
+}
+async function beginShadowWrite(repository,scope,record,token){
+ const authority=readOriginalGenerationRepositoryAuthority(token,repository,scope);let marker,timer;try{marker=await Promise.race([scope.get('meta',CANONICAL_REPOSITORY_PROTECTION),new Promise((_,reject)=>{timer=setTimeout(()=>{record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}reject(new ArchiveError('BNS_GROUP_RESOURCE_LIMIT'));},30000);})]);}finally{clearTimeout(timer);}
+ if(marker==null&&authority?.kind!=='checkpoint-install')return;
+ record.qualifiedRecoveryWork=readOriginalPhasedHumanClosureWork(token,repository,scope)??readOriginalPublicationClosureWork(token,repository,scope);
+ registerRepositoryWorkLimit(repository,scope,record.qualifiedRecoveryWork??undefined);record.workLimit.started=record.started;workCharge(scope,1,CANONICAL_REPOSITORY_PROTECTION,true,false,true);workResult(scope,marker);workCheck(record);registerRepositoryWorkLimit(repository,scope,record.qualifiedRecoveryWork??undefined);
+ const gate=await scope.get('meta',CANONICAL_REPOSITORY_GATE);chargeOriginalApplicationSelectionScopeOperands(scope,[marker,gate,authority],0);originalGenerationRepositoryAdmission(authority,marker,gate,record.identity.database.name);
+ record.shadow={token,authority,marker:marker??null,gate};
+ if(authority.kind==='active-library'){
+  if(!workSame(scope,await scope.get('meta','canonical-generation:qualified-graph:v1'),authority.qualification))throw new ArchiveError('GENERATION_CHANGED');
+  const range=IDBKeyRange.bound(canonicalPrefix,canonicalUpper,false,true);let rows;
+  if(record.applicationSelectionAction&&record.selectionPhase)rows=await readOriginalCanonicalInventory(scope,record,()=>requireReadableScope(scope));
+  else{const keys=await scope.keys('meta',null,range,4097);if(keys.length>4096)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');rows=[];for(const key of keys)rows.push({key,row:await scope.get('meta',key)});}
+  record.activeGenerationRows=rows;
+  registerFixedFinalReadFence(repository,scope,{isCurrent:()=>true,plan:function*(){if((yield {method:'count',table:'meta',key:range})!==rows.length)throw new ArchiveError('GENERATION_CHANGED');for(const {key,row}of rows){const expected=key===CANONICAL_REPOSITORY_GATE?{...row,writeRevision:row.writeRevision+1}:row;if(!workSame(scope,yield {method:'get',table:'meta',key},expected))throw new ArchiveError('GENERATION_CHANGED');}return true;}},'canonical',{range,rows});
+ }
+}
+async function finishShadowWrite(repository,scope,record){
+ const marker=await scope.get('meta',CANONICAL_REPOSITORY_PROTECTION),s=record.shadow;
+ if(!s){if(marker!=null)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');registerFixedFinalReadFence(repository,scope,{isCurrent:()=>true,plan:function*(){if((yield {method:'get',table:'meta',key:CANONICAL_REPOSITORY_PROTECTION})!=null)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');return true;}},'unprotected',null);return;}
+ if(readOriginalGenerationRepositoryAuthority(s.token,repository,scope)!==s.authority||s.marker&&!workSame(scope,marker,s.marker))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ let gate=await scope.get('meta',CANONICAL_REPOSITORY_GATE);
+ if(s.authority.kind==='active-library'){if(!workSame(scope,gate,s.gate)||gate.writeRevision>=Number.MAX_SAFE_INTEGER)throw new ArchiveError('GENERATION_CHANGED');gate={...gate,writeRevision:gate.writeRevision+1};record.activeGateFinalizer=true;try{await scope.put('meta',gate);}finally{record.activeGateFinalizer=false;}registerFixedFinalReadFence(repository,scope,{isCurrent:()=>true,plan:function*(){if(!workSame(scope,yield {method:'get',table:'meta',key:'canonical-generation:qualified-graph:v1'},s.authority.qualification))throw new ArchiveError('GENERATION_CHANGED');return true;}},'qualification',s.authority.qualification);}
+ chargeOriginalApplicationSelectionScopeOperands(scope,[s.authority,marker,s.gate,gate],0);originalGenerationRepositorySettlement(s.authority,marker,s.gate,gate,record.identity.database.name);
+ registerFixedFinalReadFence(repository,scope,{isCurrent:()=>readOriginalGenerationRepositoryAuthority(s.token,repository,scope)===s.authority,plan:function*(){if(!workSame(scope,yield {method:'get',table:'meta',key:CANONICAL_REPOSITORY_PROTECTION},marker)||!workSame(scope,yield {method:'get',table:'meta',key:CANONICAL_REPOSITORY_GATE},gate))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');return true;}},'shadow',{marker,gate});
+}
+function requireReadableScope(scope,point=null){
+ if(point){
+  try{requireOriginalApplicationSelectionRepositoryPhaseWork(point.action,point.repository,point.phase,scope);}catch{workRefuse(point.record);}
+  pointReadBudget(point,scope);return;
+ }
+ const record=repositoryScopes.get(scope)||repositoryNativeScopes.get(scope.tx);workCheck(record);if(record&&(record.terminalFailed||record.finalReadFences.length&&!sameScope(record)||record.phase==='terminal'&&!record.driverReading))refuseTerminal(record);
+}
 function synchronousTrue(record,check){
  let value;try{value=check();}catch{refuseTerminal(record);}
  if(value!==true){try{if(value instanceof Promise)value.catch(()=>{});}catch{}refuseTerminal(record);}
@@ -203,11 +462,20 @@ function synchronousTrue(record,check){
 // The plan is a synchronous generator: only Repository performs the yielded
 // IDB reads. Async generators/checkers and arbitrary awaited work cannot enter
 // the strict final segment. A second registration never replaces prior facts.
-export function registerRepositoryFinalReadFence(repository,scope,{plan,isCurrent,compatibilityRecheck=null,authority=null,promotionRecoveryAuthority=null,maintenanceProcessingPurpose=null}={}){
+export function registerRepositoryFinalReadFence(repository,scope,options={}){registerFixedFinalReadFence(repository,scope,options);}
+function registerFixedFinalReadFence(repository,scope,options,role=null,expected){
+ const {plan,isCurrent,compatibilityRecheck=null,authority=null,promotionRecoveryAuthority=null,maintenanceProcessingPurpose=null}=options;
  const record=scopeRecord(repository,scope);requireRepositoryTransactionScope(repository,scope);
  if(record.identity.mode!=='readwrite'||record.phase!=='callback'||record.terminalFailed)refuseTerminal(record);
  if(typeof plan!=='function'||typeof isCurrent!=='function'||compatibilityRecheck!==null&&typeof compatibilityRecheck!=='function')refuseTerminal(record);
- synchronousTrue(record,isCurrent);if(authority!==null)synchronousTrue(record,()=>requireTopicProcessingFinalFacts(authority,repository,scope));if(promotionRecoveryAuthority!==null)synchronousTrue(record,()=>requireSectionPromotionRecoveryFinalFacts(promotionRecoveryAuthority,repository,scope));if(maintenanceProcessingPurpose!==null)synchronousTrue(record,()=>requireMaintenanceProcessingPurposeFinalFacts(maintenanceProcessingPurpose,repository,scope));record.finalReadFences.push(Object.freeze({plan,isCurrent,compatibilityRecheck,authority,promotionRecoveryAuthority,maintenanceProcessingPurpose}));
+ synchronousTrue(record,isCurrent);if(authority!==null)synchronousTrue(record,()=>requireTopicProcessingFinalFacts(authority,repository,scope));if(promotionRecoveryAuthority!==null)synchronousTrue(record,()=>requireSectionPromotionRecoveryFinalFacts(promotionRecoveryAuthority,repository,scope));if(maintenanceProcessingPurpose!==null)synchronousTrue(record,()=>requireMaintenanceProcessingPurposeFinalFacts(maintenanceProcessingPurpose,repository,scope));
+ const staged=record.applicationSelectionAction&&record.selectionPhase;
+ if(staged&&role===null&&readOriginalApplicationSelectionPhaseFinalFence(options,repository,scope))role='phase';
+ const description={plan,isCurrent,compatibilityRecheck,authority,promotionRecoveryAuthority,maintenanceProcessingPurpose},fence=staged&&role!==null?originalBootstrapFreeze(description):Object.freeze(description);record.finalReadFences.push(fence);
+ if(staged){
+  let producers=originalBootstrapWeakGet(fixedFinalProducers,record);if(!producers){producers={count:0,unknown:false,roles:originalBootstrapCreate(null)};originalBootstrapWeakSet(fixedFinalProducers,record,producers);}producers.count++;
+  if(role===null||originalBootstrapHasOwn(producers.roles,role))producers.unknown=true;else producers.roles[role]={fence,expected};
+ }
 }
 function sampleFinalAuthorities(record,fences){for(const fence of fences)if(fence.promotionRecoveryAuthority!==null)synchronousTrue(record,()=>sampleSectionPromotionRecoveryFinalFacts(fence.promotionRecoveryAuthority,record.repository,record.scope));}
 function finalAuthorityFacts(record,fences){
@@ -217,10 +485,70 @@ function finalAuthorityFacts(record,fences){
  // purpose token only after the entire original collection has finished.
  for(const fence of fences)if(fence.maintenanceProcessingPurpose!==null)synchronousTrue(record,()=>requireMaintenanceProcessingPurposeFinalFacts(fence.maintenanceProcessingPurpose,record.repository,record.scope));
 }
-function currentFinalAuthorities(record,fences){for(const fence of fences)synchronousTrue(record,fence.isCurrent);sampleFinalAuthorities(record,fences);finalAuthorityFacts(record,fences);}
+function currentFinalAuthorities(record,fences){
+ if(record.selectionPhase)synchronousTrue(record,()=>requireOriginalApplicationSelectionPhaseScope(record.selectionPhase,record.repository,record.scope));
+ for(const fence of fences)synchronousTrue(record,fence.isCurrent);sampleFinalAuthorities(record,fences);finalAuthorityFacts(record,fences);
+}
+function fixedFinalProfile(record,fences){
+ if(!record.applicationSelectionAction||!record.selectionPhase)return null;
+ const producers=originalBootstrapWeakGet(fixedFinalProducers,record);if(!producers||producers.unknown||producers.count!==fences.length)return null;
+ const roles=producers.roles,target=producers.count===5&&roles.phase&&roles.canonical&&roles.selection&&roles.qualification&&roles.shadow;
+ const source=producers.count===3&&roles.phase&&roles.selection&&roles.unprotected;if(!target&&!source)return null;
+ const names=target?['phase','canonical','selection','qualification','shadow']:['phase','selection','unprotected'];
+ for(const name of names){let found=0;for(const fence of fences)if(fence===roles[name].fence)found++;if(found!==1)return null;}
+ for(const fence of fences)if(fence.compatibilityRecheck!==null||fence.authority!==null||fence.promotionRecoveryAuthority!==null||fence.maintenanceProcessingPurpose!==null)return null;
+ return {producers,count:producers.count,roles,target:!!target};
+}
+function originalFixedRead(scope,record,method,args){
+ // Only this synchronous original call owns driverReading. It never stays
+ // enabled while a request is pending or lends an async reader window.
+ record.driverReading=true;try{return originalBootstrapApply(method,scope,args);}finally{record.driverReading=false;}
+}
+async function runFixedFinalReads(scope,record,fences,profile){
+ const current=()=>{
+  if(profile.producers.unknown||profile.producers.count!==profile.count)refuseTerminal(record);
+  currentFinalAuthorities(record,fences);
+  if(profile.producers.unknown||profile.producers.count!==profile.count)refuseTerminal(record);
+ };
+ const readable=()=>{record.driverReading=true;try{requireReadableScope(scope);}finally{record.driverReading=false;}};
+ const roles=profile.roles;current();
+ if(profile.target){
+  const expected=roles.canonical.expected;
+  const count=await originalFixedRead(scope,record,originalFixedCount,['meta',undefined,expected.range]);current();
+  if(count!==expected.rows.length)throw new ArchiveError('GENERATION_CHANGED');
+  const rows=await readOriginalCanonicalInventory(scope,record,current,readable);
+  if(rows.length!==expected.rows.length)throw new ArchiveError('GENERATION_CHANGED');
+  let qualification,protection,gate;
+  for(let i=0;i<rows.length;i++){
+   const actual=rows[i],before=expected.rows[i];if(actual.key!==before.key)throw new ArchiveError('GENERATION_CHANGED');
+   const wanted=before.key===CANONICAL_REPOSITORY_GATE?{...before.row,writeRevision:before.row.writeRevision+1}:before.row;
+   if(!workSame(scope,actual.row,wanted))throw new ArchiveError('GENERATION_CHANGED');
+   if(actual.key===canonicalQualification)qualification=actual.row;else if(actual.key===CANONICAL_REPOSITORY_PROTECTION)protection=actual.row;else if(actual.key===CANONICAL_REPOSITORY_GATE)gate=actual.row;
+  }
+  // Preserve the canonical-before-selection consumer order. Comparisons may
+  // call mutable metering/equality code, so no later request borrows their A.
+  current();const marker=await originalFixedRead(scope,record,originalFixedGet,['meta',APPLICATION_SELECTION_MARKER]);current();
+  if(!workSame(scope,marker,roles.selection.expected))throw new ArchiveError('GENERATION_SELECTION_CHANGED');
+  if(!workSame(scope,qualification,roles.qualification.expected))throw new ArchiveError('GENERATION_CHANGED');
+  if(!workSame(scope,protection,roles.shadow.expected.marker)||!workSame(scope,gate,roles.shadow.expected.gate))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ }else{
+  const marker=await originalFixedRead(scope,record,originalFixedGet,['meta',APPLICATION_SELECTION_MARKER]);current();
+  if(!workSame(scope,marker,roles.selection.expected))throw new ArchiveError('GENERATION_SELECTION_CHANGED');
+  current();const protection=await originalFixedRead(scope,record,originalFixedGet,['meta',CANONICAL_REPOSITORY_PROTECTION]);current();
+  if(protection!=null)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ }
+ // All full-row comparisons can meter/reflect. Recheck every original purpose
+ // and producer predicate afterwards; the transaction's outer check also stays.
+ current();
+}
 async function runFinalReadFences(scope,record){
- if(!record.finalReadFences.length)return;
+ if(!record.finalReadFences.length){if(record.applicationSelectionAction&&record.selectionPhase)refuseTerminal(record);return;}
  record.phase='terminal-compatibility';const fences=Object.freeze([...record.finalReadFences]);
+ const fixed=fixedFinalProfile(record,fences);
+ // The staged selection quote admits only its closed original producer set.
+ // Reject unknown work BEFORE any compatibility callback; other owners retain
+ // their original generic plan path and cannot borrow this selection profile.
+ if(record.applicationSelectionAction&&record.selectionPhase&&!fixed)refuseTerminal(record);
  // Every original issuer runs before the fixed recovery owner's clock sample.
  // Sampling can itself revoke another owner, so the final sweep remains entirely
  // private facts for all registered groups. No public facts callback is accepted.
@@ -231,12 +559,16 @@ async function runFinalReadFences(scope,record){
  // Strict production owners must omit it and use their original private cap.
  for(const f of fences)if(f.compatibilityRecheck){current();await f.compatibilityRecheck();current();}
  record.phase='terminal';
+ if(fixed){await runFixedFinalReads(scope,record,fences,fixed);return;}
  for(const f of fences){
   current();const iterator=f.plan();
   if(!iterator||typeof iterator.next!=='function'||typeof iterator.then==='function')refuseTerminal(record);
-  let value;
+  // In the original action, plan creation/iterator inspection is observed
+  // before the first next. Later iterations consume the adjacent post-result
+  // observation below. Ordinary final-fence call ordering remains unchanged.
+  let value;if(record.applicationSelectionAction)current();
   for(;;){
-   current();const step=iterator.next(value);current();
+   if(!record.applicationSelectionAction)current();const step=iterator.next(value);current();
    if(!step||typeof step!=='object'||typeof step.then==='function')refuseTerminal(record);
    if(step.done){if(step.value!==true)refuseTerminal(record);break;}
    const spec=step.value,descriptors=spec&&Object.getOwnPropertyDescriptors(spec);
@@ -245,7 +577,7 @@ async function runFinalReadFences(scope,record){
    if(typeof table!=='string'||!record.transaction.objectStoreNames.contains(table)||!['get','count'].includes(method)||Reflect.ownKeys(spec).some(k=>!['method','table','key','index'].includes(k)))refuseTerminal(record);
    current();
    if(method==='get'){if(index!==undefined||key===undefined)refuseTerminal(record);let reading;record.driverReading=true;try{reading=originalDataMethods.find(([name])=>name==='get')[1].value.call(scope,table,key);}finally{record.driverReading=false;}value=await reading;}
-   else{if(index!==undefined&&typeof index!=='string')refuseTerminal(record);workQuery(scope,1,[table,index,key]);scope.metrics.reads++;const target=record.transaction.objectStore(table);value=workResult(scope,await req(index?target.index(index).count(key):target.count(key)));}
+   else{if(index!==undefined&&typeof index!=='string')refuseTerminal(record);workQuery(scope,1,[table,index,key],true);scope.metrics.reads++;const target=record.transaction.objectStore(table);value=workResult(scope,await req(index?target.index(index).count(key):target.count(key)));}
    current();
   }
  }
@@ -275,6 +607,25 @@ export function requireRepositoryTransactionDataMethods(repository,scope){
 export function requireRepositoryTransactionSucceeded(repository,scope){
  const r=scopeRecord(repository,scope);
  if(r.nativeOutcome!=='completed'||!r.originalSuccess||!r.unwound||r.identity.nativeTransaction&&r.trustedNativeOutcome!=='completed')throw new ArchiveError('STALE_BASE');
+ return true;
+}
+// Read-only accounting after the original callback, all finalizers, terminal
+// fences and native completion have succeeded. A receipt lends no transaction
+// authority and cannot restart or relax the original private work limit.
+export function readOriginalCommittedTransactionWork(repository,scope){
+ requireRepositoryTransactionSucceeded(repository,scope);
+ const r=scopeRecord(repository,scope);
+ if(!r.committedWork)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
+ return r.committedWork;
+}
+// Restriction-only check for the fixed phased task ledger. A caller cannot
+// manufacture the private staging/owner/publication token by copying a DTO.
+export function registerOriginalRepositoryReadWorkLimit(repository,scope,limits){registerOriginalWorkLimit(repository,scope,limits,true);}
+export function requireOriginalTaskControlFailure(repository,scope){const r=scopeRecord(repository,scope);if(!r.unwound||r.originalSuccess||!r.shadow)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');return true;}
+export function requireOriginalTaskControlScope(repository,scope,terminal=false){
+ const r=scopeRecord(repository,scope);requireRepositoryTransactionDataMethods(repository,scope);
+ const kind=r.shadow?.authority?.kind;
+ if(r.phase!=='callback'||r.identity.mode!=='readwrite'||!r.shadow||!(terminal?kind==='publication-phased-human-seal':['checkpoint','human-phased'].includes(kind))||readOriginalGenerationRepositoryAuthority(r.shadow.token,repository,scope)!==r.shadow.authority)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
  return true;
 }
 export function requireRepositoryTransactionCommitted(repository,scope){
@@ -354,11 +705,88 @@ export function requireRepositoryHumanRetentionReadDrained(repository,scope,tran
 }
 
 const backupDataStores=new Set(['importSources','records','blocks','documents','libraryDocuments','inputStates','inputRemovals','thoughts','topics','sections','placements','provenance','dependencies','revisions','thoughtSuppressions','entryRelations','filterInputs','filterIntents','times','tombstones','operationReceipts']);
+// Only an original action may replace its primary-object-store cursor page.
+// Bounded reads remain in the existing scope (including a prepared RW scope).
+// An actual id-keyed store needs only its full values; all other key paths keep
+// the original pair. This is not writer admission or reusable readiness.
+function readOriginalActionPrimaryPage(scope,record,store,prefix,after,limit,range,upper,readable=()=>requireReadableScope(scope)){
+ return new Promise((resolve,reject)=>{
+  let accepting=true,pending=0,failed=false,failure,keys,values,target,idKeyed=false;
+  const refuse=error=>{if(!failed){failed=true;failure=error;}record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}};
+  const finish=()=>{
+   if(accepting||pending)return;
+   if(failed){reject(failure);return;}
+   try{
+    // Every actual complete raw result has already paid, including empty or
+    // oversized arrays. Only an observed id-keyPath can derive primary keys.
+    if(idKeyed){if(!Array.isArray(values)||values.length>limit)workRefuse(record);}
+    else if(!Array.isArray(keys)||!Array.isArray(values)||keys.length!==values.length||keys.length>limit)workRefuse(record);
+    const rows=[];let previous=after;
+    for(let i=0;i<(idKeyed?values.length:keys.length);i++){
+     const originalKey=idKeyed?undefined:keys[i],value=values[i],id=value&&typeof value==='object'?Object.getOwnPropertyDescriptor(value,'id'):null,key=idKeyed?id?.value:originalKey;
+     if(typeof key!=='string'||!key.startsWith(prefix)||key>=upper||previous!==null&&key<=previous||!id||!Object.hasOwn(id,'value')||id.value!==key)workRefuse(record);
+     rows.push({key,value});previous=key;
+    }
+    // Validation/reflection can be reentrant. Do not reuse either raw-result
+    // observation to authorize the probe or return a page after that boundary.
+    if(!sameScope(record))workRefuse(record);readable();
+    scope.metrics.reads+=rows.length;scope.metrics.primaryMaxBatch=Math.max(scope.metrics.primaryMaxBatch||0,rows.length);
+    if(rows.length<limit){resolve({rows,next:null});return;}
+    const end=previous,probeRange=IDBKeyRange.bound(end,upper,true,true);
+    workQuery(scope,1,[store,end,upper,true,true,probeRange],true);
+    const probe=target.openKeyCursor(probeRange);
+    probe.onerror=()=>{try{reject(fail(probe.error));}catch(error){reject(error);}};
+    probe.onsuccess=()=>{try{const cursor=probe.result;workResult(scope,cursor?.key);scope.metrics.primaryKeyProbes=(scope.metrics.primaryKeyProbes||0)+1;resolve({rows,next:cursor?end:null});}catch(error){reject(error);}};
+   }catch(error){reject(error);}
+  };
+  const observe=(request,slot)=>{
+   pending++;let settled=false;
+   request.onerror=()=>{if(settled)return;settled=true;try{refuse(fail(request.error));}catch(error){refuse(error);}finally{pending--;finish();}};
+   request.onsuccess=()=>{
+    if(settled)return;settled=true;
+    try{
+     const raw=request.result;if(slot==='keys')keys=raw;else values=raw;
+     // A prior failure never skips a later accepted result's complete debit.
+     // workCharge performs accepted-result charging BEFORE its currentness test.
+     workCharge(scope,Array.isArray(raw)?raw.length:0,raw,true,true);
+    }catch(error){refuse(error);}finally{pending--;finish();}
+   };
+  };
+  try{
+   target=scope.tx.objectStore(store);idKeyed=target.keyPath==='id';
+   const getKeys=idKeyed?null:target.getAllKeys,getValues=target.getAll;
+   // Observe the actual keyPath/methods BEFORE the full post-meter guard.
+   // No keys request/result is charged or performed when values contain the
+   // original primary id. The fallback still prepays both accepted-plan refs.
+   workQuery(scope,idKeyed?1:2,[store,prefix,after,limit,range,idKeyed?['getAll']:['getAllKeys','getAll']],true);
+   if(!idKeyed){
+    observe(Reflect.apply(getKeys,target,[range,limit]),'keys');
+    // A fresh full guard separates the two actual request acquisitions.
+    if(!sameScope(record))workRefuse(record);readable();
+   }
+   observe(Reflect.apply(getValues,target,[range,limit]),'values');
+  }catch(error){refuse(error);}
+  finally{accepting=false;finish();}
+ });
+}
+async function readOriginalCanonicalInventory(scope,record,afterPage,readable=()=>requireReadableScope(scope)){
+ const rows=[];let after=null;
+ do{
+  readable();const range=IDBKeyRange.bound(after===null?canonicalPrefix:after,canonicalUpper,after!==null,true);
+  // This fixed private reader uses the actual schema-selected bounded path,
+  // never the unrelated density hint. Every raw result and full-page probe pays.
+  const page=await readOriginalActionPrimaryPage(scope,record,'meta',canonicalPrefix,after,64,range,canonicalUpper,readable);
+  if(rows.length+page.rows.length>4096)workRefuse(record);
+  for(const entry of page.rows)rows.push({key:entry.key,row:entry.value});
+  after=page.next;afterPage();
+ }while(after!==null);
+ return rows;
+}
 class Transaction {
  constructor(tx,metrics,semanticEnabled=false){this.tx=tx;this.metrics=metrics;this.semanticEnabled=semanticEnabled;}
- async has(store,key){requireReadableScope(this);workCharge(this,1,[store,key],true);this.metrics.reads++;return workResult(this,await req(this.tx.objectStore(store).getKey(key)))!==undefined;}
- async get(store,key){requireReadableScope(this);workCharge(this,1,[store,key],true);this.metrics.reads++;return workResult(this,await req(this.tx.objectStore(store).get(key)));}
- async put(store,value,key){requireWritableScope(this);if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key===undefined?value?.id:key),value);await trackSemanticWrite(this,store,key===undefined?value?.id:key,value);await trackNavigationWrite(this,store,key===undefined?value?.id:key,value);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(value.id))this.backupChanged=true;requireWritableScope(this);workCharge(this,1,key===undefined?[store,value]:[store,value,key],true);this.metrics.writes++;const result=await req(key===undefined?this.tx.objectStore(store).put(value):this.tx.objectStore(store).put(value,key));return workResult(this,result);}
+ async has(store,key){requireReadableScope(this);workCharge(this,1,[store,key],true,false,true);this.metrics.reads++;return workResult(this,await req(this.tx.objectStore(store).getKey(key)))!==undefined;}
+ async get(store,key){workGet(this,store,key);this.metrics.reads++;return workResult(this,await req(this.tx.objectStore(store).get(key)));}
+ async put(store,value,key){requireWritableScope(this);requireShadowMutation(this,store,key===undefined?value?.id:key,'put');if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key===undefined?value?.id:key),value);await trackSemanticWrite(this,store,key===undefined?value?.id:key,value);await trackNavigationWrite(this,store,key===undefined?value?.id:key,value);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(value.id))this.backupChanged=true;requireWritableScope(this);workCharge(this,1,key===undefined?[store,value]:[store,value,key],true,false,true);this.metrics.writes++;const result=await req(key===undefined?this.tx.objectStore(store).put(value):this.tx.objectStore(store).put(value,key));return workResult(this,result);}
  async putDerivedSearchRow(store,value){
   if(!['thoughts','topics','sections'].includes(store)||!value?.id)throw fail();
   const previous=await this.get(store,value.id);
@@ -392,12 +820,12 @@ class Transaction {
   if(!same(withoutRead(previous),withoutRead(value)))throw fail();
   const changed=this.backupChanged,result=await this.put('topics',value);this.backupChanged=changed;return result;
  }
- async delete(store,key){requireWritableScope(this);if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key),null);await trackSemanticWrite(this,store,key,null);await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;requireWritableScope(this);workCharge(this,1,[store,key],true);this.metrics.writes++;const result=await req(this.tx.objectStore(store).delete(key));return workResult(this,result);}
- async clear(store){requireWritableScope(this);if(repositoryScopes.get(this)?.workLimit)workRefuse(repositoryScopes.get(this));if(store==='blockIndex')await clearArchiveYearIndex(this);await trackSemanticClear(this,store);if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;requireWritableScope(this);return req(this.tx.objectStore(store).clear());}
- async count(store,index,key){requireReadableScope(this);workQuery(this,1,[store,index,key]);return workResult(this,await req(index?this.tx.objectStore(store).index(index).count(key):this.tx.objectStore(store).count(key)));}
+ async delete(store,key){requireWritableScope(this);requireShadowMutation(this,store,key,'delete');if(store==='blockIndex')await syncArchiveYearIndex(this,await this.get(store,key),null);await trackSemanticWrite(this,store,key,null);await trackNavigationWrite(this,store,key,null);if(backupDataStores.has(store)||store==='meta'&&backupMetaAllowed(key))this.backupChanged=true;requireWritableScope(this);workCharge(this,1,[store,key],true,false,true);this.metrics.writes++;const result=await req(this.tx.objectStore(store).delete(key));return workResult(this,result);}
+ async clear(store){requireWritableScope(this);requireShadowMutation(this,store,null,'clear');if(repositoryScopes.get(this)?.workLimit)workRefuse(repositoryScopes.get(this));if(store==='blockIndex')await clearArchiveYearIndex(this);await trackSemanticClear(this,store);if(store==='documents')await this.delete('meta','ans:index-state:v1:catalog');if(backupDataStores.has(store))this.backupChanged=true;requireWritableScope(this);return req(this.tx.objectStore(store).clear());}
+ async count(store,index,key){requireReadableScope(this);workQuery(this,1,[store,index,key],true);return workResult(this,await req(index?this.tx.objectStore(store).index(index).count(key):this.tx.objectStore(store).count(key)));}
  async all(store,index,key,limit){
   requireReadableScope(this);const record=repositoryScopes.get(this),stream=!!record?.workLimit&&limit===undefined;
-  if(!stream)finiteWorkQuery(this,limit);workQuery(this,1,[store,index,key,limit]);this.metrics.scans++;const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);
+  if(!stream)finiteWorkQuery(this,limit);workQuery(this,1,[store,index,key,limit],true);this.metrics.scans++;const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);
   if(stream)return new Promise((resolve,reject)=>{
    // Existing complete-owner reads retain their complete-set semantics. Under
    // the private envelope, acquire and charge each physical row before retaining
@@ -407,36 +835,38 @@ class Transaction {
   });
   const rows=await req(target.getAll(key,limit));workCharge(this,rows.length,rows,true,true);this.metrics.reads+=rows.length;return rows;
  }
- async keys(store,index,key){requireReadableScope(this);const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);if(!repositoryScopes.get(this)?.workLimit)return req(target.getAllKeys(key));workQuery(this,1,[store,index,key]);return new Promise((resolve,reject)=>{const keys=[],request=target.openKeyCursor(key);request.onerror=()=>reject(fail(request.error));request.onsuccess=()=>{try{const cursor=request.result;if(!cursor){workResult(this,null);resolve(keys);return;}workRow(this,cursor.primaryKey);keys.push(cursor.primaryKey);cursor.continue();}catch(error){reject(error);}};});}
- async edge(store,index,key,direction='next'){requireReadableScope(this);workQuery(this,1,[store,index,key,direction]);return new Promise((resolve,reject)=>{const r=this.tx.objectStore(store).index(index).openCursor(key,direction);r.onsuccess=()=>{try{resolve(workResult(this,r.result?.value));}catch(error){reject(error);}};r.onerror=()=>reject(fail());});}
- async rangePage(store,index,range,after,limit,direction='next'){requireReadableScope(this);finiteWorkQuery(this,limit);const reverse=direction==='prev',effective=after?(reverse?(range?.lower!==undefined?IDBKeyRange.bound(range.lower,after,range.lowerOpen,true):IDBKeyRange.upperBound(after,true)):(range?.upper!==undefined?IDBKeyRange.bound(after,range.upper,true,range.upperOpen):IDBKeyRange.lowerBound(after,true))):range;workQuery(this,1,[store,index,range,after,limit,direction,effective]);return new Promise((resolve,reject)=>{const rows=[],target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store),r=target.openCursor(effective,direction);r.onerror=()=>reject(fail());r.onsuccess=()=>{try{const c=r.result;workCursor(this,c);if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}if(after&&(reverse?indexedKeyCompare(c.key,after)>=0:indexedKeyCompare(c.key,after)<=0)){c.continue();return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();}catch(error){reject(error);}};});}
+ async keys(store,index,key,limit){requireReadableScope(this);if(limit!==undefined&&(!Number.isSafeInteger(limit)||limit<1||limit>10000))throw new ArchiveError('INVALID_REQUEST');const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);if(!repositoryScopes.get(this)?.workLimit&&limit===undefined)return req(target.getAllKeys(key));workQuery(this,1,[store,index,key,limit],true);return new Promise((resolve,reject)=>{const keys=[],request=target.openKeyCursor(key);request.onerror=()=>reject(fail(request.error));request.onsuccess=()=>{try{const cursor=request.result;if(!cursor){workResult(this,null);resolve(keys);return;}const primaryKey=cursor.primaryKey;workRow(this,primaryKey);if(limit!==undefined&&keys.length===limit)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');keys.push(primaryKey);cursor.continue();}catch(error){reject(error);}};});}
+ async edge(store,index,key,direction='next'){requireReadableScope(this);workQuery(this,1,[store,index,key,direction],true);return new Promise((resolve,reject)=>{const r=this.tx.objectStore(store).index(index).openCursor(key,direction);r.onsuccess=()=>{try{resolve(workResult(this,r.result?.value));}catch(e){reject(e);}};r.onerror=()=>reject(fail());});}
+ async rangePage(store,index,range,after,limit,direction='next'){requireReadableScope(this);finiteWorkQuery(this,limit);const reverse=direction==='prev',effective=after?(reverse?(range?.lower!==undefined?IDBKeyRange.bound(range.lower,after,range.lowerOpen,true):IDBKeyRange.upperBound(after,true)):(range?.upper!==undefined?IDBKeyRange.bound(after,range.upper,true,range.upperOpen):IDBKeyRange.lowerBound(after,true))):range;workQuery(this,1,[store,index,range,after,limit,direction,effective],true);return new Promise((resolve,reject)=>{const rows=[],target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store),r=target.openCursor(effective,direction);r.onerror=()=>reject(fail());r.onsuccess=()=>{try{const c=r.result,row=workCursor(this,c);if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}if(after&&(reverse?indexedKeyCompare(row.key,after)>=0:indexedKeyCompare(row.key,after)<=0)){c.continue();return;}this.metrics.reads++;rows.push({key:row.key,value:row.value});c.continue();}catch(e){reject(e);}};});}
  async indexPrimaryPage(store,index,key,{after=null,limit=100}={}){requireReadableScope(this);finiteWorkQuery(this,limit);
   if(!Number.isInteger(limit)||limit<1||limit>100||after!==null&&typeof after!=='string')throw new ArchiveError('INVALID_REQUEST');
-  const range=IDBKeyRange.only(key);workQuery(this,1,[store,index,key,after,limit,range]);return new Promise((resolve,reject)=>{const rows=[],r=this.tx.objectStore(store).index(index).openCursor(range);r.onerror=()=>reject(fail(r.error));r.onsuccess=()=>{try{
-   const c=r.result;workCursor(this,c);if(!c){resolve({rows,next:null});return;}
-   if(after!==null&&c.primaryKey<after){c.continuePrimaryKey(key,after);return;}
-   if(after!==null&&c.primaryKey===after){c.continue();return;}
-   this.metrics.reads++;rows.push({key:c.primaryKey,value:c.value});this.metrics.primaryMaxBatch=Math.max(this.metrics.primaryMaxBatch||0,rows.length);
-   if(rows.length===limit){resolve({rows,next:c.primaryKey});return;}c.continue();
-  }catch(error){reject(error);}};});
+  const range=IDBKeyRange.only(key);workQuery(this,1,[store,index,key,after,limit,range],true);return new Promise((resolve,reject)=>{const rows=[],r=this.tx.objectStore(store).index(index).openCursor(range);r.onerror=()=>reject(fail(r.error));r.onsuccess=()=>{try{
+   const c=r.result,row=workCursor(this,c);if(!c){resolve({rows,next:null});return;}
+   if(after!==null&&row.primaryKey<after){c.continuePrimaryKey(key,after);return;}
+   if(after!==null&&row.primaryKey===after){c.continue();return;}
+   this.metrics.reads++;rows.push({key:row.primaryKey,value:row.value});this.metrics.primaryMaxBatch=Math.max(this.metrics.primaryMaxBatch||0,rows.length);
+   if(rows.length===limit){resolve({rows,next:row.primaryKey});return;}c.continue();
+  }catch(e){reject(e);}};});
  }
  async primaryRangePage(store,{prefix='',after=null,limit=100}={}){requireReadableScope(this);finiteWorkQuery(this,limit);
   if(typeof prefix!=='string'||!Number.isInteger(limit)||limit<1||limit>100||after!==null&&(typeof after!=='string'||!after.startsWith(prefix)||after>=prefix+'\uffff'))throw new ArchiveError('INVALID_REQUEST');
-  const upper=prefix+'\uffff',range=IDBKeyRange.bound(after===null?prefix:after,upper,after!==null,true);workQuery(this,1,[store,prefix,after,limit,range]);const target=this.tx.objectStore(store);
+  const upper=prefix+'\uffff',range=IDBKeyRange.bound(after===null?prefix:after,upper,after!==null,true),record=repositoryScopes.get(this);
+  if(record?.applicationSelectionAction&&!record.primaryCursorTables?.has(store))return readOriginalActionPrimaryPage(this,record,store,prefix,after,limit,range,upper);
+  workQuery(this,1,[store,prefix,after,limit,range],true);const target=this.tx.objectStore(store);
   return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail(r.error));r.onsuccess=()=>{try{
-   const c=r.result;workCursor(this,c);if(!c){resolve({rows,next:null});return;}
-   this.metrics.reads++;rows.push({key:c.key,value:c.value});this.metrics.primaryMaxBatch=Math.max(this.metrics.primaryMaxBatch||0,rows.length);
+   const c=r.result,row=workCursor(this,c);if(!c){resolve({rows,next:null});return;}
+   this.metrics.reads++;rows.push({key:row.key,value:row.value});this.metrics.primaryMaxBatch=Math.max(this.metrics.primaryMaxBatch||0,rows.length);
    if(rows.length<limit){c.continue();return;}
    // Peek only the next key: never materialize object limit+1. A real abort
    // can make continuation/probe creation throw inside this async callback;
    // reject its original promise so the owning transaction can actually unwind.
-   const probeRange=IDBKeyRange.bound(c.key,upper,true,true);workQuery(this,1,[store,c.key,upper,true,true,probeRange]);const probe=target.openKeyCursor(probeRange);
-   probe.onerror=()=>reject(fail(probe.error));probe.onsuccess=()=>{try{workResult(this,probe.result?.key);this.metrics.primaryKeyProbes=(this.metrics.primaryKeyProbes||0)+1;resolve({rows,next:probe.result?c.key:null});}catch(error){reject(error);}};
-  }catch(error){reject(error);}};});
+   const probeRange=IDBKeyRange.bound(row.key,upper,true,true);workQuery(this,1,[store,row.key,upper,true,true,probeRange],true);const probe=target.openKeyCursor(probeRange);
+   probe.onerror=()=>reject(fail(probe.error));probe.onsuccess=()=>{try{const cursor=probe.result;workResult(this,cursor?.key);this.metrics.primaryKeyProbes=(this.metrics.primaryKeyProbes||0)+1;resolve({rows,next:cursor?row.key:null});}catch(e){reject(e);}};
+  }catch(e){reject(e);}};});
  }
  async page(store,{index,after,limit=100}={}){requireReadableScope(this);finiteWorkQuery(this,limit);
-  const range=after===undefined?undefined:IDBKeyRange.lowerBound(after,true);workQuery(this,1,[store,index,after,limit,range]);const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);
-  return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail());r.onsuccess=()=>{try{const c=r.result;workCursor(this,c);if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}this.metrics.reads++;rows.push({key:c.key,value:c.value});c.continue();}catch(error){reject(error);}};});
+  const range=after===undefined?undefined:IDBKeyRange.lowerBound(after,true);workQuery(this,1,[store,index,after,limit,range],true);const target=index?this.tx.objectStore(store).index(index):this.tx.objectStore(store);
+  return new Promise((resolve,reject)=>{const rows=[],r=target.openCursor(range);r.onerror=()=>reject(fail());r.onsuccess=()=>{try{const c=r.result,row=workCursor(this,c);if(!c||rows.length===limit){resolve({rows,next:c?rows.at(-1).key:null});return;}this.metrics.reads++;rows.push({key:row.key,value:row.value});c.continue();}catch(e){reject(e);}};});
  }
 }
 
@@ -445,11 +875,15 @@ class Transaction {
 const originalDataPrototype=Transaction.prototype;
 const originalDataPrototypeParent=originalPrototypeOf(originalDataPrototype);
 const originalDataMethods=Object.freeze(['get','has','put','count','rangePage','primaryRangePage','delete'].map(name=>Object.freeze([name,Object.freeze(originalOwnDescriptor(originalDataPrototype,name))])));
+const originalFixedGet=originalDataMethods[0][1].value,originalFixedCount=originalDataMethods[3][1].value;
 
+let nativeRepositoryBrand;
+export function isOriginalNativeArchiveRepository(repository){return !!nativeRepositoryBrand&&nativeRepositoryBrand(repository);}
 export class ArchiveRepository {
+ static {nativeRepositoryBrand=owner=>!!owner&&(typeof owner==='object'||typeof owner==='function')&&#existingOnly in owner;}
  #existingOnly=false;
  constructor(local,{indexedDB=globalThis.indexedDB,name=DATABASE_NAME,checkpoint=async()=>{},ia=false,smartFilter=false,thoughtLibrary=false}={}){this.local=local;this.ia=ia;this.smartFilter=smartFilter;this.thoughtLibrary=thoughtLibrary;this.stores=[...STORES,...(ia?IA_STORES:[]),...(smartFilter?FILTER_STORES:[]),...(thoughtLibrary?LIBRARY_STORES:[])];this.factory=indexedDB;this.name=name;this.checkpoint=checkpoint;this.metrics={reads:0,writes:0,scans:0};repositoryWrites.set(this,{generation:Object.freeze({}),active:0});}
- // Cold source preparation may bind only an existing exact-schema library.
+ // Cold selection must never create a missing library or migrate an older schema.
  async openExisting(){this.#existingOnly=true;return originalRepositoryOpen.call(this);}
  async open(){
   if(this.db)return; if(!this.factory)throw fail();
@@ -478,23 +912,31 @@ export class ArchiveRepository {
    r.onerror=()=>reject(fail());r.onblocked=()=>{blocked=true;reject(fail());};r.onsuccess=()=>{const db=r.result;if(blocked){db.close();return;}db.onversionchange=()=>{db.close();this.db=null;};resolve(db);};
   });
  }
- async transaction(write,fn,stores=this.stores,explicitRecoveryWork=undefined){
+ async transaction(write,fn,stores=this.stores,explicitRecoveryWork=undefined,selectionAuthority=null,restrictionTicket=null,selectionPhase=null,selectionReadAction=null,shadowAuthority=null,localToolsExecution=null){
   const writeState=repositoryWrites.get(this);if(!writeState)throw fail();
-  const execution=readOriginalRecoveryStoreExecution(this);
-  if(execution?.interfered&&(explicitRecoveryWork!==undefined||ordinaryRecoveryWindows.has(this)))throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
+  const execution=readOriginalRecoveryStoreExecution(this),ambientTicket=ordinaryRecoveryWindows.get(this);
+  if(execution?.interfered&&(explicitRecoveryWork!==undefined||restrictionTicket!==null||ambientTicket))throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');
   if(explicitRecoveryWork!==undefined)requireOriginalRecoveryWorkWindow(this,explicitRecoveryWork);
-  const recoveryTicket=explicitRecoveryWork!==undefined?explicitRecoveryWork:execution===null?ordinaryRecoveryWindows.get(this):execution.recoveryWork;
-  const recovery=recoveryTicket?recoveryWork(recoveryTicket,this):null;
-  if(recovery?.pending){recovery.failed=true;if(recovery.scope)workAbort(recovery.scope);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
-  let recoveryPending;if(recovery){let resolve;recoveryPending={settled:new Promise(r=>resolve=r),resolve:()=>resolve()};recovery.pending=recoveryPending;}
-  try{
+  if(restrictionTicket!==null&&(ambientTicket||explicitRecoveryWork!==undefined)){recoveryWork(restrictionTicket,this).failed=true;if(ambientTicket)recoveryWork(ambientTicket,this).failed=true;throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
+  // A genuine Store execution owns its captured ticket, including an explicit
+  // absence. It cannot borrow an unrelated window opened while it was waiting.
+  const recoveryTicket=restrictionTicket!==null?restrictionTicket:explicitRecoveryWork!==undefined?explicitRecoveryWork:execution===null?ambientTicket:execution.recoveryWork;
+  const recovery=recoveryTicket?recoveryWork(recoveryTicket,this):null,localTools=localToolsExecution===null?null:originalBootstrapWeakGet(localToolsExecutions,localToolsExecution);
+  if(localToolsExecution!==null&&(!localTools||localTools.closed||!localTools.reading||localTools.repository!==this||write||selectionAuthority||selectionPhase||selectionReadAction||shadowAuthority||restrictionTicket!==localTools.participants[0].ticket||recovery?.pending!==localTools.pending))throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');
+  if(localTools)localToolsCurrent(localTools);
+  if(recovery?.pending&&!localTools){recovery.failed=true;if(recovery.scope)workAbort(recovery.scope);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
+  const staged=selectionPhase?readOriginalApplicationSelectionPhase(selectionPhase,this,selectionAuthority,stores):null,applicationSelectionAction=staged?.action??selectionReadAction??recovery?.applicationSelectionAction??null;if(applicationSelectionAction)requireOriginalApplicationSelectionRepositoryWork(applicationSelectionAction,this);if(selectionReadAction&&write||staged&&!write||readOriginalApplicationSelectionAuthority(selectionAuthority,this,null)?.action&&!staged)throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');let activeToken=null;let recoveryPending;if(recovery&&!localTools){let resolve;recoveryPending={settled:new Promise(r=>resolve=r),resolve:()=>resolve()};recovery.pending=recoveryPending;}try{
+  if(recovery&&(shadowAuthority!==null||selectionAuthority!==null))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+  if(write&&shadowAuthority===null){activeToken=await prepareOriginalActiveRepositoryWrite(this,!!recovery,applicationSelectionAction);if(activeToken)shadowAuthority=activeToken;}
   if(write){writeState.generation=Object.freeze({});writeState.active++;}
   try{
-  await this.open();if(recovery)recoveryWork(recoveryTicket,this);if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
+  await this.open();if(localTools)localToolsCurrent(localTools);if(recovery)recoveryWork(recoveryTicket,this);if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
   const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
   const native=nativeTransactionEvidence(tx);
-  let release;const record={scope,phase:'callback',terminalFailed:false,finalReadFences:[],repository:this,transaction:tx,transactionAbort:native?nativeTransactionAbort:tx.abort,dataPrototype:originalPrototypeOf(scope),nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
-  repositoryScopes.set(scope,record);repositoryNativeScopes.set(tx,record);if(recovery){record.recoveryWork=recoveryTicket;recovery.scope=record;}
+  let release;const record={scope,started:workClock(),phase:'callback',terminalFailed:false,finalReadFences:[],repository:this,transaction:tx,transactionAbort:native?nativeTransactionAbort:tx.abort,dataPrototype:originalPrototypeOf(scope),nativeSettled:false,nativeOutcome:'pending',trustedNativeOutcome:null,originalSuccess:false,unwound:false,identity:Object.freeze({token:Object.freeze({}),database:native?.database||tx.db,mode:native?.mode||tx.mode,nativeTransaction:!!native}),settled:new Promise(resolve=>{release=resolve;})};
+  if(selectionPhase&&applicationSelectionAction&&!recovery)originalBootstrapWeakSet(originalPointReadScopes,scope,{record,repository:this,transaction:tx,identity:record.identity,database:record.identity.database,action:applicationSelectionAction,phase:selectionPhase,budget:null});
+  repositoryScopes.set(scope,record);repositoryNativeScopes.set(tx,record);if(recovery){record.recoveryWork=recoveryTicket;recovery.scope=record;}if(applicationSelectionAction)record.applicationSelectionAction=applicationSelectionAction;if(selectionPhase)record.selectionPhase=selectionPhase;
+  if(localTools){const extra=localTools.restrictions.slice(1).map(work=>({work,rootLimit:Math.min(2*1024*1024,2*1024*1024-work.bytes)}));originalBootstrapWeakSet(localToolsScopes,record,{group:localTools,extra,rows:originalBootstrapCreate(null)});for(const p of localTools.restrictions)p.scope=record;}
   const maybeRelease=()=>{if(record.nativeSettled&&record.unwound)release();};
   const done=new Promise((resolve,reject)=>{
    // False native events do not consume either listener or settle any state.
@@ -513,10 +955,11 @@ export class ArchiveRepository {
    else{tx.addEventListener('complete',complete);tx.addEventListener('abort',abort);}
    tx.onerror=()=>{};
   });
+  if(applicationSelectionAction)originalBootstrapWeakSet(originalMetaGroupSettlements,record,done);
   // The rejection is observed immediately even when the operation also rejects.
   done.catch(()=>{});
-  try{if(recovery){recoveryWork(recoveryTicket,this);registerOriginalWorkLimit(this,scope,{references:4096-recovery.refs,bytes:2*1024*1024-recovery.bytes,ms:recovery.deadline-workClock()},!write);}const result=await fn(scope);record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){if(recovery)recovery.failed=true;try{record.transactionAbort.call(record.transaction);}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{clearTimeout(record.workLimit?.timer);record.finalReadFences.length=0;record.unwound=true;if(recovery?.scope===record)recovery.scope=null;maybeRelease();}
-  }finally{if(write)writeState.active--;}
+  try{if(applicationSelectionAction){const limit=requireOriginalApplicationSelectionRepositoryWork(applicationSelectionAction,this);if(selectionPhase)bindOriginalApplicationSelectionPhaseScope(selectionPhase,this,scope);registerOriginalWorkLimit(this,scope,{references:4096,bytes:2*1024*1024,ms:limit.deadline-workClock()},!write);if(selectionPhase){const signal=staged.signal;const abort=()=>{record.terminalFailed=true;try{record.transactionAbort.call(record.transaction);}catch{}};nativeAddEventListener.call(signal,'abort',abort);record.selectionAbort={signal,abort};if(nativeAbortSignalAborted.call(signal))abort();}}if(recovery){recoveryWork(recoveryTicket,this);registerOriginalWorkLimit(this,scope,{references:4096-recovery.refs,bytes:2*1024*1024-recovery.bytes,ms:recovery.deadline-workClock()},!write);}if(write){await beginSelectionWrite(this,scope,record,selectionAuthority);await beginShadowWrite(this,scope,record,shadowAuthority);}else{const limits=originalPhasedHumanReadWork(this,scope)??readOriginalCheckpointCompileWork(this,scope);if(limits)registerOriginalWorkLimit(this,scope,limits,true);}const result=await fn(scope);if(write){await finishSelectionWrite(this,scope,record);await finishShadowWrite(this,scope,record);}record.phase='finalizing';if(record.terminalFailed)refuseTerminal(record);if(write)await flushNavigationWrites(scope);const semanticWrite=write?await flushSemanticWrites(scope):false;if(write&&scope.backupChanged){const marker=await scope.get('meta','backup-data-generation');await scope.put('meta',{id:'backup-data-generation',value:(marker?.value||0)+1});}if(write){await runFinalReadFences(scope,record);currentFinalAuthorities(record,record.finalReadFences);}workCheck(record);await done;record.originalSuccess=true;if(semanticWrite)bindSemanticWriteReceipt(this,result);return result;}catch(e){if(recovery)recovery.failed=true;try{record.transactionAbort.call(record.transaction);}catch{}await done.catch(()=>{});if(record.workLimit?.failed)throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');if(tx.error?.name==='QuotaExceededError')throw fail(tx.error);if(e instanceof ArchiveError||['STORAGE_FAILED','STORAGE_FULL'].includes(e?.code))throw e;throw fail(e?.name?e:tx.error);}finally{if(record.originalSuccess&&record.workLimit&&!record.workLimit.failed)record.committedWork=Object.freeze({references:record.workLimit.refs,bytes:record.workLimit.bytes,activeMs:Math.max(0,workClock()-record.workLimit.started)});clearTimeout(record.workLimit?.timer);if(record.selectionAbort)nativeRemoveEventListener.call(record.selectionAbort.signal,'abort',record.selectionAbort.abort);record.finalReadFences.length=0;record.unwound=true;if(recovery?.scope===record)recovery.scope=null;if(localTools)for(const p of localTools.restrictions)if(p.scope===record)p.scope=null;maybeRelease();if(!write){settleOriginalPhasedHumanReadWork(this,scope);settleOriginalCheckpointCompileWork(this,scope);}}
+  }finally{if(activeToken)releaseOriginalActiveRepositoryWrite(activeToken);if(write)writeState.active--;}
   }catch(error){if(recovery)recovery.failed=true;throw error;}finally{if(recoveryPending){if(recovery.pending===recoveryPending)recovery.pending=null;recoveryPending.resolve();}}
  }
  async initialize(){
@@ -610,6 +1053,71 @@ export function originalRepositoryTransactionOwner(repository){
  return false;
 }
 
-// Fixed method for existing-only acquisition; instance wrappers cannot turn
-// that request into initialization or migration. The private field brands it.
+// Existing-only original readonly entry. In particular, the public open method
+// cannot initialize/reopen or substitute a connection while a consumer is waiting.
+const existingReadOpenMethod=originalOwnDescriptor(promptTransactionPrototype,'open'),existingReadApply=Reflect.apply;
+export function requireOriginalExistingRepositoryReadOwner(repository,database){
+ if(!database||originalOwnDescriptor(repository,'db')?.value!==database||!originalRepositoryTransactionOwner(repository)||!promptTransactionDescriptor(originalOwnDescriptor(promptTransactionPrototype,'open'),existingReadOpenMethod))throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');
+ let found=false;for(let owner=repository;owner;owner=originalPrototypeOf(owner)){const descriptor=originalOwnDescriptor(owner,'open');if(descriptor){found=promptTransactionDescriptor(descriptor,existingReadOpenMethod);break;}}
+ if(!found)throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');return true;
+}
+export async function originalExistingRepositoryRead(repository,fn,stores=['meta']){
+ const database=originalOwnDescriptor(repository,'db')?.value;
+ const current=()=>{requireOriginalExistingRepositoryReadOwner(repository,database);if(typeof fn!=='function')throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');};
+ current();let scope;const result=await existingReadApply(promptTransactionMethod.value,repository,[false,async t=>{scope=t;current();requireRepositoryTransactionDataMethods(repository,t);if(requireRepositoryTransactionScope(repository,t).database!==database)throw new ArchiveError('CONTROL_PUBLICATION_CHANGED');const value=await fn(t);current();return value;},stores]);
+ requireRepositoryTransactionSucceeded(repository,scope);current();return result;
+}
+
+// Fixed generation consumers bypass instance wrappers; the opaque authority is
+// bound once to the original native scope and never returned to their callers.
+export function originalGenerationRepositoryRead(repository,fn,stores){if(!repositoryWrites.has(repository))throw new ArchiveError('GENERATION_CAPABILITY');return promptTransactionMethod.value.call(repository,false,fn,stores);}
+export async function originalGenerationRepositoryTransaction(repository,token,fn,stores){
+ if(!repositoryWrites.has(repository))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ const authority=readOriginalGenerationRepositoryAuthority(token,repository,null);
+ if(authority?.kind!=='checkpoint-install'){
+  const marker=await promptTransactionMethod.value.call(repository,false,t=>t.get('meta',CANONICAL_REPOSITORY_PROTECTION),['meta']);
+  // No capability crosses an existing unmarked repository wrapper. A concurrent
+  // installation is rechecked by the actual write admission and fails closed.
+  if(marker==null)return repository.transaction(true,fn,stores);
+ }
+ return promptTransactionMethod.value.call(repository,true,fn,stores,undefined,null,null,null,null,token);
+}
+
 const originalRepositoryOpen=ArchiveRepository.prototype.open;
+
+const originalRepositoryOpenExisting=ArchiveRepository.prototype.openExisting;
+export function openOriginalExistingRepository(repository){if(!repositoryWrites.has(repository))throw new ArchiveError('GENERATION_CAPABILITY');return originalRepositoryOpenExisting.call(repository);}
+
+// Private existing-library selection writer layered over (not instead of) the
+// original active-generation guard and original transaction/terminal driver.
+export function originalApplicationSelectionTransaction(repository,token,fn,stores){
+ if(!repositoryWrites.has(repository)||!readOriginalApplicationSelectionAuthority(token,repository,null))throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');
+ return promptTransactionMethod.value.call(repository,true,fn,stores,undefined,token);
+}
+
+// Restriction-only explicit ordinary work attribution. It does not install an
+// ambient window, lend generation/selection authority, or relax any limit.
+export function originalRestrictedRepositoryTransaction(repository,ticket,write,fn,stores){
+ recoveryWork(ticket,repository);
+ return promptTransactionMethod.value.call(repository,write,fn,stores,undefined,null,ticket);
+}
+
+// Fixed staged selection path. A genuine core domain authority alone is NOT
+// writer admission: the original driver's phase is bound to this actual scope.
+export function originalStagedApplicationSelectionTransaction(repository,authority,phase,fn,stores){
+ readOriginalApplicationSelectionPhase(phase,repository,authority,stores);
+ const task=promptTransactionMethod.value.call(repository,true,fn,stores,undefined,authority,null,phase);
+ return trackOriginalApplicationSelectionRepositoryWork(readOriginalApplicationSelectionAuthority(authority,repository,null).action,repository,task);
+}
+export function originalApplicationSelectionRead(repository,action,fn,stores){
+ requireOriginalApplicationSelectionRepositoryWork(action,repository);
+ return trackOriginalApplicationSelectionRepositoryWork(action,repository,promptTransactionMethod.value.call(repository,false,fn,stores,undefined,null,null,null,action));
+}
+export function chargeOriginalApplicationSelectionActionWork(action,value,references=0){return chargeOriginalApplicationSelectionDriverWork(action,value,references);}
+export function requireOriginalApplicationSelectionDispatch(action){return requireOriginalApplicationSelectionDriverDispatch(action);}
+export function requireOriginalApplicationSelectionLocal(action,local,get,set){requireOriginalApplicationSelectionDriverLocal(action,local,get,set);}
+export function requireOriginalApplicationSelectionLocalDispatch(action,local,get,set){requireOriginalApplicationSelectionDriverLocalDispatch(action,local,get,set);}
+
+export function trackOriginalApplicationSelectionActionWork(action,promise){return trackOriginalApplicationSelectionDriverWork(action,promise);}
+
+export function requireOriginalApplicationSelectionRecoveryWork(repository,ticket,action,owner,kind){const p=recoveryWork(ticket,repository);if(p.applicationSelectionAction!==action||p.applicationSelectionMember!==owner||p.applicationSelectionKind!==kind)throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');requireOriginalApplicationSelectionMember(action,owner,kind);return true;}

@@ -1,3 +1,5 @@
+import {createOrganizeSelectionOwnerRegistry} from './application-selection-owner.js';
+const selectionOwners=createOrganizeSelectionOwnerRegistry();
 import {LocalOrganizeSession} from './local-organize-session.js';
 import {createOrganizeServiceClient} from '../ai-usage/organize-service-client.js';
 import {readOrganizeServiceConfiguration} from '../ai-usage/organize-service-configuration.js';
@@ -37,5 +39,13 @@ export function createConfiguredOrganizeRunner(store,configuration=readOrganizeS
    finally{last=state;active=null;}
   }
  };
+ const methods=selectionOwners.instrumentObject(runner,['reconcileInterrupted','status','scope','wake','stop','handle']);
+ methods.set('available',runner.available);
+ selectionOwners.register(runner,store,{qualified:configuration===null&&service===null&&session===null,methods});
  return Object.freeze(runner);
 }
+
+export const configuredOrganizerSelectionEligible=(runner,store)=>selectionOwners.eligible(runner,store);
+export const holdConfiguredOrganizerForApplicationSelection=(runner,store,options)=>selectionOwners.hold(runner,store,options);
+export const configuredOrganizerHeldForApplicationSelection=(runner,store,token)=>selectionOwners.current(runner,store,token);
+export const releaseConfiguredOrganizerForApplicationSelection=(runner,store,token)=>selectionOwners.release(runner,store,token);

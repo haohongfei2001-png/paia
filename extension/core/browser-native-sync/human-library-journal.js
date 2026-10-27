@@ -7,6 +7,7 @@ import {prepareHumanRequestOrder,humanWireRequestDigest,restoreHumanRequest} fro
 import {clone,equal,fail} from './value.js';
 import {prefix} from '../thought-model.js';
 import {ArchiveError} from '../constants.js';
+const originalReceivePreparations=new WeakMap(),originalJournalBindings=new WeakMap();
 const prepares={topic:owner.prepareHumanTopicPlan,'topic-edit':owner.prepareHumanTopicEditPlan,section:owner.prepareHumanSectionPlan,'section-edit':owner.prepareHumanSectionEditPlan,entry:owner.prepareHumanEntryPlan,'entry-edit':owner.prepareHumanEntryEditPlan,'entry-remove':owner.prepareHumanEntryLifecyclePlan,'entry-restore':owner.prepareHumanEntryLifecyclePlan,placement:owner.prepareHumanPlacementPlan,move:owner.prepareHumanMovePlan,fixed:owner.prepareHumanFixedPlan,'topic-lifecycle':owner.prepareHumanTopicLifecyclePlan,keep:owner.prepareHumanKeepPlan};
 const needsSearchProof=(type,row)=>row!==null&&(['entry','topic','section'].includes(type)&&Object.hasOwn(row,'indexedSearchVersion')||type==='history'&&row.kind==='topic'&&['before','after'].some(side=>row[side]&&Object.hasOwn(row[side],'indexedSearchVersion')));
 async function searchProofForView(store,core,view){return view.rows.some(row=>needsSearchProof(row.type,row.before)||needsSearchProof(row.type,row.after))?captureHumanCompletedSearch(store,core):null;}
@@ -14,7 +15,7 @@ async function portablePlanned(type,row,histories,secret,proof,plan,phase){retur
 // Explicit internal installation only. No worker/UI constructor registers this
 // owner. Unbound stores retain their original path and allocation behavior.
 export class HumanLibrarySyncJournal{
- constructor(core){this.received=new WeakMap();this.core=core;this.prepared=new WeakMap();this.transactions=new WeakMap();}
+ constructor(core){this.received=new WeakMap();this.core=core;this.prepared=new WeakMap();this.transactions=new WeakMap();originalJournalBindings.set(this,{core,received:this.received,prepared:this.prepared,transactions:this.transactions});}
  async prepare(store,kind,request,options={}){
   if(store.repository!==this.core.repository||store.humanLibraryJournal!==this||!prepares[kind])fail('BNS_HUMAN_BINDING_REQUIRED');request=clone(request);
   const entry=await owner.humanPlanEntry(store,this.core),cap=await prepares[kind](store,this.core,request,entry,{...options,...(kind==='entry-restore'?{restore:true}:{})});if(cap.duplicate||cap.conflict)return cap;
@@ -40,7 +41,7 @@ export class HumanLibrarySyncJournal{
   for(const row of view.rows){const hit=protocol.members.find(op=>op.entityId===row.type+':'+row.after.id);if(!hit||hit.value.entityType!==row.type)fail('BNS_HUMAN_PLAN_CHANGED');const before=await portablePlanned(row.type,row.before,[...history.values()],view.secret,searchProof,cap,'CANONICAL_BEFORE'),after=await portablePlanned(row.type,row.after,[...history.values()],view.secret,searchProof,cap,'CANONICAL_AFTER');if(!equal(normalizePhysical(row.type,before),normalizePhysical(row.type,hit.value.before))||!equal(normalizePhysical(row.type,after),normalizePhysical(row.type,hit.value.after)))fail('BNS_HUMAN_PLAN_CHANGED');
    const mapping=await this.core.read('humanMapping',hit.entityId);if(mapping&&(!equal(mapping.local,physical(row.type,before))||!equal(mapping.wire,physical(row.type,hit.value.before))))fail('BNS_HUMAN_MAPPING_CHANGED');mappings.push({entityId:hit.entityId,before:mapping??null,after:{type:row.type,wire:physical(row.type,hit.value.after),local:physical(row.type,after),revisionId:hit.revisionId}});
   }
-  const prepared=Object.freeze({});this.received.set(prepared,{store,cap,protocol,mappings,identityProof,searchProof});return prepared;
+  const prepared=Object.freeze({});const original={store,cap,protocol,mappings,identityProof,searchProof};this.received.set(prepared,original);originalReceivePreparations.set(prepared,{journal:this,original});return prepared;
  }
  async commitReceiveInTransaction(t,prepared){const p=this.received.get(prepared);if(!p||p.store.humanLibraryJournal!==this)fail('BNS_PREPARATION_REQUIRED');
   if(p.searchProof)await requireHumanCompletedSearch(t,p.searchProof);
@@ -61,3 +62,15 @@ export class HumanLibrarySyncJournal{
 // semantic field normalization is accepted. Original wire values stay in Core.
 export function physical(type,row){if(row===null)return null;const keys=type==='entry'?['createdSequence','updatedSequence','negativeUpdatedSequence']:type==='topic'?['negativeUpdatedSequence']:type==='history'?['sequence','listKey','documentList']:[];return Object.fromEntries(keys.filter(k=>Object.hasOwn(row,k)).map(k=>[k,clone(row[k])]));}
 export function normalizePhysical(type,row){if(row===null)return null;const out=clone(row);for(const k of Object.keys(physical(type,row)))delete out[k];if(type==='history'&&row.kind==='topic')for(const side of ['before','after'])if(out[side])out[side]=normalizePhysical('topic',out[side]);return out;}
+
+// The public legacy received map is not the source of this qualification.
+export function readOriginalHumanReceiveExpectation(journal,prepared){const p=originalReceivePreparations.get(prepared);if(!p||p.journal!==journal||journal.received.get(prepared)!==p.original)fail('BNS_PREPARATION_REQUIRED');const q=p.original;if(q.searchProof||q.identityProof.length)fail('BNS_HUMAN_GENERATION_SCOPE');return {...owner.originalHumanEntryGenerationExpectation(q.cap),protocol:q.protocol,mappings:clone(q.mappings)};}
+
+const originalJournalPrototype=HumanLibrarySyncJournal.prototype,originalJournalParent=Object.getPrototypeOf(originalJournalPrototype),originalJournalDescriptors=Object.getOwnPropertyDescriptors(originalJournalPrototype);
+export function requireOriginalHumanGenerationJournal(journal,core){const p=originalJournalBindings.get(journal);if(!p||p.core!==core||Object.getPrototypeOf(journal)!==originalJournalPrototype||Object.getPrototypeOf(originalJournalPrototype)!==originalJournalParent)fail('GENERATION_REPOSITORY_WRITE_DENIED');for(const [key,value]of Object.entries(p)){const d=Object.getOwnPropertyDescriptor(journal,key);if(!d||d.value!==value||d.get||d.set)fail('GENERATION_REPOSITORY_WRITE_DENIED');}for(const [key,expected]of Object.entries(originalJournalDescriptors)){const d=Object.getOwnPropertyDescriptor(originalJournalPrototype,key);if(Object.hasOwn(journal,key)||!d||['value','get','set','writable','enumerable','configurable'].some(k=>d[k]!==expected[k]))fail('GENERATION_REPOSITORY_WRITE_DENIED');}return true;}
+
+// Capture the original methods in their defining module, after class creation.
+// Cyclic consumers import these hoisted functions without reading a class TDZ;
+// calls still use the immutable original descriptors and the private binding.
+export function prepareOriginalHumanGenerationReceive(journal,core,store,operations){requireOriginalHumanGenerationJournal(journal,core);return originalJournalDescriptors.prepareReceive.value.call(journal,store,operations);}
+export function commitOriginalHumanGenerationReceive(journal,core,t,prepared){requireOriginalHumanGenerationJournal(journal,core);return originalJournalDescriptors.commitReceiveInTransaction.value.call(journal,t,prepared);}

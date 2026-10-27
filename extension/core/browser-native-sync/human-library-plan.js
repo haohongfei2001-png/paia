@@ -36,9 +36,9 @@ import {changeTopicContainer,changeTopicContainerInTransaction,planHumanTopicMem
 import {assertMemoryTopicTransitionAllowed} from '../memory/organization-guard.js';
 import {assertMemoryPlacementChangeAllowed} from '../memory/organization-guard.js';
 import {THOUGHT_TOPIC_INDEX_VERSION,planThoughtTopicInvalidation} from '../thought-read-index.js';
-import {revisionShouldPrune,REVISION_POLICY} from '../ia-store.js';
+import {revisionShouldPrune,REVISION_POLICY} from '../ia-store-owner.js';
 import {ownerVersion} from '../library-search.js';
-import {planHumanTopicCreation,planHumanPlacement,planHumanPlacementRow,humanPlacementRank,humanSectionRank,planHumanSectionCreation,planHumanEntryCreation,planHumanEntryRemoval,planHumanEntryRestoration,planHumanTopicTouch,planHumanEntryFields,finishHumanEntryFields} from '../thought-store.js';
+import {planHumanTopicCreation,planHumanPlacement,planHumanPlacementRow,humanPlacementRank,humanSectionRank,planHumanSectionCreation,planHumanEntryCreation,planHumanEntryRemoval,planHumanEntryRestoration,planHumanTopicTouch,planHumanEntryFields,finishHumanEntryFields} from '../thought-store-owner.js';
 import {planJournalRevision} from '../thought-journal.js';
 import {prepareTopicName,prepareTopicIdentityName,prepareTopicNameFromBase,prepareTopicIdentityFromSnapshot,planTopicNameRegistration,planHumanTopicRename,planHumanTopicField,assertTopicIdentityBase,keepTopicIdentitiesSeparate,keepTopicIdentitiesSeparateInTransaction,planHumanKeepSeparate,topicPairKey} from '../topic-identity.js';
 import {keys,idOK,revisionOK,normalizeRank,rankBetween,prefix,keyedHash,validateFields,entrySnapshot,ENTRY_FIELDS} from '../thought-model.js';
@@ -1931,4 +1931,19 @@ export async function bindHumanCurrentUnindexedProjectionScope(cap,scope){
   // retained384KiB frame; no new body, second pool or retained lease is added.
   p.scopeBinding=true;return ids;
  }finally{r.semantic=0;r.raw=null;r.controlValues=null;r.control=null;r.scopeBinding=null;r.group=null;r.encoderResult=null;releaseHumanQualificationLease(work);p.frames--;if(p.revoked)projectionRevoke(p);}
+}
+
+// Read-only expectation from the original private named planner, before its
+// writer runs. A DTO cannot construct this view or acquire execution authority.
+export function originalHumanEntryGenerationExpectation(cap){const p=plans.get(cap);if(p?.kind!=='entry')fail('BNS_HUMAN_GENERATION_SCOPE');return structuredClone({entry:p.row,history:p.history,operationReceipt:p.operationReceipt,thoughtSequence:p.thoughtSequence,revisionSequence:p.revisionSequence,base:p.entry});}
+// Readonly deterministic replay of the original source-free creation planner.
+// The supplied baseline is not thereby trusted and this returns no writer cap;
+// the phased consumer must separately authenticate its durable original base.
+export async function deriveOriginalHumanCreationExpectation(store,core,baseline,input){
+ requireOriginalLibraryDocumentsStore(store);if(store.repository!==core.repository)fail('BNS_HUMAN_BINDING_REQUIRED');
+ const before=clone(baseline),d=clone(input);validateHumanLibraryCommit(d);if(d.kind!=='entry'||d.datasetId!==core.datasetId)fail('BNS_HUMAN_GENERATION_SCOPE');
+ const request=await restoreHumanRequest(d);keys(request,['operationId','actor','title','body','note','type','formation','evidence'],['operationId','actor','body','type','formation','evidence']);validateFields({body:request.body,title:request.title??'',note:request.note??'',type:request.type,formation:request.formation});
+ if(!idOK(request.operationId)||request.operationId.length<8||request.actor!=='user'||request.formation!=='explicit'||!Array.isArray(request.evidence)||request.evidence.length||!store.libraryDocumentMode||before?.library?.sealed)fail('BNS_HUMAN_GENERATION_SCOPE');
+ const entry=bindHumanReplayEntry(before,d.events,d.allocation),allocation=prepareHumanAllocation(store,entry),requestDigest=await hashText(JSON.stringify(request)),exactSignature=await keyedHash(before.secret,['body',request.type,request.body]);
+ const expected=computeHumanEntryState(request,before,requestDigest,exactSignature,allocation);allocation.seal();return {entry:clone(expected.row),history:clone(expected.history),operationReceipt:clone(expected.operationReceipt),thoughtSequence:expected.thoughtSequence,revisionSequence:expected.revisionSequence,base:before};
 }

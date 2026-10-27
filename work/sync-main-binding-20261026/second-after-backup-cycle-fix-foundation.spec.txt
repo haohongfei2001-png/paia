@@ -1,0 +1,15 @@
+✔ MAIN Sync Foundation: facade and lazy owners retain one original constructor and private Docs brand (64.377427ms)
+✔ MAIN Sync Foundation: cold foundationWrite keeps one original Q4 ticket through Foundation, Bindings and Docs (35.020231ms)
+✔ MAIN Sync Foundation: operation forwards independent recoveryWork and workLimit to the original durable receipt (31.684737ms)
+✔ MAIN Sync Foundation: ordinary polling cannot borrow an active owner action ticket between admitted writes (40.01911ms)
+✔ MAIN Sync Foundation: standalone workLimit is snapshotted before awaits and still limits original writes without a recovery ticket (31.087094ms)
+✔ MAIN Sync Foundation: an explicit workLimit cannot replenish an already consumed original recovery allowance (18.634045ms)
+✔ MAIN Sync Foundation: genuine configured PT08 preparation and lifecycle operation retain one ticket through final receipt (787.24085ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1473.709606

@@ -1,3 +1,7 @@
+import {PROMPT_INSERTION_RUNTIME,validatePromptInsertionRuntimeRow} from '../prompt-insertion-runtime-format.js';
+import {requireOriginalDefaultMemoryRow} from './local-memory-default.js';
+import {withOriginalRecoveryStoreAdmission} from '../indexed-store.js';
+import {requireOriginalRecoveryWorkWindow} from '../idb-repository.js';
 import {compareMixedConfiguration,consumeMixedPublicationMetadata} from './mixed-configuration.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {prepareMixedRestoredAllocationProof,assertMixedRestoredPhysicalAllocations,originalMixedRestoredReplay,measureMixedRestoredExpectation} from './mixed-restored-allocation.js';
@@ -22,7 +26,7 @@ import {acceptSequence} from './core.js';
 import {protocolPhysicalId} from './physical-key.js';
 import {deltaDescription,deltaSignature,KNOWN_PREFIX,DIRTY_PREFIX,HUMAN_FENCE,DELTA_COUNTER} from '../ai-usage/delta.js';
 import {emptyContextCards as emptyContext} from '../context-cards.js';
-import {REVISION_POLICY} from '../ia-store.js';
+import {REVISION_POLICY} from '../ia-store-owner.js';
 import {FILTER_VERSIONS} from '../smart-filter.js';
 import {finalConsumerPreferenceOperations,consumerDisplayPreferences,requireConsumerPreferenceOwners} from './consumer-preference-restore.js';
 import {originalGroupCheckpointCore,originalGroupCheckpointCoreOrNull} from './group-checkpoint-plan.js';
@@ -183,15 +187,17 @@ export async function prepareOriginalMixedWireOwnerScope(core,plan){
  requireOriginalCurrentMixedGroupPlan(core,plan);const {scope}=await compileOriginalWireScope(plan);requireOriginalCurrentMixedGroupPlan(core,plan);return scope.ownerScope;
 }
 function requireCompiledGroupScope(scope){const p=originalScopes.get(scope);if(!p||p.phase!=='ready'||p.expected!==scope.expected||p.ownerScope!==scope.ownerScope||p.core&&Object.entries(p.coreBinding).some(([key,value])=>p.core[key]!==value))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');return p;}
-export async function prepareGroupScope(plan,{store,nativeMixedCompilation}={}){
+export async function prepareGroupScope(plan,{store,nativeMixedCompilation,recoveryWork=null}={}){
+ if(recoveryWork!==null){if(!store)fail('BNS_GROUP_BINDING');requireOriginalRecoveryWorkWindow(store.repository,recoveryWork);}
+ const run=action=>recoveryWork===null?store.run(action):withOriginalRecoveryStoreAdmission(store,recoveryWork,()=>store.run(action));
  const originalCore=originalGroupCheckpointCoreOrNull(plan);if(!originalCore&&plan.groups.some(group=>['topicDesired','promptBinding','consumerPreference'].includes(group.type)||group.type==='promptPreferences'&&(group.operations[0].value.splits.length||group.operations[0].value.pins.some(id=>id.startsWith('pf:'))||group.operations[0].value.overrides.some(row=>row.id.startsWith('pf:')||row.representative!==undefined))))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  const {scope,human}=await compileOriginalWireScope(plan),p={plan:new ScopeWeakRef(plan),core:originalCore,consumerOperations:finalConsumerPreferenceOperations(plan),expected:scope.expected,ownerScope:scope.ownerScope,phase:'preparing',humanWire:human,mixedCore:originalCurrentMixedGroupCore(plan)};p.coreBinding=p.core?{repository:p.core.repository,datasetId:p.core.datasetId,prefix:p.core.prefix,fixedNamespace:p.core.fixedNamespace}:null;if(!p.core&&plan.groups.some(g=>g.type==='topicDesired'))fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');originalScopes.set(scope,p);
  try{
   if(p.mixedCore&&store){
-   const meta=nativeMixedCompilation!==undefined?borrowOriginalMixedScopeCompilationMeta(nativeMixedCompilation,store,scope,human):await store.run(()=>store.repository.transaction(false,async t=>{if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all('meta');},['meta']));
+   const meta=nativeMixedCompilation!==undefined?borrowOriginalMixedScopeCompilationMeta(nativeMixedCompilation,store,scope,human):await run(()=>store.repository.transaction(false,async t=>{if(await t.count('meta')>4096)fail('BNS_GROUP_RESOURCE_LIMIT');return t.all('meta');},['meta']));
    measureSourceWorkingPhysicalTree(meta);freezeScope(meta);if(meta.some(row=>row.id===p.mixedCore.prefix+'active')){p.restoredAllocation=await prepareMixedRestoredAllocationProof(p.mixedCore,plan,meta,...(nativeMixedCompilation!==undefined?[{nonce:nativeMixedCompilation,store,scope}]:[]));if(nativeMixedCompilation!==undefined)retainOriginalMixedRestoredScopeProof(nativeMixedCompilation,store,scope,plan);}
   }
-  if(human){if(nativeMixedCompilation!==undefined)reserveOriginalMixedKeyedScopePhase(nativeMixedCompilation,store,scope,plan);await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation);}freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;
+  if(human){if(nativeMixedCompilation!==undefined)reserveOriginalMixedKeyedScopePhase(nativeMixedCompilation,store,scope,plan);await prepareHumanScopeProof(store,scope,human,nativeMixedCompilation,recoveryWork);}freezeScope(scope);p.humanWire=null;p.phase='ready';return scope;
  }catch(error){originalScopes.delete(scope);throw error;}
 }
 export async function requireGroupScope(store,t,scope){
@@ -203,6 +209,8 @@ export async function requireGroupScope(store,t,scope){
  // Only key bounded metadata inspection. Never export arbitrary meta/body rows.
  const keys=await new Promise((resolve,reject)=>{const out=[],r=t.tx.objectStore('meta').openKeyCursor();r.onerror=()=>reject(r.error);r.onsuccess=()=>{const cursor=r.result;if(!cursor)return resolve(out);if(out.length===10000)return reject(Object.assign(new Error('BNS_GROUP_RESOURCE_LIMIT'),{code:'BNS_GROUP_RESOURCE_LIMIT'}));out.push(cursor.key);cursor.continue();};});
  for(const key of keys){
+  if(key===PROMPT_INSERTION_RUNTIME){requireLocalPromptInsertionRuntime(await t.get('meta',key),store.databaseId);continue;}
+  if(key==='memory:config'){requireOriginalDefaultMemoryRow(await t.get('meta',key));continue;}
   if(human?.allowed.has(key))continue;
   if(key===CONTEXT_CARDS_ROW||key===PROMPT_REUSE_ROW||counters.has(key))continue;
   if(key===CONTEXT_TOPIC_ACCESS_ROW){const bound=originalScopes.get(scope);await requireLocalTopicChoicesRepresented(t,bound.core,scope.expected.topicDesired??[]);continue;}
@@ -319,4 +327,9 @@ export function measureOriginalMixedScopeBorrowedOperations(core,scope,plan){
 export function measureOriginalMixedPreparingWireScope(core,scope,plan,store,nonce){
  requireOriginalMixedScopeCompilationCurrent(nonce,store,scope);const p=originalScopes.get(scope);if(!p||p.mixedCore!==core||scopeDeref.call(p.plan)!==plan||p.phase!=='preparing')fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
  return Object.freeze({scope:measureSourceWorkingPhysicalTree(scope),human:measureSourceWorkingPhysicalTree(p.humanWire),borrowedHuman:scope.expected.humanLibrary===p.humanWire,borrowedOperations:mixedScopeBorrowedOperationTrees(plan,scope)});
+}
+
+function requireLocalPromptInsertionRuntime(row,databaseId){
+ try{validatePromptInsertionRuntimeRow(row);}catch{fail('BNS_GROUP_CANONICAL_UNREPRESENTED');}
+ if(row.databaseId!==databaseId)fail('BNS_GROUP_CANONICAL_UNREPRESENTED');
 }

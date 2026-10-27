@@ -1,3 +1,4 @@
+import {withOriginalRecoveryStoreAdmission} from '../indexed-store.js';
 import {originalCurrentMixedGroupCore} from './group-checkpoint-plan.js';
 import {measureSourceWorkingPhysicalTree} from './source-working-physical.js';
 import {localHumanTopicIdentity,localHumanSuppression} from './human-library-identity.js';
@@ -7,7 +8,7 @@ import {keyedHash} from '../thought-model.js';
 import {ownerVersion} from '../library-search.js';
 import {projectOriginalMixedNativeSearchRow} from './human-library-search-proof.js';
 import {captureHumanCurrentUnindexedProjection,captureHumanCurrentGroupProjection,requireHumanCurrentUnindexedProjection,releaseHumanCurrentUnindexedProjection,bindHumanCurrentUnindexedProjectionScope,encodeHumanCurrentGroupCheckpoint,publishHumanCurrentGroupCheckpoint,branchRawMeasure,borrowOriginalMixedScopeCompilationSecret,requireOriginalMixedScopeCompilationCurrent,requireOriginalMixedNativeCanonicalCut} from './human-library-plan.js';
-import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
+import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods,requireOriginalRecoveryWorkWindow} from '../idb-repository.js';
 import {clone,equal,fail,count} from './value.js';
 const proofs=new WeakMap(),preparations=new WeakSet(),types={entry:'thoughts',topic:'topics',section:'sections',placement:'placements',suppression:'thoughtSuppressions',keepSeparate:'pairs'};
 const sort=rows=>rows.sort((a,b)=>a.id.localeCompare(b.id));
@@ -24,9 +25,11 @@ export function compileHumanScope(plan){
  for(const group of plan.groups)if(group.type==='humanLibraryCommit')for(const op of group.prepared.members){const {entityType:type,after}=op.value;maps[type].set(after.id,mixed?after:clone(after));if(type==='topic')observeHumanScopeNames(names,after);}
  return {rows:Object.fromEntries(Object.entries(maps).map(([type,map])=>[type,sort([...map.values()])])),names:[...names.values()].sort((a,b)=>a.name.localeCompare(b.name))};
 }
-export async function prepareHumanScopeProof(store,scope,wire,nativeMixedCompilation){
+export async function prepareHumanScopeProof(store,scope,wire,nativeMixedCompilation,recoveryWork=null){
+ if(recoveryWork!==null){if(!store)fail('BNS_GROUP_BINDING');requireOriginalRecoveryWorkWindow(store.repository,recoveryWork);}
+ const run=action=>recoveryWork===null?store.run(action):withOriginalRecoveryStoreAdmission(store,recoveryWork,()=>store.run(action));
  requireGroupHumanCompilationInput(scope,wire);
- if(!store)fail('BNS_GROUP_BINDING');const previous=proofs.get(scope);if(preparations.has(scope)||previous?.projectionOpening||previous?.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');preparations.add(scope);try{const native=nativeMixedCompilation!==undefined,secret=native?borrowOriginalMixedScopeCompilationSecret(nativeMixedCompilation,store,scope,wire):await store.run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key'))?.value,['meta']));if(!Array.isArray(secret))fail('BNS_HUMAN_BINDING_REQUIRED');const current=()=>{if(native)requireOriginalMixedScopeCompilationCurrent(nativeMixedCompilation,store,scope);};current();
+ if(!store)fail('BNS_GROUP_BINDING');const previous=proofs.get(scope);if(preparations.has(scope)||previous?.projectionOpening||previous?.projection)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');preparations.add(scope);try{const native=nativeMixedCompilation!==undefined,secret=native?borrowOriginalMixedScopeCompilationSecret(nativeMixedCompilation,store,scope,wire):await run(()=>store.repository.transaction(false,async t=>(await t.get('meta','thought-suppression-key'))?.value,['meta']));if(!Array.isArray(secret))fail('BNS_HUMAN_BINDING_REQUIRED');const current=()=>{if(native)requireOriginalMixedScopeCompilationCurrent(nativeMixedCompilation,store,scope);};current();
  const rows=clone(wire.rows);for(const row of rows.entry){row.exactSignature=await keyedHash(secret,['body',row.type,row.thoughtText]);current();}for(const row of rows.topic){row.identity=(await localHumanTopicIdentity(row.name,row.identity,secret)).identity;current();}
  for(const row of rows.history)if(row.kind==='topic')for(const side of ['before','after'])if(row[side]){row[side].identity=(await localHumanTopicIdentity(row[side].name,row[side].identity,secret)).identity;current();}
  // A failed compilation must not abandon a later live crypto operand. Keep

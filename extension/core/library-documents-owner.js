@@ -1,5 +1,8 @@
-import {withOriginalRecoveryStoreAdmission} from './indexed-store.js';
+import {requireOriginalOrganizerGenerationMethods} from './organizer/store-owner.js';
+import {isOriginalHumanGenerationTransaction} from './browser-native-sync/human-library-group.js';
+async function generationPlacementRows(store,t,id){if(!isOriginalHumanGenerationTransaction(t))return t.all('placements','byEntry',prefix([id]));const rows=[];let after=null;do{const page=await t.rangePage('placements','byEntry',prefix([id]),after,100);rows.push(...page.rows.map(x=>x.value));after=page.next;}while(after!==null);return rows;}
 import {ArchiveError} from './constants.js';
+import {withOriginalRecoveryStoreAdmission} from './indexed-store.js';
 import {humanClock,humanPreparedGeneration} from './browser-native-sync/human-library-allocation.js';
 import {removedPlacements,restoreRemovedPlacement} from './removed-placements.js';
 import {prepareTopicRename,recordTopicRename,planHumanTopicField} from './topic-identity.js';
@@ -10,7 +13,7 @@ import {compareReadingTopics,recordRead} from './topic-reading-order.js';
 import {libraryRevisions,restoreLibraryRevision} from './library-revisions.js';
 import {countBatch} from './library-counts.js';
 import {editLibraryBatch} from './library-edit.js';
-import {LibraryFoundationStore,planHumanTopicTouch} from './thought-store.js';
+import {originalFoundationConstructor,planHumanTopicTouch} from './thought-store-owner.js';
 import {fail,keys,idOK,revisionOK,prefix,markHuman,entryDTO,rankBetween} from './thought-model.js';
 import {repairTopicCompatibility,validTopicGeneration} from './topic-compatibility.js';
 import {journal,nextSequence} from './thought-journal.js';
@@ -18,6 +21,23 @@ import {queueSearch,searchBatch,rebuildBatch,searchLibrary} from './library-sear
 import {startLayout,layoutBatch,reorderPlacement} from './library-layout.js';
 import {syncThoughtRootTopic,thoughtRootIndexPage,invalidateThoughtTopicIndex} from './thought-read-index.js';
 const originalLibraryDocumentsStores=new WeakSet();
+let originalGenerationDataChain;
+const generationDescriptor=Object.getOwnPropertyDescriptor,generationPrototype=Object.getPrototypeOf;
+// Read-only identity check for the fixed shadow-generation original owner.
+// Capture in this declaration module at class creation, never from a caller.
+export function requireOriginalLibraryDocumentsGenerationMethods(store){
+ if(!originalLibraryDocumentsStores.has(store)||!originalGenerationDataChain)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ // The application worker uses the fixed Organizer subclass. Its declaration
+ // owner checks that exact extra layer; the original Docs chain below remains
+ // mandatory. No caller-supplied subclass or first-use method snapshot qualifies.
+ if(generationPrototype(store)!==originalGenerationDataChain[0].prototype)requireOriginalOrganizerGenerationMethods(store);
+ for(const {prototype,parent,methods}of originalGenerationDataChain){
+  if(generationPrototype(prototype)!==parent||Object.getOwnPropertyNames(prototype).filter(name=>!['constructor','run','finishFoundation'].includes(name)).join('\0')!==methods.map(([name])=>name).join('\0'))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+  for(const [name,expected]of methods){const current=generationDescriptor(prototype,name);if(!current||['value','get','set','writable','enumerable','configurable'].some(key=>current[key]!==expected[key]))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');}
+ }
+ for(const name of new Set(originalGenerationDataChain.flatMap(x=>x.methods.map(([name])=>name)))){if(generationDescriptor(store,name))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');}
+}
+
 // Constructor identity only, not consent, native source or snapshot authority.
 export function requireOriginalLibraryDocumentsStore(store){if(!originalLibraryDocumentsStores.has(store))fail();}
 const limitOK=n=>Number.isInteger(n)&&n>0&&n<=100;
@@ -40,16 +60,25 @@ async function topicCountInTransaction(t,topicId,schedule=false){
  return {visibleEntryCount:topic.countCache?.key===key?topic.countCache.count:0,countComplete:false};
 }
 // Defined only after the fixed base has initialized; never accepts a caller factory.
-let originalConstructor;
+let originalConstructor,nativeLibraryBrand;
+export function isOriginalLibraryDocumentsNativeStore(store){return !!nativeLibraryBrand&&nativeLibraryBrand(store);}
 export function originalLibraryDocumentsConstructor(){
  if(arguments.length)fail();
  if(originalConstructor)return originalConstructor;
- originalConstructor=class LibraryDocumentsStore extends LibraryFoundationStore {
+ originalConstructor=class LibraryDocumentsStore extends originalFoundationConstructor() {
+ #nativeSelectionBrand;
+ static {nativeLibraryBrand=owner=>!!owner&&(typeof owner==='object'||typeof owner==='function')&&#nativeSelectionBrand in owner;}
  constructor(local,options={}){super(local,options);originalLibraryDocumentsStores.add(this);this.libraryDocumentMode=true;this.compatibilityStatus=null;}
  async finishFoundation({recoveryWork=null}={}){
   await super.finishFoundation({recoveryWork});if(this.documentsLoaded)return;
+  const run=fn=>recoveryWork===null?this.run(fn):withOriginalRecoveryStoreAdmission(this,recoveryWork,()=>this.run(fn));
+  // A cold, already completed library needs no repair writer. In particular,
+  // opening a protected staging generation must not request write authority
+  // merely to rediscover the original completed compatibility receipt.
+  const completed=await run(()=>this.repository.transaction(false,t=>t.get('meta','library-documents-compat-v2'),['meta']));
+  if(completed?.complete){this.compatibilityStatus=completed;this.documentsLoaded=true;return;}
   for(;;){
-   const enqueue=()=>this.run(()=>this.repository.transaction(true,async t=>{
+   const marker=await run(()=>this.repository.transaction(true,async t=>{
     const row=await t.get('meta','library-documents-compat-v2')||{id:'library-documents-compat-v2',cursor:null,complete:false,activeTopics:0,repairedTopics:0,repairedIndexTopics:0,repairedGenerationTopics:0,repairedDefaultSections:0,unresolvedLayouts:0,indexedActiveTopics:0,indexGap:0};
     if(row.complete)return row;
     const page=await t.page('topics',{after:row.cursor??undefined,limit:100});
@@ -66,7 +95,6 @@ export function originalLibraryDocumentsConstructor(){
     if(row.complete){row.indexedActiveTopics=await t.count('topics','byIndex',prefix([0]));row.indexGap=Math.max(0,row.activeTopics-row.indexedActiveTopics);row.completedAt=this.clock();}
     await t.put('meta',row);return row;
    }));
-   const marker=await (recoveryWork===null?enqueue():withOriginalRecoveryStoreAdmission(this,recoveryWork,enqueue));
    if(marker.complete){this.compatibilityStatus=marker;this.documentsLoaded=true;return;}
    await this.repository.checkpoint('library-documents-compat-v2-batch');
   }
@@ -81,7 +109,7 @@ export function originalLibraryDocumentsConstructor(){
   for(const id of [request.topicId,...(request.changes?.name!==undefined||request.name!==undefined?[request.id]:[])].filter(Boolean)){const topic=await t.get('topics',id);if(topic?.layoutJobId&&!request.layoutInternal)return {conflict:true,organizationBusy:true};}
   const result=await fn(t);if(result.conflict)return result;
   const ids=new Set([result.id,request.entryId,...(result.items||[]).map(x=>x.id)].filter(Boolean));
-  for(const id of ids){const e=await t.get('thoughts',id);if(e?.storageSchema===2){await queueSearch(t,'entry',e);for(const p of await t.all('placements','byEntry',prefix([id]))){const topic=await t.get('topics',p.topicId);if(topic?.activeLayoutGeneration===p.layoutGeneration)await this.touchTopic(t,topic);}}const topic=await t.get('topics',id);if(topic){await queueSearch(t,'topic',topic);await this.touchTopic(t,topic);}}
+  for(const id of ids){const e=await t.get('thoughts',id);if(e?.storageSchema===2){await queueSearch(t,'entry',e);for(const p of await generationPlacementRows(this,t,id)){const topic=await t.get('topics',p.topicId);if(topic?.activeLayoutGeneration===p.layoutGeneration)await this.touchTopic(t,topic);}}const topic=await t.get('topics',id);if(topic){await queueSearch(t,'topic',topic);await this.touchTopic(t,topic);}}
   if(request.topicId){const topic=await t.get('topics',request.topicId);if(topic)await this.touchTopic(t,topic);}
   const sectionId=result.sectionId||request.sectionId;if(sectionId){const topic=await t.get('topics',request.topicId||result.id);if(topic){const row=await t.get('sections',JSON.stringify([topic.id,topic.activeLayoutGeneration,sectionId]));if(row)await queueSearch(t,'section',row);}}
   return result;
@@ -163,5 +191,7 @@ export function originalLibraryDocumentsConstructor(){
  async processLibraryMaintenance(){await this.ensureLibrarySearch();const l=await layoutBatch(this);if(l.pending)return l;const c=await countBatch(this);if(c.pending)return c;const r=await rebuildBatch(this);if(r.pending)return r;return searchBatch(this);}
  async drainLibraryMaintenance(){for(;;){const r=await this.processLibraryMaintenance();if(!r.pending)return;await this.repository.checkpoint('library-maintenance-batch');}}
  };
+ originalGenerationDataChain=[];
+ for(let prototype=originalConstructor.prototype;prototype!==Object.prototype;prototype=generationPrototype(prototype))originalGenerationDataChain.push({prototype,parent:generationPrototype(prototype),methods:Object.getOwnPropertyNames(prototype).filter(name=>!['constructor','run','finishFoundation'].includes(name)).map(name=>[name,generationDescriptor(prototype,name)])});
  return originalConstructor;
 }

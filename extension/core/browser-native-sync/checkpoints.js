@@ -1,3 +1,4 @@
+import {requireOriginalPhasedCheckpointIterator} from './canonical-generation-checkpoint-stage.js';
 import {buildGroupedCheckpoint,GroupedCheckpointRestore} from './group-checkpoint.js';
 import {BrowserNativeSyncCore,CORE_LIMITS,validateOperation} from './core.js';
 import {CODECS,validateCoverage} from './codecs.js';
@@ -65,7 +66,9 @@ async function readManifest(ref,get,{datasetId,profile,supported}){
  if(!exact(value,['magic','protocol','kind','datasetId','clientEncryption','root','level','itemCount','chain','coverage','parents'])||value.magic!=='PAIA-BNS'||value.protocol!==1||value.kind!=='checkpoint-manifest'||value.datasetId!==datasetId||value.clientEncryption!=='none'||!count(value.level)||value.level>8||!count(value.itemCount)||!hash(value.chain)&&value.itemCount!==0||!Array.isArray(value.parents)||value.parents.length>FANOUT||value.parents.some(x=>!hash(x))||new Set(value.parents).size!==value.parents.length)fail('BNS_CHECKPOINT_INVALID');
  validateCoverage(value.coverage,supported);return value;
 }
-export async function* checkpointItems(manifest,get,{profile=SEGMENT_PROFILE}={}){
+export async function* checkpointItems(manifest,get,{profile=SEGMENT_PROFILE}={}){yield* walkCheckpointItems(manifest,get,profile);}
+export async function* originalPhasedHumanCheckpointItems(stage,manifest,get){requireOriginalPhasedCheckpointIterator(stage,manifest,get);yield* walkCheckpointItems(manifest,get,SEGMENT_PROFILE);}
+async function* walkCheckpointItems(manifest,get,profile){
  const stack=[{ref:manifest.root,level:manifest.level}],seen=new Set();let countItems=0,chain='';
  while(stack.length){
   const {ref,level}=stack.pop();if(ref.kind!=='checkpoint-shard'||seen.has(ref.id))fail('BNS_CHECKPOINT_GRAPH');seen.add(ref.id);

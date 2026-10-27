@@ -37,6 +37,15 @@ export class JournalRestoreFence {
  }
 }
 
+// Deny-only original method identity. Captured here after declaration, never
+// from a caller or on first use; it grants no read, write or restore authority.
+const restoreFencePrototype=JournalRestoreFence.prototype,restoreFenceParent=Object.getPrototypeOf(restoreFencePrototype),restoreFenceMethods=Object.getOwnPropertyNames(restoreFencePrototype).filter(name=>name!=='constructor').map(name=>[name,Object.getOwnPropertyDescriptor(restoreFencePrototype,name)]);
+export function requireOriginalJournalRestoreFence(fence,core){
+ if(Object.getPrototypeOf(fence)!==restoreFencePrototype||Object.getPrototypeOf(restoreFencePrototype)!==restoreFenceParent||Object.getOwnPropertyDescriptor(fence,'core')?.value!==core)fail('BNS_RESTORE_FENCE_REQUIRED');
+ for(const [name,expected]of restoreFenceMethods){const current=Object.getOwnPropertyDescriptor(restoreFencePrototype,name);if(Object.hasOwn(fence,name)||!current||['value','get','set','writable','enumerable','configurable'].some(key=>current[key]!==expected[key]))fail('BNS_RESTORE_FENCE_REQUIRED');}
+ return true;
+}
+
 // Explicit dependency injection only. The service worker does not construct this
 // journal, so this proof cannot enable cloud access or change ordinary saves.
 export class PromptSyncJournal {

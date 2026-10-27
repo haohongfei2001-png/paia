@@ -1,0 +1,52 @@
+{
+  "first": {
+    "source": "083fa382211b0a005e881715b83f3c806320eb3b",
+    "owner": {
+      "passed": 1,
+      "failed": 0,
+      "duration_ms": 7796.559288,
+      "refs": 3932,
+      "bytes": 1844399,
+      "remaining_refs": 164,
+      "remaining_bytes": 252753,
+      "deadline_ms": 30000.0,
+      "pending_before_sdk_ack": 2,
+      "native_transactions": 6,
+      "all_committed": true,
+      "sdk_sets": 1,
+      "matching_readbacks": 2,
+      "provider_requests": 0,
+      "cleanup_complete": true,
+      "retired": true,
+      "receipt_consumed": true
+    },
+    "adapter": {
+      "passed": 4,
+      "failed": 0,
+      "duration_ms": 266.655909
+    },
+    "foundation": {
+      "file_failed": true,
+      "planned_cases": 7,
+      "cases_executed": 0,
+      "error": "ReferenceError BACKUP_SECTIONS before initialization at backup-service.js:20",
+      "duration_ms": 422.011208
+    },
+    "raw_reporter": "Node auto/spec textual output preserved in first-*.tap filename; not re-run for reporter conversion",
+    "status": "PARTIAL; no retry"
+  },
+  "affectedRetry": {
+    "source": "1e445d0784a13a4c5c0bd09272609382a63ea228",
+    "file": "extension/tests/main-sync-foundation-options.test.mjs",
+    "run": "second-after-backup-cycle-fix",
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "duration_ms": 1473.709606,
+    "first_initialization_failure_preserved": true,
+    "same_test_blob": "3899667d39831b1c5c2407df985158aa1f1f6a1f15dc2cd855f5197124f57761",
+    "owner_and_adapter_NOT_RERUN": true
+  },
+  "releaseCandidateNotRetested": true,
+  "allTestsPassedClaim": false
+}

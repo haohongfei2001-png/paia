@@ -1,0 +1,17 @@
+✔ main legacy insert replay and direct once preserve original editing behavior; history survives reconstruction (76.489528ms)
+ℹ MAIN_BOUND_ADAPTER {"provenance":{"path":"file:///tmp/paia-main-sync-local-integration-20261026T1625Z/extension/adapter/chatgpt-composer.js","sha256":"4ac0d7c11729757de7d5caf64e491055d91b3f82233cd9548d73362b72ce897c","completeSource":true,"sourceTransforms":false,"clock":"unchanged host performance.now/setTimeout","dom":"synthetic; not native-browser qualification"},"commands":[{"command":"insertText","insertion":"X"},{"command":"insertText","insertion":"Y"}],"workerRPC":0}
+✔ even a rejected legacy request permanently refuses the empty-inventory profile (1.83554ms)
+ℹ MAIN_BOUND_ADAPTER {"provenance":{"path":"file:///tmp/paia-main-sync-local-integration-20261026T1625Z/extension/adapter/chatgpt-composer.js","sha256":"4ac0d7c11729757de7d5caf64e491055d91b3f82233cd9548d73362b72ce897c","completeSource":true,"sourceTransforms":false,"clock":"unchanged host performance.now/setTimeout","dom":"synthetic; not native-browser qualification"},"commands":[],"workerRPC":0}
+✔ pending original once never advertises empty inventory or starts a concurrent edit (36.188898ms)
+ℹ MAIN_BOUND_ADAPTER {"provenance":{"path":"file:///tmp/paia-main-sync-local-integration-20261026T1625Z/extension/adapter/chatgpt-composer.js","sha256":"4ac0d7c11729757de7d5caf64e491055d91b3f82233cd9548d73362b72ce897c","completeSource":true,"sourceTransforms":false,"clock":"unchanged host performance.now/setTimeout","dom":"synthetic; not native-browser qualification"},"commands":[{"command":"insertText","insertion":"P"}],"workerRPC":0}
+✔ invalid document challenges and an unknown predecessor cannot create an empty-inventory proof (37.450913ms)
+ℹ MAIN_BOUND_ADAPTER {"provenance":{"path":"file:///tmp/paia-main-sync-local-integration-20261026T1625Z/extension/adapter/chatgpt-composer.js","sha256":"4ac0d7c11729757de7d5caf64e491055d91b3f82233cd9548d73362b72ce897c","completeSource":true,"sourceTransforms":false,"clock":"unchanged host performance.now/setTimeout","dom":"synthetic; not native-browser qualification"},"commands":[{"command":"insertText","insertion":"Z"}],"workerRPC":0}
+ℹ MAIN_BOUND_ADAPTER {"provenance":{"path":"file:///tmp/paia-main-sync-local-integration-20261026T1625Z/extension/adapter/chatgpt-composer.js","sha256":"4ac0d7c11729757de7d5caf64e491055d91b3f82233cd9548d73362b72ce897c","completeSource":true,"sourceTransforms":false,"clock":"unchanged host performance.now/setTimeout","dom":"synthetic; not native-browser qualification"},"commands":[],"workerRPC":0}
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 266.655909

@@ -1,3 +1,4 @@
+import {localToolSelectionHold} from '../local-tool-selection-hold.js';
 import {fail,LIMITS} from './errors.js';
 import {prepareRows,validHash} from './contract.js';
 import {SUPPORTED_EXPORT_ADAPTER_IDS} from './registry.js';
@@ -20,13 +21,33 @@ async function importedRecords(store,t,r,sourceVersions,legacyVersions){
  const out=[];for(const ix of await t.all('recordIndex','bySource',r.sourceKey)){const row=await t.get('records',ix.id),record=row?.value;if(record?.platform===r.platform&&record.chatId===r.chatId&&record.sourceMessageId===r.messageId)out.push({r:record,index:ix});}return out;
 }
 export class ImportLedger {
- constructor(store,{verifiedAdapters=SUPPORTED_EXPORT_ADAPTER_IDS}={}){this.store=store;this.adapters=new Set(verifiedAdapters);this.grants=new Map();}
+ resolveBranch(q){return this.#selection.entry(admission=>this.#resolveBranch(q,admission));}
+ complete(q,owner){return this.#selection.entry(admission=>this.#complete(q,owner,admission));}
+ cancel(q,owner){return this.#selection.entry(admission=>this.#cancel(q,owner,admission));}
+ pause(q,owner){return this.#selection.entry(admission=>this.#pause(q,owner,admission));}
+ commit(q,owner){return this.#selection.entry(admission=>this.#commit(q,owner,admission));}
+ ready(q,owner){return this.#selection.entry(admission=>this.#ready(q,owner,admission));}
+ preflight(q,owner){return this.#selection.entry(admission=>this.#preflight(q,owner,admission));}
+ latest(){return this.#selection.entry(admission=>this.#latest(admission));}
+ list(after){return this.#selection.entry(admission=>this.#list(after,admission));}
+ status(id){return this.#selection.entry(admission=>this.#status(id,admission));}
+ begin(q,owner){return this.#selection.entry(admission=>this.#begin(q,owner,admission));}
+ #selection;
+ applicationSelectionSourceIs(store){return this.#selection.sourceIs(store);}
+ applicationSelectionCutSource(){return this.#selection.cutSource();}
+ holdForApplicationSelection(action=null,cut=null){return this.#selection.hold(action,cut);}
+ applicationSelectionHeld(token){return this.#selection.held(token);}
+ fenceApplicationSelection(token,cut=null){return this.#selection.fence(token,cut);}
+ releaseApplicationSelection(token,action=null){return this.#selection.release(token,action);}
+ releaseFailedApplicationSelection(error,action=null){return this.#selection.releaseFailed(error,action);}
+
+ constructor(store,{verifiedAdapters=SUPPORTED_EXPORT_ADAPTER_IDS}={}){this.store=store;this.adapters=new Set(verifiedAdapters);this.grants=new Map();const adapters=this.adapters,grants=this.grants;this.#selection=localToolSelectionHold(store,()=>Object.getPrototypeOf(this)===originalPrototype&&this.store===store&&this.adapters===adapters&&this.grants===grants&&originalMethods.every(([k,v])=>this[k]===v),{importTasks:true,owner:this,kind:'local-import'});}
  authorize(q,owner){const g=this.grants.get(q.grant);if(!g||g.owner!==owner||g.taskId!==q.taskId||g.expires<Date.now())fail('IMPORT_SESSION_EXPIRED');return g;}
- async begin(q,owner){
+ async #begin(q,owner,admission){
   if(q.consent!==true)fail('CONSENT_REQUIRED');if(!this.adapters.has(q.adapterId))fail('SCHEMA_UNVERIFIED');
   if(!validHash(q.fingerprint)||typeof owner!=='string'||!owner.length||owner.length>300||q.taskId!==undefined&&!taskID(q.taskId))fail('INVALID_IMPORT');
   await this.store.finishFoundation?.();
-  const result=await this.store.run(()=>this.store.repository.transaction(true,async t=>{
+  const result=await this.store.run(()=>this.store.repository.transaction(true,async t=>{this.#selection.check(admission);
    const c=await this.store.control(t);if(c.settings.consentVersion!==CONSENT_VERSION)fail('CONSENT_REQUIRED');
    let task=q.taskId?await t.get('importTasks',q.taskId):null;
    if(q.taskId&&!task||task?.phase==='cancelled')fail('IMPORT_STATE');
@@ -37,7 +58,7 @@ export class ImportLedger {
   for(const [token,g]of this.grants)if(g.taskId===result.taskId||g.expires<Date.now())this.grants.delete(token);
   const grant=crypto.randomUUID();this.grants.set(grant,{owner,taskId:result.taskId,expires:Date.now()+30*60*1000});return {...result,grant};
  }
- async status(id){
+ async #status(id,admission){
   if(!taskID(id))fail('INVALID_IMPORT');
   return this.store.run(()=>this.store.repository.transaction(false,async t=>{
    const task=await t.get('importTasks',id);if(!task)fail('IMPORT_STATE');const v=view(task);
@@ -45,17 +66,17 @@ export class ImportLedger {
    if(v.needsFile&&!terminal.includes(v.phase))v.phase='awaiting_file';return v;
   }));
  }
- async list(after){
+ async #list(after,admission){
   if(after!==undefined&&!taskID(after))fail('INVALID_IMPORT');
   return this.store.run(()=>this.store.repository.transaction(false,async t=>{
    const page=await t.page('importTasks',{limit:20,after});
    return {tasks:page.rows.map(x=>({...view(x.value),needsFile:true,phase:terminal.includes(x.value.phase)?x.value.phase:'awaiting_file'})),nextCursor:page.next};
   }));
  }
- latest(){return this.store.run(()=>this.store.repository.transaction(false,async t=>({lastImport:(await t.get('meta','history-completion'))?.lastImport||null}),['meta']));}
- async preflight(q,owner){
+ #latest(admission){return this.store.run(()=>this.store.repository.transaction(false,async t=>({lastImport:(await t.get('meta','history-completion'))?.lastImport||null}),['meta']));}
+ async #preflight(q,owner,admission){
   this.authorize(q,owner);sequence(q.sequence);const batch=await prepareRows(q.rows);
-  return this.store.run(()=>this.store.repository.transaction(true,async t=>{
+  return this.store.run(()=>this.store.repository.transaction(true,async t=>{this.#selection.check(admission);
    this.authorize(q,owner);const task=await t.get('importTasks',q.taskId);
    if(!task||['paused','cancelled'].includes(task.phase))fail('IMPORT_STATE');
    const key=q.taskId+':'+q.sequence,prior=await t.get('importBatches',key);
@@ -84,10 +105,10 @@ export class ImportLedger {
    task.checkedBatches++;task.rows+=batch.rows.length;await t.put('importBatches',{id:key,taskId:q.taskId,digest:batch.digest});await t.put('importTasks',task);return view(task);
   }));
  }
- async ready(q,owner){
+ async #ready(q,owner,admission){
   this.authorize(q,owner);sequence(q.batches);sequence(q.issues??0);
   if(q.inspection){if(typeof q.inspection!=='object'||Array.isArray(q.inspection)||Object.keys(q.inspection).some(k=>!['skippedConversations','skippedMessages','invalidTimes','unknownEntries'].includes(k)))fail('INVALID_IMPORT');for(const v of Object.values(q.inspection))sequence(v);}
-  return this.store.run(()=>this.store.repository.transaction(true,async t=>{
+  return this.store.run(()=>this.store.repository.transaction(true,async t=>{this.#selection.check(admission);
    this.authorize(q,owner);const task=await t.get('importTasks',q.taskId);
    if(!task||['paused','cancelled'].includes(task.phase)||task.checkedBatches!==q.batches)fail('IMPORT_STATE');
    if(task.phase==='checking'){task.phase='ready';task.inspection=q.inspection||null;task.skippedIssues=q.issues??0;task.preview.issues+=task.skippedIssues;task.counts.issues+=task.skippedIssues;}
@@ -95,10 +116,10 @@ export class ImportLedger {
    await t.put('importTasks',task);return view(task);
   }));
  }
- async commit(q,owner){
+ async #commit(q,owner,admission){
   this.authorize(q,owner);sequence(q.sequence);const batch=await prepareRows(q.rows);await this.store.finishFoundation?.();
   if(typeof this.store.filterMutation==='number')this.store.filterMutation++;
-  try{return await this.store.run(()=>this.store.repository.transaction(true,async t=>{
+  try{return await this.store.run(()=>this.store.repository.transaction(true,async t=>{this.#selection.check(admission);
    this.authorize(q,owner);const task=await t.get('importTasks',q.taskId),key=q.taskId+':'+q.sequence,proof=await t.get('importBatches',key);
    if(!task||!['ready','importing','completed','partial'].includes(task.phase)||!proof)fail('IMPORT_STATE');
    if(proof.digest!==batch.digest)fail('IMPORT_BATCH_MISMATCH');if(proof.receipt)return proof.receipt;
@@ -159,25 +180,25 @@ export class ImportLedger {
    await t.put('meta',seq);await t.put('importBatches',{...proof,receipt});await t.put('importTasks',task);return receipt;
   }));}finally{if(typeof this.store.filterMutation==='number')this.store.filterMutation++;}
  }
- async pause(q,owner){
+ async #pause(q,owner,admission){
   this.authorize(q,owner);
-  const result=await this.store.run(()=>this.store.repository.transaction(true,async t=>{
+  const result=await this.store.run(()=>this.store.repository.transaction(true,async t=>{this.#selection.check(admission);
    const task=await t.get('importTasks',q.taskId);if(!task)fail('IMPORT_STATE');
    if(![...terminal,'paused'].includes(task.phase)){task.resumePhase=task.phase;task.phase='paused';await t.put('importTasks',task);}return view(task);
   }));this.grants.delete(q.grant);return result;
  }
- async cancel(q,owner){
+ async #cancel(q,owner,admission){
   if(!taskID(q.taskId)||typeof owner!=='string'||!owner)fail('INVALID_IMPORT');
   if(q.grant)this.authorize(q,owner);
-  const result=await this.store.run(()=>this.store.repository.transaction(true,async t=>{
+  const result=await this.store.run(()=>this.store.repository.transaction(true,async t=>{this.#selection.check(admission);
    const task=await t.get('importTasks',q.taskId);if(!task)fail('IMPORT_STATE');
    if(!terminal.includes(task.phase)){task.phase='cancelled';task.cancelledAt=this.store.clock();await t.put('importTasks',task);}return view(task);
   }));
   for(const [k,g]of this.grants)if(g.taskId===q.taskId)this.grants.delete(k);return result;
  }
- async complete(q,owner){
+ async #complete(q,owner,admission){
   this.authorize(q,owner);
-  const result=await this.store.run(()=>this.store.repository.transaction(true,async t=>{
+  const result=await this.store.run(()=>this.store.repository.transaction(true,async t=>{this.#selection.check(admission);
    this.authorize(q,owner);const task=await t.get('importTasks',q.taskId);
    if(!task||!['ready','importing','completed','partial'].includes(task.phase)||task.committedBatches!==task.checkedBatches)fail('IMPORT_STATE');
    task.phase=task.counts.issues?'partial':'completed';task.completedAt??=this.store.clock();
@@ -187,10 +208,10 @@ export class ImportLedger {
    return result;
   }));this.grants.delete(q.grant);return result;
  }
- async resolveBranch(q){
+ async #resolveBranch(q,admission){
   const action=q.action||'current';
   if(typeof q.id!=='string'||!Number.isInteger(q.expectedRevision)||!this.store.operation||!['current','existing','standalone','ignore'].includes(action)||action==='existing'&&(typeof q.documentId!=='string'||q.documentId.length>200)||q.documentId!==undefined&&action!=='existing')fail('INVALID_IMPORT');
-  return this.store.operation(q,async t=>{
+  return this.store.operation(q,async t=>{this.#selection.check(admission);
    const row=await t.get('blocks',q.id);if(!row?.value.branchStatus)fail('IMPORT_STATE');
    const b=row.value;if(b.revision!==q.expectedRevision)fail('IMPORT_STATE');if(!await this.store.sourcePresent(t,b.provenance.map(p=>p.sourceRecordId)))fail('IMPORT_STATE');
    const before=structuredClone(b),oldDocumentId=b.documentId;
@@ -213,5 +234,12 @@ export class ImportLedger {
    await t.put('blockIndex',blockIndex(b,ix.sequence,records));await this.store.trackBlock(t,b);if(oldDocumentId!==b.documentId)await this.store.refreshDoc(t,oldDocumentId);await this.store.refreshDoc(t,b.documentId);return {id:b.id,revision:b.revision,documentId:b.documentId,action};
   });
  }
- revokeOwner(owner){for(const [key,g]of this.grants)if(g.owner===owner)this.grants.delete(key);}
+ revokeOwner(owner){this.#selection.invalidate();for(const [key,g]of this.grants)if(g.owner===owner)this.grants.delete(key);}
 }
+
+const originalPrototype=ImportLedger.prototype;
+const originalMethods=Object.getOwnPropertyNames(originalPrototype).filter(k=>k!=='constructor').map(k=>[k,originalPrototype[k]]);
+
+// Capture in the declaring module, not while a consumer is evaluating an ESM cycle.
+const originalLedgerCutSource=ImportLedger.prototype.applicationSelectionCutSource,originalCutApply=Reflect.apply;
+export function readOriginalImportLedgerSelectionCutSource(owner){return originalCutApply(originalLedgerCutSource,owner,[]);}

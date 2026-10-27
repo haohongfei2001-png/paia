@@ -1,3 +1,5 @@
+import {requireOriginalGroupCheckpointPlan} from './group-checkpoint-plan.js';
+import {HumanLibrarySyncJournal,readOriginalHumanReceiveExpectation,requireOriginalHumanGenerationJournal,prepareOriginalHumanGenerationReceive,commitOriginalHumanGenerationReceive} from './human-library-journal.js';
 import {captureHumanGraphReadSet,requireHumanGraphReadSet,prepareHumanGraphNamedPlan,advanceHumanGraphReadSet,humanGraphReadSetProjection,humanPlanJournalRows,executeHumanPlanInTransaction} from './human-library-plan.js';
 import {portableHumanEntity} from './human-library-codec.js';
 import {physical,normalizePhysical} from './human-library-journal.js';
@@ -30,3 +32,22 @@ export async function applyHumanGroupStep(t,cap,id){
  const a=applications.get(cap),step=a?.steps.find(item=>item.id===id);if(!step)fail('BNS_PREPARATION_REQUIRED');for(const row of step.mappings)if(!equal(await a.core.get(t,'humanMapping',row.id)??null,row.before))fail('BNS_HUMAN_MAPPING_CHANGED');
  return a.core.commitHumanReceive(t,step.protocol,async()=>{await executeHumanPlanInTransaction(t,step.owner);for(const row of step.mappings)await a.core.put(t,'humanMapping',[row.id],row.after);});
 }
+
+// A bounded generation continuation consumes the existing single-group receiver.
+// It does not replay a DTO reducer or weaken the original whole graph compiler.
+const generationSteps=new WeakMap(),generationTransactions=new WeakSet();
+export function isOriginalHumanGenerationTransaction(t){return generationTransactions.has(t);}
+export async function prepareOriginalHumanGenerationStep(store,core,plan,index){
+ requireOriginalGroupCheckpointPlan(core,plan);
+ if(!Number.isSafeInteger(index)||index<0||index>=plan.groups.length||plan.groups.some(g=>g.type!=='humanLibraryCommit'||!['entry','entry-edit'].includes(g.prepared.descriptor.value.kind)))fail('BNS_HUMAN_GENERATION_SCOPE');
+ const journal=store.humanLibraryJournal,group=plan.groups[index];if(!(journal instanceof HumanLibrarySyncJournal)||journal.core!==core||store.repository!==core.repository)fail('BNS_HUMAN_BINDING_REQUIRED');
+ requireOriginalHumanGenerationJournal(journal,core);const prepared=await prepareOriginalHumanGenerationReceive(journal,core,store,group.operations);requireOriginalHumanGenerationJournal(journal,core);if(prepared.duplicate)fail('BNS_HUMAN_GENERATION_CURSOR');
+ const cap=Object.freeze({});generationSteps.set(cap,{store,core,journal,prepared,plan,index});return cap;
+}
+export async function applyOriginalHumanGenerationStep(t,cap){
+ const p=generationSteps.get(cap);if(!p||p.store.repository!==p.core.repository||p.store.humanLibraryJournal!==p.journal||p.journal.core!==p.core)fail('BNS_HUMAN_GENERATION_SCOPE');requireOriginalGroupCheckpointPlan(p.core,p.plan);
+ requireOriginalHumanGenerationJournal(p.journal,p.core);generationTransactions.add(t);try{const result=await commitOriginalHumanGenerationReceive(p.journal,p.core,t,p.prepared);if(result.state!=='applied')fail('BNS_HUMAN_GENERATION_CURSOR');return result;}finally{generationTransactions.delete(t);}
+}
+
+
+export function readOriginalHumanGenerationStepExpectation(cap){const p=generationSteps.get(cap);if(!p)fail('BNS_HUMAN_GENERATION_SCOPE');requireOriginalGroupCheckpointPlan(p.core,p.plan);return readOriginalHumanReceiveExpectation(p.journal,p.prepared);}

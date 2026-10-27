@@ -1,3 +1,5 @@
+import {originalBootstrapWeakMap,originalBootstrapWeakGet,originalBootstrapWeakSet,originalBootstrapFreeze,originalBootstrapCreate} from '../background/native-host-bootstrap.js';
+import {requireOriginalApplicationSelectionRepositoryWork,requireOriginalApplicationSelectionMember,chargeOriginalApplicationSelectionMember,trackOriginalApplicationSelectionMemberWork} from '../background/application-selection-reservation-coordination.js';
 import {sourceAppendPlan,verifySourceAppendWrite,verifyAppendDocumentPreserved} from './browser-native-sync/source-append-plan.js';
 import {initialSourceRecord,initialSourceObjects} from './source-initial.js';
 import {initialSourcePlan,verifyInitialSourceWrite} from './browser-native-sync/source-bootstrap-plan.js';
@@ -5,7 +7,7 @@ import {prepareRemoval,expandRemoval,validateRemovalEdit} from './archive-remova
 import {queryPage} from './archive-query.js';
 import {OperationAttemptLedger,validateOperationQuery} from './operation-outcome.js';
 import {captureIsExcluded,clearReadingTargets,clearPurgedReaderPolicy} from './reader-state.js';
-import {ArchiveRepository,requireOriginalRecoveryWorkWindow,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
+import {runOriginalLocalToolsSelectionRead,originalLocalToolsSelectionRepositoryRead,readOriginalLocalToolsSelectionMetaRows,readOriginalApplicationSelectionMetaGroup,requireOriginalRecoveryWorkWindow,originalRestrictedRepositoryTransaction,requireOriginalApplicationSelectionRecoveryWork,requireRepositoryTransactionSucceeded,originalExistingRepositoryRead,requireOriginalExistingRepositoryReadOwner,originalRepositoryTransactionOwner,createOriginalRecoveryWork,currentOriginalRecoveryWork,chargeOriginalRecoveryWork,checkOriginalRecoveryWork,remainingOriginalRecoveryWork,finishOriginalRecoveryWork,withOriginalRecoveryWork,registerRepositoryWorkLimit,requireRepositoryTransactionScope,ArchiveRepository,recordIndex,blockIndex,chatOf,tombstoneId,sourceCount} from './idb-repository.js';
 import {ADAPTER_VERSION,CONSENT_VERSION,STORAGE_KEY,ArchiveError,STATUS_CODES,ERROR_CODES} from './constants.js';
 import {validateCapture,validateEnrichment,validateChanges,canonicalChat} from './validation.js';
 import {identify,identifySource,hashText} from './dedupe.js';
@@ -18,8 +20,21 @@ import {purgeSourceStructureForRecords} from './source-structure-store.js';
 import {assessSourcePurge,sourcePurgePreview} from './source-purge-admission.js';
 import {CONTROL_PUBLICATION_RESERVATION,readControlPublicationFence,reserveControlPublication,requireControlPublicationOwner,controlPublicationEqual,controlPublicationDigest,controlPublicationRow,validateControlPublicationStamp,renewControlPublication} from './local-control-publication.js';
 import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
+import {measureSourceWorkingPhysicalTree} from './browser-native-sync/source-working-physical.js';
+
+import {readOriginalLocalToolsSelectionCut} from './local-tool-selection-hold.js';
 
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+// Optional original-writer budget only, never a caller-provided transaction hook.
+export function snapshotWriteWorkLimit(value){
+ if(value===null)return null;
+ if(!value||Object.getPrototypeOf(value)!==Object.prototype)throw new ArchiveError('INVALID_REQUEST');
+ const descriptors=Object.getOwnPropertyDescriptors(value),keys=Reflect.ownKeys(descriptors);
+ if(keys.some(key=>!['references','bytes','ms'].includes(key)||!Object.hasOwn(descriptors[key],'value')))throw new ArchiveError('INVALID_REQUEST');
+ const result=Object.fromEntries(keys.map(key=>[key,descriptors[key].value]));
+ for(const [key,max] of [['references',4096],['bytes',2*1024*1024],['ms',30000]])if(Object.hasOwn(result,key)&&(!Number.isFinite(result[key])||result[key]<=0||result[key]>max||key!=='ms'&&!Number.isSafeInteger(result[key])))throw new ArchiveError('INVALID_REQUEST');
+ return Object.freeze(result);
+};
 // Conservative, bounded equality for a rejected preference publication only.
 // Unlike JSON equality, this preserves missing/undefined and exact scalar values.
 const publicationEqual=(a,b)=>{
@@ -39,13 +54,13 @@ const publicationEqual=(a,b)=>{
 };
 const error=code=>{throw new ArchiveError(code);};
 const protectedConsent=(c,epoch)=>{if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(!c.settings.enabled)error('PAUSED');if(epoch!==c.settings.epoch)error('STALE_CAPTURE');};
-const localPublicationOwners=new WeakMap(),originalLocalControls=new WeakMap(),nativeControlObservations=new WeakMap(),originalControlIdentityFailures=new WeakMap();
+const localPublicationOwners=new WeakMap(),originalLocalControls=originalBootstrapWeakMap(),nativeControlObservations=new WeakMap(),originalControlIdentityFailures=new WeakMap();
 const promptControlExecutions=new WeakMap(),promptActiveExecutions=new WeakMap(),promptControlObservations=new WeakMap();
 const recoveryStoreAdmissions=new WeakMap(),recoveryStoreExecutions=new WeakMap(),recoveryRepositoryStores=new WeakMap();
 // A synchronous enqueue seam, not an ambient async tag. Only the original run
 // creates the execution that Repository can recognize, including its prelude.
 export function withOriginalRecoveryStoreAdmission(store,ticket,enqueue){
- if(!originalLocalControls.has(store)||recoveryRepositoryStores.get(store.repository)!==store||typeof enqueue!=='function'||recoveryStoreAdmissions.has(store))error('BNS_GROUP_RESOURCE_LIMIT');
+ if(!originalBootstrapWeakGet(originalLocalControls,store)||recoveryRepositoryStores.get(store.repository)!==store||typeof enqueue!=='function'||recoveryStoreAdmissions.has(store))error('BNS_GROUP_RESOURCE_LIMIT');
  requireOriginalRecoveryWorkWindow(store.repository,ticket);recoveryStoreAdmissions.set(store,ticket);
  try{return enqueue();}finally{recoveryStoreAdmissions.delete(store);}
 }
@@ -54,21 +69,56 @@ export function readOriginalRecoveryStoreExecution(repository){
  if(store.repository!==repository)error('BNS_GROUP_RESOURCE_LIMIT');
  const active=recoveryStoreExecutions.get(store);if(!active?.size)return null;if(active.size!==1||[...active][0].interfered)return Object.freeze({interfered:true});return Object.freeze({recoveryWork:[...active][0].recoveryWork});
 }
+const originalQueueOnly=Symbol('original-store-queue-only'),OriginalQueuePromise=Promise,originalQueueThen=Promise.prototype.then,originalControlApply=Reflect.apply;
+// Use the native tail's settlement, never a mutable .then return value. The
+// native completion is resolved only by the original one-shot queued action.
+function originalQueueTask(tail,action){
+ return new OriginalQueuePromise((resolve,reject)=>{let entered=false;
+  try{originalControlApply(originalQueueThen,tail,[()=>{if(entered){reject(new ArchiveError('BNS_RECOVERY_BINDING'));return;}entered=true;try{originalControlApply(originalQueueThen,action(),[resolve,reject]);}catch(error){reject(error);}},reject]);}catch{reject(new ArchiveError('BNS_RECOVERY_BINDING'));}
+ });
+}
+// This projection is minted only by the original load/publication assignments.
+// It never inspects preference, profile, diagnostic or other semantic material.
+const originalControlSettings=new WeakMap(),settingKeys=['enabled','epoch','consentVersion'];
+const settingsData=(value,key)=>{const d=Object.getOwnPropertyDescriptor(value??{},key);if(!d||!Object.hasOwn(d,'value'))error('CONTROL_PUBLICATION_CHANGED');return d.value;};
+const settingsMethod=(value,key)=>{for(let depth=0;value&&depth<8;depth++,value=Object.getPrototypeOf(value)){const d=Object.getOwnPropertyDescriptor(value,key);if(d){if(!Object.hasOwn(d,'value'))error('CONTROL_PUBLICATION_CHANGED');return d.value;}}error('CONTROL_PUBLICATION_CHANGED');};
+function rememberOriginalControlSettings(store){
+ try{
+  const bound=originalBootstrapWeakGet(originalLocalControls,store),owner=localPublicationOwners.get(store),repository=settingsData(store,'repository'),cache=settingsData(store,'controlCache'),pending=settingsData(store,'pendingControl'),control=pending||cache,settings=settingsData(control,'settings'),values=Object.fromEntries(settingKeys.map(key=>[key,settingsData(settings,key)]));
+  if(!bound||bound.repository!==repository||!owner||typeof values.enabled!=='boolean'||!Number.isSafeInteger(values.epoch)||values.epoch<0||values.consentVersion!==null&&(!Number.isSafeInteger(values.consentVersion)||values.consentVersion<0))throw Error('Unknown settings');
+  const restoreEpoch=(owner.fences||owner.before)?.epoch?.value??null,view=Object.freeze({settings:Object.freeze(values),restoreEpoch});originalControlSettings.set(store,{bound,owner,repository,database:repository.db,databaseId:settingsData(store,'databaseId'),cache,pending,control,settings,descriptors:Object.fromEntries(settingKeys.map(key=>[key,Object.getOwnPropertyDescriptor(settings,key)])),view,revoked:false});
+ }catch{originalControlSettings.delete(store);}
+}
+function originalControlSettingsRecord(store,expected){
+ const r=originalControlSettings.get(store);try{
+  if(!r||r.revoked||expected!==null&&expected!==r.view||originalBootstrapWeakGet(originalLocalControls,store)!==r.bound||localPublicationOwners.get(store)!==r.owner||settingsData(store,'repository')!==r.repository||settingsData(r.repository,'db')!==r.database||settingsData(store,'databaseId')!==r.databaseId||settingsData(store,'loaded')!==true||settingsData(store,'local')!==r.bound.local||settingsMethod(r.bound.local,'get')!==r.bound.get||settingsMethod(r.bound.local,'set')!==r.bound.set||settingsData(store,'controlCache')!==r.cache||settingsData(store,'pendingControl')!==r.pending||settingsData(r.control,'settings')!==r.settings)throw Error('Changed original settings');
+  for(const key of settingKeys){const current=Object.getOwnPropertyDescriptor(r.settings,key),before=r.descriptors[key];if(!current||!Object.hasOwn(current,'value')||!Object.is(current.value,before.value)||current.enumerable!==before.enumerable||current.configurable!==before.configurable||current.writable!==before.writable)throw Error('Changed settings');}
+  return r;
+ }catch{if(r)r.revoked=true;error('CONTROL_PUBLICATION_CHANGED');}
+}
+export function readOriginalControlSettings(store,transaction,expected=null){const r=originalControlSettingsRecord(store,expected);if(requireRepositoryTransactionScope(r.repository,transaction).database!==r.database)error('CONTROL_PUBLICATION_CHANGED');return r.view;}
+export function assertOriginalControlSettingsFacts(store,expected){if(!expected)error('CONTROL_PUBLICATION_CHANGED');originalControlSettingsRecord(store,expected);return true;}
+
 
 // This records only an existing original rejection. It cannot qualify a read
 // or turn an adapter's own error into native evidence.
 export function originalControlIdentityFailure(store,reason){return originalControlIdentityFailures.has(reason)&&originalControlIdentityFailures.get(reason)===store;}
 // Read-only constructor-bound observation. It grants no write, ACK or native
 // cut authority; the original native owner meters and compares the result.
-export function requireOriginalControlObservation(store,token){
- const p=nativeControlObservations.get(token),bound=originalLocalControls.get(store);
+function requireControlObservationFacts(store,token,selectionAction=null){
+ const p=nativeControlObservations.get(token),bound=originalBootstrapWeakGet(originalLocalControls,store);
  if(!p||p.store!==store||!bound||p.bound!==bound)error('CONTROL_PUBLICATION_CHANGED');
  if(store.local!==bound.local||bound.local.get!==bound.get||bound.local.set!==bound.set){const reason=new ArchiveError('CONTROL_PUBLICATION_CHANGED');originalControlIdentityFailures.set(reason,store);throw reason;}
- if(localPublicationOwners.get(store)!==p.owner||store.repository.db!==p.db||store.databaseId!==p.databaseId||store.tail!==p.tail||store.controlCache!==p.control||store.pendingControl||p.owner.loadedStamp!==p.stamp)error('CONTROL_PUBLICATION_CHANGED');
+ if(localPublicationOwners.get(store)!==p.owner||store.repository.db!==p.db||store.databaseId!==p.databaseId||(selectionAction?!selectionTailCurrent(store,selectionAction,p.tail):store.tail!==p.tail)||store.controlCache!==p.control||store.pendingControl||p.owner.loadedStamp!==p.stamp)error('CONTROL_PUBLICATION_CHANGED');
  return true;
 }
+export function requireOriginalControlObservation(store,token){return requireControlObservationFacts(store,token);}
+const selectionTailLinks=new WeakMap();
+function selectionTailCurrent(store,action,before){let tail=store.tail,visited=0;while(tail!==before){const link=selectionTailLinks.get(tail);if(++visited>4096||!link||link.store!==store||link.action!==action||link.after!==tail||!link.settled||!link.success)return false;tail=link.before;}return true;}
+export function requireOriginalControlObservationSelectionTail(store,token,action){if(!action)error('CONTROL_PUBLICATION_CHANGED');requireOriginalApplicationSelectionRepositoryWork(action,store.repository);return requireControlObservationFacts(store,token,action);}
+export function renewOriginalControlObservationSelectionTail(store,token,action){requireOriginalControlObservationSelectionTail(store,token,action);const prior=nativeControlObservations.get(token);if(prior.selectionRenewed)error('CONTROL_PUBLICATION_CHANGED');const next=Object.freeze(Object.create(null));nativeControlObservations.set(next,{...prior,tail:store.tail,selectionRenewed:action});return next;}
 export async function observeOriginalControlPublication(store,token=null){
- if(token===null){const bound=originalLocalControls.get(store),owner=localPublicationOwners.get(store);if(!bound||!owner||!store.repository.db||store.pendingControl)error('CONTROL_PUBLICATION_REQUIRED');token=Object.freeze({});nativeControlObservations.set(token,{store,bound,owner,db:store.repository.db,databaseId:store.databaseId,tail:store.tail,control:store.controlCache,stamp:owner.loadedStamp});}
+ if(token===null){const bound=originalBootstrapWeakGet(originalLocalControls,store),owner=localPublicationOwners.get(store);if(!bound||!owner||!store.repository.db||store.pendingControl)error('CONTROL_PUBLICATION_REQUIRED');token=Object.freeze({});nativeControlObservations.set(token,{store,bound,owner,db:store.repository.db,databaseId:store.databaseId,tail:store.tail,control:store.controlCache,stamp:owner.loadedStamp});}
  requireOriginalControlObservation(store,token);const p=nativeControlObservations.get(token),row=(await p.bound.get.call(p.bound.local,STORAGE_KEY))[STORAGE_KEY];requireOriginalControlObservation(store,token);
  if(Object.hasOwn(row,'controlPublication'))validateControlPublicationStamp(row.controlPublication);
  if(!publicationEqual(row,{schemaVersion:6,databaseId:p.databaseId,...p.control,...(p.stamp?{controlPublication:p.stamp}:{})}))error('CONTROL_PUBLICATION_CHANGED');
@@ -81,14 +131,14 @@ export async function observeOriginalControlPublication(store,token=null){
 // cannot execute that work inside this scope. The public/native observer above
 // deliberately keeps its original tail contract and cannot accept these tokens.
 export function requireOriginalPromptControlObservation(store,token){
- const p=promptControlObservations.get(token),bound=originalLocalControls.get(store),execution=promptControlExecutions.get(store);
+ const p=promptControlObservations.get(token),bound=originalBootstrapWeakGet(originalLocalControls,store),execution=promptControlExecutions.get(store);
  if(!p||p.store!==store||!bound||p.bound!==bound)error('CONTROL_PUBLICATION_CHANGED');
  if(store.local!==bound.local||bound.local.get!==bound.get||bound.local.set!==bound.set||!promptDataIdentity(store,'local',bound.local)||!promptDataIdentity(bound.local,'get',bound.get)||!promptDataIdentity(bound.local,'set',bound.set)){const reason=new ArchiveError('CONTROL_PUBLICATION_CHANGED');originalControlIdentityFailures.set(reason,store);throw reason;}
  if(!execution||execution!==p.execution||!execution.active||execution.interfered||execution.owner!==p.owner||localPublicationOwners.get(store)!==p.owner||store.repository.db!==p.db||store.databaseId!==p.databaseId||store.controlCache!==p.control||store.pendingControl||p.owner.loadedStamp!==p.stamp)error('CONTROL_PUBLICATION_CHANGED');
  return true;
 }
 export async function observeOriginalPromptControlPublication(store,token=null){
- if(token===null){const bound=originalLocalControls.get(store),owner=localPublicationOwners.get(store),execution=promptControlExecutions.get(store);if(!bound||!owner||!execution?.active||execution.interfered||execution.owner!==owner||!store.repository.db||store.pendingControl)error('CONTROL_PUBLICATION_REQUIRED');token=Object.freeze({});promptControlObservations.set(token,{store,bound,owner,execution,db:store.repository.db,databaseId:store.databaseId,control:store.controlCache,stamp:owner.loadedStamp});}
+ if(token===null){const bound=originalBootstrapWeakGet(originalLocalControls,store),owner=localPublicationOwners.get(store),execution=promptControlExecutions.get(store);if(!bound||!owner||!execution?.active||execution.interfered||execution.owner!==owner||!store.repository.db||store.pendingControl)error('CONTROL_PUBLICATION_REQUIRED');token=Object.freeze({});promptControlObservations.set(token,{store,bound,owner,execution,db:store.repository.db,databaseId:store.databaseId,control:store.controlCache,stamp:owner.loadedStamp});}
  requireOriginalPromptControlObservation(store,token);const p=promptControlObservations.get(token),row=(await p.bound.get.call(p.bound.local,STORAGE_KEY))[STORAGE_KEY];requireOriginalPromptControlObservation(store,token);
  if(Object.hasOwn(row,'controlPublication'))validateControlPublicationStamp(row.controlPublication);
  if(!publicationEqual(row,{schemaVersion:6,databaseId:p.databaseId,...p.control,...(p.stamp?{controlPublication:p.stamp}:{})}))error('CONTROL_PUBLICATION_CHANGED');
@@ -100,12 +150,15 @@ export function requireOriginalConsumerPublicationEvidence(store,reservation,kin
  const owner=localPublicationOwners.get(store),evidence=owner?.consumerEvidence;
  if(!evidence||evidence.journal!==store.consumerPreferenceJournal||!evidence[kind]||!controlPublicationEqual(evidence.reservation,reservation))error('BNS_CONSUMER_PUBLICATION_PENDING');
 }
+// Constructor-owned identity only. No inspection of a newly observed node and
+// no control/currentness authority. Fixed native consumers still check DATA.
+export function readOriginalIndexedNativeBinding(store){const r=originalBootstrapWeakGet(originalLocalControls,store);return r?originalBootstrapFreeze({local:r.local,repository:r.repository}):null;}
 export class IndexedArchiveStore {
  #preferencePublication=null;
- constructor(local,options={}){originalLocalControls.set(this,{local,get:local.get,set:local.set,kind:local===globalThis.chrome?.storage?.local?'chrome-sdk':'original-injected-adapter'});this.local=local;this.repository=new ArchiveRepository(local,options);recoveryRepositoryStores.set(this.repository,this);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;this.consumerPreferenceJournal=options.consumerPreferenceJournal??null;this.localPublicationTerminal=local===globalThis.chrome?.storage?.local||options.localPublicationTerminal===true;}
- run(fn){const recoveryWork=recoveryStoreAdmissions.get(this)??null,repository=this.repository;const task=this.tail.then(async()=>{
+ constructor(local,options={}){originalBootstrapWeakSet(originalLocalControls,this,{local,get:local.get,set:local.set,kind:local===globalThis.chrome?.storage?.local?'chrome-sdk':'original-injected-adapter',repository:null});this.local=local;const repository=new ArchiveRepository(local,options);originalBootstrapWeakGet(originalLocalControls,this).repository=repository;this.repository=repository;recoveryRepositoryStores.set(repository,this);this.clock=options.clock||(()=>new Date().toISOString());this.uuid=options.uuid||(()=>crypto.randomUUID());this.tail=Promise.resolve();this.loaded=false;this.volatileError=null;this.operationAttempts=new OperationAttemptLedger();this.inputWorkingJournal=options.inputWorkingJournal??null;this.sourceBootstrapJournal=options.sourceBootstrapJournal??null;this.consumerPreferenceJournal=options.consumerPreferenceJournal??null;this.localPublicationTerminal=local===globalThis.chrome?.storage?.local||options.localPublicationTerminal===true;}
+ run(fn,queueOnly=null,queuedRecoveryWork=null){const recoveryWork=queueOnly===originalQueueOnly?queuedRecoveryWork:recoveryStoreAdmissions.get(this)??null,repository=this.repository;const execute=async()=>{
   if(this.repository!==repository)error('BNS_GROUP_RESOURCE_LIMIT');
-  if(recoveryWork!==null)requireOriginalRecoveryWorkWindow(repository,recoveryWork);
+  if(recoveryWork!==null){if(queueOnly===originalQueueOnly)checkOriginalRecoveryWork(repository,recoveryWork);else requireOriginalRecoveryWorkWindow(repository,recoveryWork);}
   const recoveryExecution={recoveryWork,interfered:false};let recoveryActive=recoveryStoreExecutions.get(this);if(!recoveryActive){recoveryActive=new Set();recoveryStoreExecutions.set(this,recoveryActive);}if(recoveryActive.size){recoveryExecution.interfered=true;for(const prior of recoveryActive)prior.interfered=true;}recoveryActive.add(recoveryExecution);
   // Install before any prelude await. An overlapping genuine run permanently
   // supersedes this opaque execution; neither completion nor this prelude may
@@ -117,33 +170,37 @@ export class IndexedArchiveStore {
   if(active.size){execution.interfered=true;for(const prior of active)prior.interfered=true;}
   active.add(execution);promptControlExecutions.set(this,execution);
   try{
+   // Queue admission alone grants no control or transaction authority. Recovery
+   // opens its already-created ticket only after preceding local work settles.
+   if(queueOnly===originalQueueOnly){if(execution.interfered)error('BNS_RECOVERY_BINDING');const result=await fn();if(execution.interfered)error('BNS_RECOVERY_BINDING');return result;}
    if(!this.loaded){await this.repository.initialize();this.loaded=true;}
    const before=await this.repository.transaction(false,readControlPublicationFence,['meta']),local=(await this.local.get(STORAGE_KEY))[STORAGE_KEY],after=await this.repository.transaction(false,readControlPublicationFence,['meta']);
    if(!controlPublicationEqual(before,after))error('CONTROL_PUBLICATION_CHANGED');if(Object.hasOwn(local,'controlPublication'))validateControlPublicationStamp(local.controlPublication);
    const owner={before,beforeDigest:await controlPublicationDigest(local),loadedStamp:local.controlPublication?structuredClone(local.controlPublication):null,nonce:crypto.randomUUID(),reservation:null,fences:null};
    localPublicationOwners.set(this,owner);execution.owner=owner;
-   this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;if(#preferencePublication in this)this.#preferencePublication=null;this.changedSources=new Set();
+   this.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};this.databaseId=local.databaseId;this.pendingControl=null;if(#preferencePublication in this)this.#preferencePublication=null;this.changedSources=new Set();rememberOriginalControlSettings(this);
    return await fn();
   }finally{recoveryActive.delete(recoveryExecution);if(!recoveryActive.size)recoveryStoreExecutions.delete(this);execution.active=false;active.delete(execution);if(!active.size)promptActiveExecutions.delete(this);if(promptControlExecutions.get(this)===execution)promptControlExecutions.delete(this);}
- });this.tail=task.catch(()=>{});return task;}
+ };const task=queueOnly===originalQueueOnly?originalQueueTask(this.tail,execute):this.tail.then(execute);
+ this.tail=queueOnly===originalQueueOnly?new OriginalQueuePromise(resolve=>{originalControlApply(originalQueueThen,task,[()=>resolve(),()=>resolve()]);}):task.catch(()=>{});return task;}
  // Explicit startup repair of an original local publication, never a replay.
  // Prepared but unobserved SDK writes remain held: a restart is not an ACK.
  recoverControlPublication(){const task=this.tail.then(async()=>{
-  const bound=originalLocalControls.get(this),pending=()=>({state:'pending'});
+  const bound=originalBootstrapWeakGet(originalLocalControls,this),pending=()=>({state:'pending'});
   const original=()=>{if(!bound||this.local!==bound.local||bound.local.get!==bound.get||bound.local.set!==bound.set)error('CONTROL_PUBLICATION_CHANGED');};
   original();if(!this.loaded){await this.repository.initialize();this.loaded=true;}
   const snapshot=t=>Promise.all([readControlPublicationFence(t),t.keys('meta',null,'bns:consumer-preference-publication:pending'),t.keys('meta',null,'backup-recovery-settings')]).then(([fence,consumer,backup])=>({fence,blocked:consumer.length>0||backup.length>0}));
   original();const before=await this.repository.transaction(false,snapshot,['meta']),reservation=before.fence.reservation;
   if(!reservation)return {state:'absent'};
   if(before.blocked||this.consumerPreferenceJournal)return pending();
-  const actual=(await bound.get.call(bound.local,STORAGE_KEY))[STORAGE_KEY];original();
+  const actual=(await originalControlApply(bound.get,bound.local,[STORAGE_KEY]))[STORAGE_KEY];original();
   if(!actual||actual.schemaVersion!==6||actual.databaseId!==reservation.databaseId||before.fence.migration?.phase!=='active'||before.fence.migration.databaseId!==actual.databaseId)return pending();
   if(Object.hasOwn(actual,'controlPublication'))validateControlPublicationStamp(actual.controlPublication);
   const digest=await controlPublicationDigest(actual),fences={migration:before.fence.migration,gate:before.fence.gate,epoch:before.fence.epoch};
   const undispatched=reservation.afterDigest===null&&reservation.fenceDigest===null&&reservation.beforeDigest===digest;
   const visible=reservation.afterDigest!==null&&reservation.fenceDigest!==null&&reservation.afterDigest===digest&&reservation.fenceDigest===await controlPublicationDigest(fences)&&actual.controlPublication?.revision===reservation.revision&&actual.controlPublication?.nonce===reservation.nonce&&fences.gate?.epoch===actual.settings?.epoch&&fences.gate?.enabled===actual.settings?.enabled;
   if(!undispatched&&!visible)return pending();
-  if(!controlPublicationEqual(actual,(await bound.get.call(bound.local,STORAGE_KEY))[STORAGE_KEY]))return pending();original();
+  if(!controlPublicationEqual(actual,(await originalControlApply(bound.get,bound.local,[STORAGE_KEY]))[STORAGE_KEY]))return pending();original();
   return this.repository.transaction(true,async t=>{
    original();const current=await snapshot(t);original();if(!controlPublicationEqual(before,current))return pending();
    // An undispatched owner must still pass its prepared-write CAS before SDK
@@ -154,11 +211,11 @@ export class IndexedArchiveStore {
   },['meta']);
  });this.tail=task.catch(()=>{});return task;}
  async control(t){const c=structuredClone(this.pendingControl||this.controlCache),gate=await t.get('meta','gate');if(gate&&(gate.epoch!==c.settings.epoch||gate.enabled!==c.settings.enabled))c.settings.enabled=false;return c;}
- async saveControl(t,c){const owner=localPublicationOwners.get(this);if(!owner)error('CONTROL_PUBLICATION_REQUIRED');if(!owner.reservation)owner.reservation=await reserveControlPublication(t,owner.before,{nonce:owner.nonce,databaseId:this.databaseId,beforeDigest:owner.beforeDigest});else await requireControlPublicationOwner(t,owner.reservation,owner.fences);this.pendingControl=structuredClone(c);await t.put('meta',{id:'gate',epoch:c.settings.epoch,enabled:c.settings.enabled});const now=await readControlPublicationFence(t);owner.fences={migration:now.migration,gate:now.gate,epoch:now.epoch};}
+ async saveControl(t,c){const owner=localPublicationOwners.get(this);if(!owner)error('CONTROL_PUBLICATION_REQUIRED');if(!owner.reservation)owner.reservation=await reserveControlPublication(t,owner.before,{nonce:owner.nonce,databaseId:this.databaseId,beforeDigest:owner.beforeDigest});else await requireControlPublicationOwner(t,owner.reservation,owner.fences);this.pendingControl=structuredClone(c);await t.put('meta',{id:'gate',epoch:c.settings.epoch,enabled:c.settings.enabled});const now=await readControlPublicationFence(t);owner.fences={migration:now.migration,gate:now.gate,epoch:now.epoch};rememberOriginalControlSettings(this);}
  async qualifyControlPublicationRead(t){const owner=localPublicationOwners.get(this),current=await readControlPublicationFence(t);if(!(#preferencePublication in this)||!owner)error('CONTROL_PUBLICATION_REQUIRED');if(current.reservation)error('CONTROL_PUBLICATION_PENDING');if(!controlPublicationEqual(current,owner.before)||current.migration?.phase!=='active'||current.migration.databaseId!==this.databaseId)error('CONTROL_PUBLICATION_CHANGED');return current;}
  async controlPublicationBinding(t){const owner=localPublicationOwners.get(this);if(!(#preferencePublication in this)||!owner?.reservation)error('CONTROL_PUBLICATION_REQUIRED');await requireControlPublicationOwner(t,owner.reservation,owner.fences);return structuredClone({reservation:owner.reservation,fences:owner.fences});}
  controlPublicationLoadedRow(){const owner=localPublicationOwners.get(this);if(!(#preferencePublication in this)||!owner)error('CONTROL_PUBLICATION_REQUIRED');return structuredClone({schemaVersion:6,databaseId:this.databaseId,...this.controlCache,...(owner.loadedStamp?{controlPublication:owner.loadedStamp}:{})});}
- async prepareConsumerPreferenceRecovery(t,journal,token){const owner=localPublicationOwners.get(this);if(!(#preferencePublication in this)||!owner||journal!==this.consumerPreferenceJournal)error('CONTROL_PUBLICATION_REQUIRED');const binding=await journal.authorizeRecovery(t,this,token);if(!controlPublicationEqual(await readControlPublicationFence(t),owner.before))error('CONTROL_PUBLICATION_CHANGED');const control=structuredClone(this.controlCache),result=applyPreferenceChanges(control.preferences,binding.patch,'initial');if(result.ok!==true)error('CONTROL_PUBLICATION_CHANGED');owner.reservation=await renewControlPublication(t,binding.reservation,binding.fences,{beforeDigest:owner.beforeDigest,nonce:owner.nonce});await journal.bindRecoveryPublication(t,this,token,owner.reservation);owner.fences=binding.fences;this.pendingControl=control;}
+ async prepareConsumerPreferenceRecovery(t,journal,token){const owner=localPublicationOwners.get(this);if(!(#preferencePublication in this)||!owner||journal!==this.consumerPreferenceJournal)error('CONTROL_PUBLICATION_REQUIRED');const binding=await journal.authorizeRecovery(t,this,token);if(!controlPublicationEqual(await readControlPublicationFence(t),owner.before))error('CONTROL_PUBLICATION_CHANGED');const control=structuredClone(this.controlCache),result=applyPreferenceChanges(control.preferences,binding.patch,'initial');if(result.ok!==true)error('CONTROL_PUBLICATION_CHANGED');owner.reservation=await renewControlPublication(t,binding.reservation,binding.fences,{beforeDigest:owner.beforeDigest,nonce:owner.nonce});await journal.bindRecoveryPublication(t,this,token,owner.reservation);owner.fences=binding.fences;this.pendingControl=control;rememberOriginalControlSettings(this);}
  async confirmConsumerPreferenceRecoveryVisibility(journal,token){
   const owner=localPublicationOwners.get(this);if(!(#preferencePublication in this)||!owner||journal!==this.consumerPreferenceJournal)error('CONTROL_PUBLICATION_REQUIRED');
   const binding=await journal.authorizeVisibleRecovery(this,token),actual=(await this.local.get(STORAGE_KEY))[STORAGE_KEY];
@@ -208,9 +265,9 @@ export class IndexedArchiveStore {
   // failed/unqualified outcomes retain it; neither consent nor a control body is
   // replayed to make an unknown outcome appear successful.
   await this.repository.transaction(true,async t=>{await requireControlPublicationOwner(t,owner.reservation,owner.fences);if(this.consumerPreferenceJournal)await this.consumerPreferenceJournal.settle(t,this,owner.reservation,publication);else await requireConsumerPublicationSettled(t);await t.delete('meta',CONTROL_PUBLICATION_RESERVATION);},['meta']);
-  owner.loadedStamp=structuredClone(payload.controlPublication);this.controlCache=control;this.pendingControl=null;
+  owner.loadedStamp=structuredClone(payload.controlPublication);this.controlCache=control;this.pendingControl=null;rememberOriginalControlSettings(this);
  }
- write(fn,onCommitted=null,prepare=null){return this.run(async()=>{try{const prepared=prepare?await prepare():null,result=await this.repository.transaction(true,async t=>{try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')error(e.code);throw e;}return fn(t,prepared);});onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
+ write(fn,onCommitted=null,prepare=null,workLimit=null){const budget=snapshotWriteWorkLimit(workLimit);return this.run(async()=>{try{const prepared=prepare?await prepare():null,result=await this.repository.transaction(true,async t=>{if(budget)registerRepositoryWorkLimit(this.repository,t,budget);try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')error(e.code);throw e;}return fn(t,prepared);});onCommitted?.(result);this.volatileError=null;await this.publish();return result;}catch(e){if(#preferencePublication in this)this.#preferencePublication=null;this.volatileError={code:e.code||'STORAGE_FAILED',at:this.clock()};throw e;}});}
  status(){return this.run(()=>this.repository.transaction(false,async t=>{const {settings:s}=await this.control(t);return {enabled:s.enabled===true&&s.consentVersion===CONSENT_VERSION,consented:s.consentVersion===CONSENT_VERSION,epoch:s.epoch,adapterVersion:ADAPTER_VERSION};}));}
  consent(accepted){if(accepted!==true)return Promise.reject(new ArchiveError('INVALID_REQUEST'));return this.write(async t=>{const c=await this.control(t);c.settings={consentVersion:CONSENT_VERSION,consentAt:this.clock(),enabled:true,epoch:c.settings.epoch+1};c.diagnostics.status='WAITING_CHAT';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled:true};});}
  setEnabled(enabled){return this.write(async t=>{const c=await this.control(t);if(c.settings.consentVersion!==CONSENT_VERSION)error('CONSENT_REQUIRED');if(typeof enabled!=='boolean')error('INVALID_REQUEST');c.settings.enabled=enabled;c.settings.epoch++;c.diagnostics.status=enabled?'WAITING_CHAT':'PAUSED';c.diagnostics.structure=null;c.diagnostics.structureAt=null;await this.saveControl(t,c);return {enabled};});}
@@ -403,6 +460,145 @@ export class IndexedArchiveStore {
  page(options={}){return this.run(()=>this.repository.transaction(false,async t=>queryPage(t,await this.control(t),options)));}
 }
 
+// Captured original scheduling on the existing Store tail, without the normal
+// initialize/control-refresh prelude. This is queue ordering, never a read/write
+// grant: the caller still enters the original Core/repository transaction owner.
+const originalIndexedQueueRun=IndexedArchiveStore.prototype.run;
+export function queueOriginalIndexedStoreWork(store,repository,action,work=null){
+ const bound=originalBootstrapWeakGet(originalLocalControls,store),database=repository?.db;
+ const current=()=>{if(!bound||bound.repository!==repository||settingsData(store,'repository')!==repository||settingsData(store,'local')!==bound.local||settingsMethod(bound.local,'get')!==bound.get||settingsMethod(bound.local,'set')!==bound.set||settingsData(store,'loaded')!==true||!database||repository.db!==database||typeof action!=='function')error('BNS_RECOVERY_BINDING');};
+ current();if(work!==null)checkOriginalRecoveryWork(repository,work);
+ // The original queue captures the SAME ticket before enqueue, but opens its
+ // window only after preceding work settles. No ambient window is inherited.
+ const execute=async()=>{current();const result=await action();current();return result;};
+ return originalControlApply(originalIndexedQueueRun,store,[()=>work===null?execute():withOriginalRecoveryWork(repository,work,execute),originalQueueOnly,work]);
+}
+
+// Fixed original selection-owner readonly queue. This keeps the same control
+// owner/cache instead of normal run's refreshed owner, and performs equivalent
+// original SDK + native control checks under the SAME action work ticket. The
+// callback receives only an original readonly scope; it cannot supply readiness.
+export function queueOriginalApplicationSelectionRead(store,action,member,kind,ticket,read,stores){
+ const repository=store.repository,bound=originalBootstrapWeakGet(originalLocalControls,store),owner=localPublicationOwners.get(store),database=repository.db,control=store.controlCache,stamp=owner?.loadedStamp;
+ requireOriginalApplicationSelectionRecoveryWork(repository,ticket,action,member,kind);
+ const current=()=>{requireOriginalApplicationSelectionMember(action,member,kind);if(!bound||!owner||store.local!==bound.local||bound.local.get!==bound.get||bound.local.set!==bound.set||store.repository!==repository||repository.db!==database||localPublicationOwners.get(store)!==owner||store.controlCache!==control||owner.loadedStamp!==stamp||store.pendingControl)error('CONTROL_PUBLICATION_CHANGED');};
+ const beforeTail=store.tail;current();let readScope;
+ const task=queueOriginalIndexedStoreWork(store,repository,async()=>{
+  current();const before=await originalRestrictedRepositoryTransaction(repository,ticket,false,readControlPublicationFence,['meta']);
+  current();chargeOriginalApplicationSelectionMember(action,member,kind,[STORAGE_KEY],1);const raw=originalControlApply(bound.get,bound.local,[STORAGE_KEY]);trackOriginalApplicationSelectionMemberWork(action,member,kind,raw);const result=await raw;chargeOriginalApplicationSelectionMember(action,member,kind,result,0);current();
+  const after=await originalRestrictedRepositoryTransaction(repository,ticket,false,readControlPublicationFence,['meta']),local=result?.[STORAGE_KEY],expected={schemaVersion:6,databaseId:store.databaseId,...control,...(stamp?{controlPublication:stamp}:{})};
+  chargeOriginalApplicationSelectionMember(action,member,kind,[before,after,owner.before,local,expected],0);
+  if(!controlPublicationEqual(before,after)||!controlPublicationEqual(before,owner.before)||before.reservation||!publicationEqual(local,expected))error('CONTROL_PUBLICATION_CHANGED');current();
+  const value=await originalRestrictedRepositoryTransaction(repository,ticket,false,t=>{readScope=t;current();return read(t);},stores);requireRepositoryTransactionSucceeded(repository,readScope);current();return value;
+ });
+ const link={store,action,before:beforeTail,after:store.tail,task,settled:false,success:false};selectionTailLinks.set(link.after,link);trackOriginalApplicationSelectionMemberWork(action,member,kind,task);
+ originalControlApply(originalQueueThen,task,[()=>{link.success=true;link.settled=true;},()=>{link.settled=true;}]);return task;
+}
+
+// One fixed original local-tools cut. Only the original aggregate's opaque
+// cut can supply these three original restrictions and its fixed import reader.
+// The execution never leaves the two original queue/repository owners.
+const localToolsSelectionExecutions=originalBootstrapWeakMap();
+export function readOriginalLocalToolsSelectionExecution(execution){const r=originalBootstrapWeakGet(localToolsSelectionExecutions,execution);return r?.active?r.facts:null;}
+export function queueOriginalApplicationSelectionLocalToolsRead(store,action,aggregateOwner,cut){
+ const info=readOriginalLocalToolsSelectionCut(cut,store,action,aggregateOwner),repository=store.repository,bound=originalBootstrapWeakGet(originalLocalControls,store),owner=localPublicationOwners.get(store),database=repository.db,control=store.controlCache,stamp=owner?.loadedStamp;
+ if(!info||info.participants.length!==3)error('GENERATION_SELECTION_CAPABILITY');let stopped=false,stopReason;
+ const identities=()=>{if(stopped)throw stopReason;if(info.current()!==true||!bound||!owner||store.local!==bound.local||bound.local.get!==bound.get||bound.local.set!==bound.set||store.repository!==repository||repository.db!==database||localPublicationOwners.get(store)!==owner||store.controlCache!==control||owner.loadedStamp!==stamp||store.pendingControl)error('CONTROL_PUBLICATION_CHANGED');return true;};
+ const current=()=>{identities();requireOriginalApplicationSelectionMember(action,aggregateOwner,'local-tools');return true;};
+ for(const p of info.participants)requireOriginalApplicationSelectionRecoveryWork(repository,p.ticket,action,p.owner,p.kind);
+ const beforeTail=store.tail;current();const execution=originalBootstrapFreeze(originalBootstrapCreate(null));let before,local,readScope;
+ const facts=originalBootstrapFreeze({repository,action,participants:info.participants,current:identities,
+  before:async t=>{current();const result=await readControlPublicationFence(t);current();return result;},
+  after:async t=>{readScope=t;current();const after=await readControlPublicationFence(t);current();
+   const expected={schemaVersion:6,databaseId:store.databaseId,...control,...(stamp?{controlPublication:stamp}:{})};
+   chargeOriginalApplicationSelectionMember(action,aggregateOwner,'local-tools',[before,after,owner.before,local,expected],0);
+   if(!controlPublicationEqual(before,after)||!controlPublicationEqual(before,owner.before)||before.reservation||!publicationEqual(local,expected))error('CONTROL_PUBLICATION_CHANGED');current();
+   // The original control comparisons precede accepting these extra requests.
+   await readOriginalApplicationSelectionMetaGroup(t,['backup-data-generation','backup-recovery-settings']);current();
+   const rows=readOriginalLocalToolsSelectionMetaRows(execution,t),value=await info.read(t,rows);current();return value;
+  },
+  run:async()=>{current();before=await originalLocalToolsSelectionRepositoryRead(execution,'before');current();
+   chargeOriginalApplicationSelectionMember(action,aggregateOwner,'local-tools',[STORAGE_KEY],1);
+   const raw=originalControlApply(bound.get,bound.local,[STORAGE_KEY]);let failed=false,failure,result,accepted=false;
+   const refuse=e=>{if(!failed){failed=true;failure=e;}};
+   try{trackOriginalApplicationSelectionMemberWork(action,aggregateOwner,'local-tools',raw);}catch(e){refuse(e);}
+   // Tracking/currentness refusal cannot forget an already accepted SDK read.
+   try{result=await raw;accepted=true;}catch(e){refuse(e);}
+   if(accepted)try{chargeOriginalApplicationSelectionMember(action,aggregateOwner,'local-tools',result,0);}catch(e){refuse(e);}
+   if(failed)throw failure;current();local=result?.[STORAGE_KEY];
+   const value=await originalLocalToolsSelectionRepositoryRead(execution,'after');requireRepositoryTransactionSucceeded(repository,readScope);current();return value;
+  }
+ });
+ const state={active:true,facts};originalBootstrapWeakSet(localToolsSelectionExecutions,execution,state);
+ const task=queueOriginalIndexedStoreWork(store,repository,async()=>{try{current();return await runOriginalLocalToolsSelectionRead(execution);}finally{state.active=false;}});
+ const link={store,action,before:beforeTail,after:store.tail,task,settled:false,success:false};let failed=false,failure;
+ try{selectionTailLinks.set(link.after,link);trackOriginalApplicationSelectionMemberWork(action,aggregateOwner,'local-tools',task);}catch(error){failed=true;failure=error;stopped=true;stopReason=error;}
+ // Enqueue was already accepted. A bookkeeping refusal must still join that
+ // exact original task before any of the three holder projections can settle.
+ return (async()=>{let value;try{value=await task;}catch(error){if(!failed){failed=true;failure=error;}}finally{link.settled=true;link.success=!failed;}if(failed)throw failure;return value;})();
+}
+
+// An existing-only original control read, not public Store.run or recovery. A
+// preceding authentic settlement may retire its reservation after the old run
+// loaded it. Acquire a new coherent owner from the actual SDK and native fences;
+// never bless that old owner by replacing only its cached fence.
+// Consume only actual original Promise settlement. Chaining/species return
+// values and mutable public finally/race functions are not completion evidence.
+function originalControlReadRace(tasks){return new OriginalQueuePromise((resolve,reject)=>{for(const task of tasks)try{originalControlApply(originalQueueThen,task,[resolve,reject]);}catch(error){reject(error);}});}
+function originalControlReadCleanup(task,cleanup){return new OriginalQueuePromise((resolve,reject)=>{
+ const settle=(success,value)=>{try{cleanup();}catch(error){reject(error);return;}if(success)resolve(value);else reject(value);};
+ try{originalControlApply(originalQueueThen,task,[value=>settle(true,value),error=>settle(false,error)]);}catch(error){reject(error);}
+});}
+export async function readOriginalIndexedStoreControlScope(store,repository,action,work=null){
+ const bound=originalBootstrapWeakGet(originalLocalControls,store),database=repository?.db,databaseId=settingsData(store,'databaseId');
+ let retired=false,installed=null;
+ const current=()=>{
+  if(retired||!bound||bound.repository!==repository||settingsData(store,'repository')!==repository||settingsData(store,'local')!==bound.local||settingsMethod(bound.local,'get')!==bound.get||settingsMethod(bound.local,'set')!==bound.set||settingsData(store,'loaded')!==true||!database||repository.db!==database||settingsData(store,'databaseId')!==databaseId||store.pendingControl||!originalRepositoryTransactionOwner(repository)||typeof action!=='function')error('CONTROL_PUBLICATION_CHANGED');
+  requireOriginalExistingRepositoryReadOwner(repository,database);originalControlSettingsRecord(store,null);
+ };
+ current();if(currentOriginalRecoveryWork(repository))error('BNS_GROUP_RESOURCE_LIMIT');
+ if(work!==null)checkOriginalRecoveryWork(repository,work);
+ const ticket=work??createOriginalRecoveryWork(repository,{isCurrent:current}),owned=work===null;
+ let timer;const interruption=new OriginalQueuePromise((_,reject)=>{timer=setTimeout(()=>{retired=true;if(installed&&localPublicationOwners.get(store)===installed){const observation=originalControlSettings.get(store);if(observation)observation.revoked=true;}reject(new ArchiveError('BNS_GROUP_RESOURCE_LIMIT'));},remainingOriginalRecoveryWork(repository,ticket));});
+ const check=()=>{current();checkOriginalRecoveryWork(repository,ticket);};
+ const charge=value=>{check();let length;try{length=measureSourceWorkingPhysicalTree(value).B;}catch{error('BNS_GROUP_RESOURCE_LIMIT');}chargeOriginalRecoveryWork(repository,ticket,length,0);};
+ const readFence=async terminal=>{check();const value=await originalExistingRepositoryRead(repository,async t=>{check();await requireConsumerPublicationSettled(t);const fence=await readControlPublicationFence(t);if(fence.reservation)error('CONTROL_PUBLICATION_PENDING');return terminal?terminal(t,fence):fence;},['meta']);check();return value;};
+ const readLocal=async()=>{
+  check();charge(STORAGE_KEY);chargeOriginalRecoveryWork(repository,ticket,0,1);
+  // SDK reads cannot be cancelled. A timeout retires this scope; a late SDK
+  // completion has no continuation that can install an owner or cache.
+  const result=await originalControlReadRace([originalControlApply(bound.get,bound.local,[STORAGE_KEY]),interruption]);check();charge(result);return result?.[STORAGE_KEY];
+ };
+ let queued;try{queued=originalControlReadCleanup(queueOriginalIndexedStoreWork(store,repository,async()=>{
+  const read=async()=>{
+   check();const before=await readFence(),local=await readLocal(),after=await readFence();check();
+   if(!controlPublicationEqual(before,after)||local?.schemaVersion!==6||local.databaseId!==databaseId||before.migration?.phase!=='active'||before.migration.databaseId!==databaseId||before.gate?.epoch!==local.settings?.epoch||before.gate?.enabled!==local.settings?.enabled)error('CONTROL_PUBLICATION_CHANGED');
+   if(Object.hasOwn(local,'controlPublication'))validateControlPublicationStamp(local.controlPublication);
+   const beforeDigest=await controlPublicationDigest(local);check();
+   const owner={before,beforeDigest,loadedStamp:local.controlPublication?structuredClone(local.controlPublication):null,nonce:crypto.randomUUID(),reservation:null,fences:null};
+   localPublicationOwners.set(store,owner);installed=owner;
+   store.controlCache={settings:local.settings,preferences:local.preferences,diagnostics:local.diagnostics,memoryAccessPolicy:local.memoryAccessPolicy,classificationRules:local.classificationRules,filterRules:local.filterRules};rememberOriginalControlSettings(store);
+   if(localPublicationOwners.get(store)!==owner||!controlPublicationEqual(local,await readLocal()))error('CONTROL_PUBLICATION_CHANGED');
+   // The consumer predicate belongs to this last original readonly transaction,
+   // after every SDK await. Returning an earlier Context snapshot would leave
+   // the final SDK read as an unqualified canonical-data change window.
+   const result=await readFence(async(t,fence)=>{check();if(localPublicationOwners.get(store)!==owner||!controlPublicationEqual(before,fence))error('CONTROL_PUBLICATION_CHANGED');const value=await action(t);check();return value;});
+   check();return result;
+  };
+  return read();
+ },ticket),()=>{if(owned)finishOriginalRecoveryWork(repository,ticket);});}catch(error){retired=true;clearTimeout(timer);if(owned)finishOriginalRecoveryWork(repository,ticket);throw error;}
+ // Queue wait is part of the same deadline. The real queued task retains its
+ // place and cleanup; timeout cannot let its eventual callback enter a new scope.
+ try{return await originalControlReadRace([queued,interruption]);}catch(error){if(installed&&localPublicationOwners.get(store)===installed){const observation=originalControlSettings.get(store);if(observation)observation.revoked=true;}throw error;}
+ finally{
+  retired=true;clearTimeout(timer);
+  // A borrower may retire its ticket after this call. If this queued scope has
+  // entered its own native window, first observe that exact original cleanup.
+  // An unentered late queue task instead sees the retired scope and cannot run.
+  if(work!==null&&currentOriginalRecoveryWork(repository)===ticket)try{await originalControlReadRace([queued]);}catch{}
+ }
+}
+
 // Read-only source identity for optional Prompt work reuse. These descriptors
 // are fixed by this declaration module, never accepted from a caller/service.
 const promptQueuePrototype=IndexedArchiveStore.prototype,promptQueueParent=Object.getPrototypeOf(promptQueuePrototype);
@@ -413,7 +609,7 @@ const promptDataIdentity=(object,name,value)=>{
  return false;
 };
 export function originalIndexedPromptReadOwner(store){
- const bound=originalLocalControls.get(store);
+ const bound=originalBootstrapWeakGet(originalLocalControls,store);
  if(!bound||!promptDataIdentity(store,'local',bound.local)||!promptDataIdentity(bound.local,'get',bound.get)||!promptDataIdentity(bound.local,'set',bound.set)||Object.getPrototypeOf(promptQueuePrototype)!==promptQueueParent)return false;
  for(const [name,expected] of promptQueueMethods){
   if(!promptQueueDescriptor(Object.getOwnPropertyDescriptor(promptQueuePrototype,name),expected))return false;

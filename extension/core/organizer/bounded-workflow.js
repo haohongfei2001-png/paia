@@ -1,3 +1,8 @@
+import {invalidateOriginalSelectionHold,originalSelectionHoldPinned,chargeOriginalSelectionHold} from '../local-tool-selection-hold.js';
+import {createOrganizeSelectionOwnerRegistry} from './application-selection-owner.js';
+import {originalOrganizerSelectionEligible,holdOriginalOrganizerForApplicationSelection,originalOrganizerHeldForApplicationSelection,releaseOriginalOrganizerForApplicationSelection} from './original-simple.js';
+import {configuredOrganizerSelectionEligible,holdConfiguredOrganizerForApplicationSelection,configuredOrganizerHeldForApplicationSelection,releaseConfiguredOrganizerForApplicationSelection} from './configured-organize-runner.js';
+const selectionOwners=createOrganizeSelectionOwnerRegistry(),childHolds=new WeakMap(),activeChildHolds=new WeakMap();
 import {idOK} from '../thought-model.js';
 import {reject} from './contracts.js';
 const CURRENT='boundedOrganizerCurrent',ROW='boundedOrganizerAction:';
@@ -21,7 +26,7 @@ export async function commitBoundedProgress(t,id,{inputs=0,topics=0,partial=fals
  if(!id)return;const row=await t.get('meta',ROW+id);if(!active(row))reject('CANCELLED');row.completedInputs+=inputs;row.completedTopics+=topics;if(partial){row.state='partial';row.error='PARTIAL_RESULT';}await t.put('meta',row);
 }
 export class BoundedOrganizerWorkflow {
- constructor(store,{original,ai}){this.s=store;this.original=original;this.ai=ai;this.running=null;this.currentId=null;this.stopped=false;}
+ constructor(store,{original,ai}){this.s=store;this.original=original;this.ai=ai;this.running=null;this.currentId=null;this.stopped=false;selectionOwners.register(this,store,{qualified:originalOrganizerSelectionEligible(original,store)&&configuredOrganizerSelectionEligible(ai,store),bindings:[[this,'s',store],[this,'original',original],[this,'ai',ai]]});}
  async status(){await this.s.finishFoundation();return this.s.run(()=>this.s.repository.transaction(false,async t=>{const p=await t.get('meta',CURRENT);return publicRow(p&&await t.get('meta',ROW+p.actionId));},['meta']));}
  async reconcileInterrupted(){if(this.running)return;return this.s.foundationWrite(async t=>{const p=await t.get('meta',CURRENT),row=p&&await t.get('meta',ROW+p.actionId);if(active(row)){row.state='outcome_unknown';row.error='OUTCOME_UNKNOWN';row.updatedAt=this.s.clock();await t.put('meta',row);}});}
  async start({userActionId,kind,maxRequests=1,maxInputs=20,maxTopics=1,topicId=null,scopeBinding=null}={}){
@@ -51,4 +56,21 @@ export class BoundedOrganizerWorkflow {
   return await this.patch(id,{state:this.stopped?'stopped':'completed'});
  }catch(error){const code=['BUDGET_EXCEEDED','REQUEST_ALREADY_IN_FLIGHT','CANCELLED'].includes(error?.code)?error.code:'STORAGE_FAILED';const row=await this.patch(id,{state:'failed',error:code}).catch(()=>null);return row||{state:'failed',error:code};}}
  async stop(){this.stopped=true;const id=this.currentId;if(id)await this.patch(id,{state:'stopped',error:'CANCELLED'});await Promise.all([this.original.stop('CANCELLED'),this.ai.stop()]);return this.status();}
+}
+
+// status can finish Foundation migration; it shares mutation admission.
+selectionOwners.instrumentPrototype(BoundedOrganizerWorkflow.prototype,['status','reconcileInterrupted','start','patch','run','stop']);
+export function readBoundedOrganizerApplicationSelectionMembers(runner,store){if(!selectionOwners.eligible(runner,store))reject('GENERATION_WORKER_CAPABILITY');return Object.freeze([Object.freeze({owner:runner,kind:'source-organizer'}),Object.freeze({owner:runner.original,kind:'source-organizer-original'}),Object.freeze({owner:runner.ai,kind:'source-organizer-ai'})]);}
+export function holdBoundedOrganizerForApplicationSelection(runner,store,options){
+ const token=selectionOwners.hold(runner,store,options?.action?{...options,kind:'source-organizer'}:options),deadlineAt=selectionOwners.deadline(runner,store,token);
+ let original=null,ai=null;const children={runner,store,token,original:null,ai:null,originalOwner:runner.original,aiOwner:runner.ai,valid:true,selection:options?.action?{action:options.action,owner:runner,kind:'source-organizer'}:null};childHolds.set(token,children);activeChildHolds.set(runner,children);
+ try{original=holdOriginalOrganizerForApplicationSelection(runner.original,store,{deadlineAt,action:options?.action??null,kind:'source-organizer-original'});children.original=original;ai=holdConfiguredOrganizerForApplicationSelection(runner.ai,store,{deadlineAt,action:options?.action??null,kind:'source-organizer-ai'});children.ai=ai;return token;}
+ catch(error){if(originalSelectionHoldPinned(children)){invalidateOriginalSelectionHold(children);throw error;}activeChildHolds.delete(runner);childHolds.delete(token);if(ai)releaseConfiguredOrganizerForApplicationSelection(runner.ai,store,ai);if(original)releaseOriginalOrganizerForApplicationSelection(runner.original,store,original);selectionOwners.release(runner,store,token);throw error;}
+}
+export function boundedOrganizerHeldForApplicationSelection(runner,store,token){
+ const children=childHolds.get(token);return !!children&&children.runner===runner&&children.store===store&&selectionOwners.current(runner,store,token)&&originalOrganizerHeldForApplicationSelection(children.originalOwner,store,children.original)&&configuredOrganizerHeldForApplicationSelection(children.aiOwner,store,children.ai);
+}
+export function releaseBoundedOrganizerForApplicationSelection(runner,store,token,action=null){
+ const children=token===undefined?activeChildHolds.get(runner):childHolds.get(token);if(!children||children.runner!==runner||children.store!==store||token===undefined&&children.selection?.action!==action)return false;if(originalSelectionHoldPinned(children)){invalidateOriginalSelectionHold(children);return false;}chargeOriginalSelectionHold(children,{operation:'release'},1);
+ if(children.ai)releaseConfiguredOrganizerForApplicationSelection(children.aiOwner,store,children.ai);if(children.original)releaseOriginalOrganizerForApplicationSelection(children.originalOwner,store,children.original);childHolds.delete(children.token);activeChildHolds.delete(runner);return selectionOwners.release(runner,store,children.token);
 }

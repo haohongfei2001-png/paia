@@ -1,0 +1,13 @@
+{
+  "mode": "SourceTextModule parse/link only; NO evaluate()",
+  "files": 357,
+  "linked": 357,
+  "runtimeEquivalentTo": "083fa382211b0a005e881715b83f3c806320eb3b",
+  "roots": [
+    "extension/background/application-selection-reservation-coordination.js",
+    "extension/background/sync-local-lifecycle.js",
+    "extension/background/application-selection-commands.js"
+  ],
+  "notRuntimeQualification": true,
+  "finalBackupFix": "1e445d07 only delays original frozen section-key read; no new imports/exports"
+}

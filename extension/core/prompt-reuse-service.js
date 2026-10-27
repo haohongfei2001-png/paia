@@ -1,3 +1,4 @@
+import {originalBootstrapFreeze} from '../background/native-host-bootstrap.js';
 import {requireHistoricalCandidateSession} from './ai-usage/historical-candidate-session.js';
 import {prepareInputSearchContext,prepareInputSearchArrival,matchesInputSearchArrival} from './qualified-input-search.js';
 import {PROMPT_HISTORY_SCOPE,queryPromptHistory,readPromptHistory,readPromptHistoryInTransaction,validPromptSelectionRef,selectPromptRange} from './prompt-selection.js';
@@ -6,7 +7,7 @@ import {ArchiveError,CONSENT_VERSION} from './constants.js';
 import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
 const publicationSettled=async t=>{try{await requireConsumerPublicationSettled(t);}catch(e){if(e.code==='BNS_CONSUMER_PUBLICATION_PENDING')throw new ArchiveError(e.code);throw e;}};
 import {readPromptReuseMaterial,observedPromptReuseMaterial,promptMaterialReadIsStatic} from './manual-materials.js';
-import {originalFoundationPromptQueueOwner} from './thought-store.js';
+import {originalFoundationPromptQueueOwner} from './thought-store-owner.js';
 import {observeOriginalPromptControlPublication,requireOriginalPromptControlObservation,originalControlIdentityFailure} from './indexed-store.js';
 import {originalRepositoryTransactionOwner,observeRepositoryWriteFence,requireRepositoryWriteFence,requireRepositoryTransactionDataMethods,requireRepositoryTransactionSucceeded} from './idb-repository.js';
 import {controlPublicationEncoding} from './local-control-publication.js';
@@ -46,9 +47,13 @@ const originalMethod=(value,name,expected)=>{
  for(let owner=value;owner;owner=Object.getPrototypeOf(owner)){const descriptor=Object.getOwnPropertyDescriptor(owner,name);if(descriptor)return Object.hasOwn(descriptor,'value')&&descriptor.value===expected;}
  return false;
 };
+let nativePromptServiceStore;
+export function readOriginalPromptServiceNativeStore(service){return nativePromptServiceStore?nativePromptServiceStore(service):null;}
 export class PromptReuseService{
+ #nativeStore;
+ static {nativePromptServiceStore=owner=>owner&&(typeof owner==='object'||typeof owner==='function')&&#nextFamilyView in owner?originalBootstrapFreeze({store:owner.#nativeStore}):null;}
  #nextFamilyView;#historyCandidates;#pendingRead=null;
- constructor(store,{clock=()=>Date.now(),syncJournal=null,historyCandidates=null}={}){this.s=store;this.#historyCandidates=historyCandidates===null?null:requireHistoricalCandidateSession(historyCandidates,store);this.#historyCandidates?.bindPromptOwner(()=>this.snapshot());this.clock=clock;this.#nextFamilyView=new NextFamilyView(clock);this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
+ constructor(store,{clock=()=>Date.now(),syncJournal=null,historyCandidates=null}={}){this.#nativeStore=store;this.s=store;this.#historyCandidates=historyCandidates===null?null:requireHistoricalCandidateSession(historyCandidates,store);this.#historyCandidates?.bindPromptOwner(()=>this.snapshot());this.clock=clock;this.#nextFamilyView=new NextFamilyView(clock);this.syncJournal=syncJournal;if(syncJournal&&(typeof syncJournal.prepare!=='function'||typeof syncJournal.commit!=='function'))fail();}
  async syncCorrectionSnapshot(journal){if(!(#nextFamilyView in this)||this.syncJournal!==journal)fail();return this.#snapshot(false);}
  async snapshot(){return this.#snapshot(true);}
  async #snapshot(projectCorrections,observation=null){

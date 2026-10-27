@@ -1,0 +1,30 @@
+commit 1e445d0784a13a4c5c0bd09272609382a63ea228
+Author:     Codex <codex@openai.com>
+AuthorDate: Mon Oct 26 10:05:03 2026 -0700
+Commit:     Codex <codex@openai.com>
+CommitDate: Mon Oct 26 10:05:03 2026 -0700
+
+    Defer frozen backup section read until its original consumer
+
+diff --git a/extension/core/backup-service.js b/extension/core/backup-service.js
+index ad94c4ff..5a5740be 100644
+--- a/extension/core/backup-service.js
++++ b/extension/core/backup-service.js
+@@ -17,7 +17,7 @@ import {sourceStructureMetaAllowed,validateSourceStructureBackupGraph,restoreSou
+ import {STORAGE_KEY} from './constants.js';
+ import {validatePreferences,defaults} from './workspace.js';
+ const stores={sources:'records',inputDocuments:'documents',inputs:'blocks',inputStates:'inputStates',removals:'inputRemovals',timeEvidence:'times',filterIntents:'filterIntents',filterStates:'filterInputs',entries:'thoughts',topics:'topics',sections:'sections',placements:'placements',evidence:'provenance',dependencies:'dependencies',revisions:'revisions',suppressions:'thoughtSuppressions',relations:'entryRelations',completedLayouts:'organizerJobs',receipts:'operationReceipts',deletionFences:'tombstones',organizationState:'meta'};
+-const sections=Object.keys(BACKUP_SECTIONS),plain=value=>value&&typeof value==='object'&&!Array.isArray(value),activeRequest=row=>['prepared','sent','response_received','validated'].includes(row?.state);
++const originalBackupSectionKeys=Object.keys,sections=()=>originalBackupSectionKeys(BACKUP_SECTIONS),plain=value=>value&&typeof value==='object'&&!Array.isArray(value),activeRequest=row=>['prepared','sent','response_received','validated'].includes(row?.state);
+ // These stores can retain user work or migration/import evidence even when the
+ // portable library stores have no rows. Never treat that state as an empty target.
+ const RESTORE_NONEMPTY_GUARD_STORES=['recordIndex','blockIndex','migrationBackup','sourceCounts','importTasks','importBatches','importEvidence','importSources'];
+@@ -55,7 +55,7 @@ export class BackupService {
+  async exportPage(){backupError('FEATURE_UNAVAILABLE');}
+  async #beginRestore(admission){this.expire();this.restores.clear();const sessionId=crypto.randomUUID();this.restores.set(sessionId,{validator:new BackupValidator(),items:[],lastAt:Date.now(),validated:false});return {sessionId};}
+  async #stageRestore({sessionId,items},admission){const state=this.session(this.restores,sessionId);if(state.staging)backupError('BACKUP_BUSY');if(!Array.isArray(items)||items.length>50||state.validated)backupError('BACKUP_INVALID');state.staging=true;try{for(const item of items){await state.validator.add(item);if(item.type==='item')state.items.push(structuredClone(item));}return {received:state.validator.count};}catch(e){this.restores.delete(sessionId);throw e;}finally{state.staging=false;}}
+- async #validateReferences(state,admission){const bySection=Object.fromEntries(sections.map(k=>[k,new Map(state.items.filter(x=>x.section===k).map(x=>[x.value.id,x]))]));state.bySection=bySection;const records=bySection.sources,inputs=bySection.inputs,entries=bySection.entries,topics=bySection.topics;
++ async #validateReferences(state,admission){const bySection=Object.fromEntries(sections().map(k=>[k,new Map(state.items.filter(x=>x.section===k).map(x=>[x.value.id,x]))]));state.bySection=bySection;const records=bySection.sources,inputs=bySection.inputs,entries=bySection.entries,topics=bySection.topics;
+   const required=(condition)=>{if(!condition)backupError('BACKUP_INVALID');};
+   for(const item of records.values()){const r=item.value;if(r.chatId&&r.sourceMessageId){const identity=await identify(sourceIdentityChat(r.platform||'chatgpt',r.chatId),r.sourceMessageId,r.originalText);required(r.contentHash===identity.contentHash&&(!r.sourceKey||r.sourceKey===identity.sourceKey));if(r.sourceKey)required(r.dedupeKey===identity.dedupeKey);item.derivedSourceKey=identity.sourceKey;}else required(r.contentHash===await hashText(r.originalText));}
+   const importEvidence=new Map();for(const {value:r}of records.values())if(r.importEvidence){const key=r.importEvidence.sourceKey,serialized=JSON.stringify(projectImportEvidence(r.importEvidence));required(!importEvidence.has(key)||importEvidence.get(key)===serialized);importEvidence.set(key,serialized);}

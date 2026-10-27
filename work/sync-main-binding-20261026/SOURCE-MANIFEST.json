@@ -1,0 +1,749 @@
+{
+  "version": 1,
+  "baseCommit": "0ce98cdb8d07934226467d848e3f66d9a50d4857",
+  "baseTree": "b46c53bc955bcfedd92cb53720cfb8b63732035e",
+  "remoteMainExpectedCAS": "68d5a2c2beffefd1a236d900b47817944c9099f1",
+  "completeOwnerAndAdapterTestedCommit": "083fa382211b0a005e881715b83f3c806320eb3b",
+  "foundationAffectedRetryCommit": "1e445d0784a13a4c5c0bd09272609382a63ea228",
+  "testedVersion": "0.55.17",
+  "metadataSuccessorVersion": "0.55.18",
+  "runtimeAndControlPathCount": 92,
+  "files": [
+    {
+      "path": "extension/adapter/chatgpt-composer.js",
+      "gitBlob": "60168e989182042d78e3c1be23367f1f58030e5f",
+      "sha256": "4ac0d7c11729757de7d5caf64e491055d91b3f82233cd9548d73362b72ce897c",
+      "bytes": 19760,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/application-editor-guard.js",
+      "gitBlob": "2721c5bd3558e4313320ce39cb37a74fcef7d653",
+      "sha256": "72e9d9dd5cb8c7bee0d5b778f566c977ad47ba2ae7a7b6016d09c63243e46361",
+      "bytes": 15004,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/application-local-tools-coordination.js",
+      "gitBlob": "a413b5f53faa31cfa698ac689ee4179c40f8538b",
+      "sha256": "59108591f413f260d0421f2bee72d44f5940998da2149ced86f5cfe089e55dad",
+      "bytes": 13778,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/application-selection-commands.js",
+      "gitBlob": "f28add7060d880e7c7d5857b3fc7ff3bbc935f30",
+      "sha256": "afe33207a5b13021c87153dbc48df38a611fbfc918bb21d87972ff7d73d6df5f",
+      "bytes": 17762,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/application-selection-reservation-coordination.js",
+      "gitBlob": "e5aabfe2176f4ff1e7b3f332e229eea37fb6754e",
+      "sha256": "51457c0cfe956967a9694634f3581c72849d655dfd4441d0f2cd65684708eecb",
+      "bytes": 70429,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/application-startup-events.js",
+      "gitBlob": "8e21960a8d26192a294b54ceefe3836bd4f3a30f",
+      "sha256": "0b365736426fe2c318151e67bccc51853f423966ffa1b37c848f644312ca354e",
+      "bytes": 3701,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/application-store-configuration.js",
+      "gitBlob": "5f8f6e3ecc5281c341a992dd460d78075770dc05",
+      "sha256": "d30a04baf60aaa37c7675a50fa273b9ffd2a7f20327f0c5376cf264f366239ee",
+      "bytes": 233,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/application-store-selection.js",
+      "gitBlob": "974c6de69dae14e89f6d33385ac0eede896157a9",
+      "sha256": "e0768568f3b3de539799aa823153f3a81045fd3cb4ec747f69082c641cf4237b",
+      "bytes": 5496,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/application-transport-coordination.js",
+      "gitBlob": "c868d60c4858b475a2b085114d1582f9109b9064",
+      "sha256": "c43a84284e639146b0a5e7ed6179f6ae88a87136f727f9dcb2c22fd304aab527",
+      "bytes": 15387,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/application-worker-coordination.js",
+      "gitBlob": "74c345ab13e8d5c142380b878e4f6a92d1ead6af",
+      "sha256": "016902a21d8ec042607e15312e3084e4ad6070fdb67e508d69693fd72af26c8c",
+      "bytes": 16687,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/capture-recovery.js",
+      "gitBlob": "8af744969d421bdbd876c368748cca856ed98faa",
+      "sha256": "9ea53ae3e890501163d5e3a62c985965dc47e361184cbb52e0b2a7b28717e7fb",
+      "bytes": 14306,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/context-connections.js",
+      "gitBlob": "da772acbfb3500a1a4331a555d6fb151edf204a1",
+      "sha256": "c624bbcea1e3331fd37201c27e7600b982bf2b4af626ea4cc75fa22211672d09",
+      "bytes": 40365,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/import-handler.js",
+      "gitBlob": "496af8ec795d978a35e26db57e6b07bbc9ae6e3b",
+      "sha256": "906b253f7f1f455431532956ded535626667991f7296ca95b311905408344feb",
+      "bytes": 5916,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/native-host-bootstrap.js",
+      "gitBlob": "c4f5bd89f37b6ed0f90104c47827ab83cf9a1345",
+      "sha256": "9a05f9e0ace10af55b7a6dbe197677688ededb78581db5ba0e656b0d77a08fc8",
+      "bytes": 15390,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/prompt-assist.js",
+      "gitBlob": "d4e5e9387db28a2151a3404d6339a6c8b5ad49bd",
+      "sha256": "f004c6c432fa05e5899d302a30de77672b85bdc1dbf557c5cc9726c7d90e3a21",
+      "bytes": 32562,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/prompt-insertion-receipts.js",
+      "gitBlob": "0280beafd32774712c7be2b169b3579f9f8aa1f6",
+      "sha256": "953a6cfa2e0c98a8e9d77ad1ca09735a984f0fb93c9005916190631e7c6c07b5",
+      "bytes": 71578,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/prompt-next.js",
+      "gitBlob": "90de4c7468ecaaff9086b752e13a29b9197de3c7",
+      "sha256": "aa22e181c94a28fab0b3d05c5316d2d2ad9f03121a4bb5498c1f03a3a90a878b",
+      "bytes": 34269,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/prompt-reuse-commands.js",
+      "gitBlob": "ee3c268bb78c9b4633e12319311dfd9b5583cc19",
+      "sha256": "99fae6da110d164e6728e72771d2c620474ac4e8b786ea80932ec19560999462",
+      "bytes": 22538,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/prompt-surface.js",
+      "gitBlob": "9391802da9990a7adc312a30dc73f12266b039e9",
+      "sha256": "56e00876bb06db3a7c849500375592ecec8403794fcdc5a7150a0cfe20d40890",
+      "bytes": 37453,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/sync-lifecycle-configuration.js",
+      "gitBlob": "08d31adc199051cffe285d775f25f6cbdb6b248f",
+      "sha256": "88d0ebcfc3e5c47baf46cd023f6f2193f3cf1c373ea2a678ea282e2de9836d06",
+      "bytes": 376,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/background/sync-local-lifecycle.js",
+      "gitBlob": "f7f6463583341c412e21a3979098f2e4583b23ff",
+      "sha256": "9a11192571468cebb5966994eb31e9cd8d5c4557273fd6da9839b9fe60e7fc11",
+      "bytes": 55296,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/ai-usage/local-assist-session.js",
+      "gitBlob": "16b3aa5ee465c6a5224c7415c004ad08115fbec1",
+      "sha256": "5312d8f61add73be736d5533166de9f3ffc541c0df3da509be30fae6796df021",
+      "bytes": 27812,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/ai-usage/maintenance-runner.js",
+      "gitBlob": "f9a6d3173829d5f179d2ec1f1c23a02aaa4ca494",
+      "sha256": "683f3bb13fe338db448b3973b40ef2a018e3fcd4c2666de310bf5bf10982d28a",
+      "bytes": 5826,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/backup-service.js",
+      "gitBlob": "5a5740be60a7f3f9276c5131e0f9cfcba784a55a",
+      "sha256": "300d20f3fd64ce7902f1f3ea27b4dd7033f253fdccd94823e23a671cad37fa76",
+      "bytes": 27362,
+      "kind": "runtime",
+      "sameAsOwnerPass": false
+    },
+    {
+      "path": "extension/core/browser-native-sync/application-generation-selection.js",
+      "gitBlob": "70d98b8c2ed6f749efad6e27069f365355960ba5",
+      "sha256": "5d34d3556f78f4c96edce2b93359bb6d1328c8eb3d37e679484834dff7050089",
+      "bytes": 69882,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/application-selection-tail-plan.js",
+      "gitBlob": "ac1259b92af609632ecb8c6452525e99d8ef9a68",
+      "sha256": "c258bbdc7a79b8e93f3180a485e539f26b7d6f7178f2b2b6bffd44432076451c",
+      "bytes": 17434,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/canonical-generation-checkpoint-stage.js",
+      "gitBlob": "b84c5949dd3f1b862bead16a2538d10376ef05af",
+      "sha256": "7ec255889ae2edd94890611decd532536459322733fa00a2e33dc71bb5813208",
+      "bytes": 44555,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/canonical-generation-copy-retirement.js",
+      "gitBlob": "1d977e21e16b8678c7650991dd4bdf0cf51878cd",
+      "sha256": "d13b71805bc1f1f88686836bc9c5e52acb43f801ded2a7497dd78f3302ceafb2",
+      "bytes": 9592,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/canonical-generation-human-restore.js",
+      "gitBlob": "274666f33e2401a619d144f298e3fd2435d912a0",
+      "sha256": "cc84377922fd4009ed069e12cf6926120868ea528a144cb373fb3ab064565a6c",
+      "bytes": 13354,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/canonical-generation-phased-human.js",
+      "gitBlob": "220cb98781fb1a550558857f546712e45b297c44",
+      "sha256": "9a3fa2d4e1b00e623d63263482c0125c3777446a95ba216fc2bbabf8798bfe0a",
+      "bytes": 33711,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/canonical-generation-publication.js",
+      "gitBlob": "26d5b0b5e77be00e2d3610cbf7d58feff23b7e26",
+      "sha256": "2e50e1cb776f08312354e9ed9043fc136bf9d932d63bddc2b626fe015b8f4d1f",
+      "bytes": 44897,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/canonical-generation-repository-gate.js",
+      "gitBlob": "b61cb7a5fbc4b66e6072d0fdce464588d3a11250",
+      "sha256": "57dc20277ffbc136a70767fea3e53f48387fb02523a467d12eb2dcff4c2c43d8",
+      "bytes": 5093,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/canonical-generation-task-ledger.js",
+      "gitBlob": "ef3d4165233b119735ea63a99f25c5ecb9408647",
+      "sha256": "fd78e38b8b90cf8919723172716bedb8a26c88ed4d40c4e879ee2734c5704708",
+      "bytes": 13753,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/checkpoint-manifest-storage.js",
+      "gitBlob": "22d9dc412bf8b7bc7d32aa18e76bcf4d0f2f4c6d",
+      "sha256": "30ee42365a495c2346cc97328fcd0ac8f760fb854add5dfd54b105d99fc117ed",
+      "bytes": 1714,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/checkpoints.js",
+      "gitBlob": "c064472c3ec901a882c66dbbb6dc68820819761c",
+      "sha256": "6ca431a703f2daf5159934f7068c072cde1aa4dcd46944efabd5dcaee2b76af0",
+      "bytes": 21714,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/context-desired-journal-owner.js",
+      "gitBlob": "6307e5d6ddcf20b99dfb878e7046744308bddfe8",
+      "sha256": "02731df829dccfa240338735e7163e6a3c76f92905339d0ba5e789a6c7a72ebf",
+      "bytes": 9029,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/context-desired-journal.js",
+      "gitBlob": "adb8de698995d52d6af73e19e8306de0fc22f8b6",
+      "sha256": "fe94b8394ac3b58166b2ca8025d51d0342d706f95acc9272bdcb01afe7d26119",
+      "bytes": 309,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/context-mutation-journal-owner.js",
+      "gitBlob": "81bd4535ee708dc07f14ee9bf76d0ec4ceef90d9",
+      "sha256": "793e73222f83be11b25fc6cc09ec1ef1d3173cd16317094baf5cd2fb4d9bc121",
+      "bytes": 7544,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/core.js",
+      "gitBlob": "e2ee2437b9251dbc2c583c569debcdb781a6011e",
+      "sha256": "86757eeed850b5f6389933828fc97dc597f9ea989e9e95072de80f40b10e5286",
+      "bytes": 68910,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint-scope.js",
+      "gitBlob": "b1582e64679030911f912b29f0811c0790d61cec",
+      "sha256": "ca0f82a0f95224d39e61748b3f908d9e245b8d781438b64bea6aede77bac752d",
+      "bytes": 41549,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-checkpoint.js",
+      "gitBlob": "f35960cf043d85f2568c092651cf13202ac7e8e7",
+      "sha256": "bc1dd62cf6301c111fbd66a92ea1cfa39eeda1f2ced1737a0dd3fb2133257165",
+      "bytes": 45777,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/group-page-reader.js",
+      "gitBlob": "3914ebf189a150b7a62f86cdce256f8cbe57c92a",
+      "sha256": "bdce1b9f5ef4ae55afa16f828c5be620126148297cd7ecc9d22801d8adcf9d8a",
+      "bytes": 3521,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-group.js",
+      "gitBlob": "e25e88c51beb186e8c78a99e392d990db9558436",
+      "sha256": "0fed406251133ad9d477b6d254e16ca47dac5057f462346340a080b9a59bfe5d",
+      "bytes": 6630,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-journal.js",
+      "gitBlob": "69e203337e6ee3d3c2fb44d64075c0276a78c224",
+      "sha256": "ba0d7f3e4899a78b3a154cc3669ff27cef6b2837dba61c58f54dc725b592edd8",
+      "bytes": 14820,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-plan.js",
+      "gitBlob": "b888a6ab7b6600b0689a5e53a33f52e4960bda47",
+      "sha256": "fab8e67cff7cff6eb0207e6c8fac2b5382bb578dbfcab41f759a6165ba6b15e6",
+      "bytes": 266849,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/human-library-scope.js",
+      "gitBlob": "867b15a2a447bddb2ac769b3a446ee35f017b49f",
+      "sha256": "76dc47d90c01690af0ce0fd24e36e82aa0470d629497f698742864dd7b8bb02c",
+      "bytes": 17647,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/input-working-journal.js",
+      "gitBlob": "02fa62ab726377199cf1e1358d6a83b96a0435bd",
+      "sha256": "ec8ace6217992d922238b27e19a1056156e6e01023ee57ff055b1190396e2f1a",
+      "bytes": 11641,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/local-memory-default.js",
+      "gitBlob": "1fa9b9af509179add5c4ece9179c435bbf3655c5",
+      "sha256": "98ce048d72672b5c6c6f3d3670c89bf490996ec18be5d81965d54961dc3d754c",
+      "bytes": 543,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/manual-context-current-snapshot.js",
+      "gitBlob": "0697f3faf87ed79dbf8ed77ffaa2bd0e1b2019c9",
+      "sha256": "073b5658d7fdc4d08c42aeac645fc9aa542533b624e06f62d88f36c5ec4f0d6f",
+      "bytes": 5289,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/phased-human-reference-plan.js",
+      "gitBlob": "29bd03f89eaec4dbf1fbf9b71851cc5a3e23c05e",
+      "sha256": "69f10b7392539426c49432e049b5d16d4af6721e4026a1d54a4fa07f9ff7d532",
+      "bytes": 3634,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/prompt-journal.js",
+      "gitBlob": "591891410e8a6843aacff130d39623b7afea5da0",
+      "sha256": "5fc28c3f22b3c2eb0e58d35f7fb7dcaa2e9772ba54fc05b37c85008bb19ad409",
+      "bytes": 15537,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/providers/google-drive.js",
+      "gitBlob": "ac4c05cbc857da99e8f55ae44ace383d6f597db8",
+      "sha256": "7463b96cad7b5cba33d7eaf5824aa8aa087bd0e2c156b6802eb28d9c7824c773",
+      "bytes": 14276,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/providers/onedrive.js",
+      "gitBlob": "bd786374743b32a6f2e7e1a05313e7312ce471bb",
+      "sha256": "7c8c037e9bf8f039f9447d99d638d5366a269e17a014acd2fa047c4d3e0c2464",
+      "bytes": 12609,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-append-journal.js",
+      "gitBlob": "9c899efde4914c14d2e3629889c72a614166ed50",
+      "sha256": "c14211aa1a7f44450892678656e27a2954abfec698d182899b3f185d246d4eba",
+      "bytes": 9779,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-bootstrap-journal.js",
+      "gitBlob": "10c0ad16dc5251e01cf79edddf0ca2ac953fe1e1",
+      "sha256": "c49962a50f332b631f3b61e4b4ef3c747c58676e8adf889458e93894c2b5ceec",
+      "bytes": 8020,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-purge-deny.js",
+      "gitBlob": "46a2efc5189e8965051d4d23cc19398bd443cbfd",
+      "sha256": "e091ee0499bf4f13a8cdb4b09f8028b524a8bfa197ac5dedfc0505028c1cf0ab",
+      "bytes": 1277,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/browser-native-sync/source-working-default-meta.js",
+      "gitBlob": "06703f397cf9ea83d27c538b3d296e16a723eb32",
+      "sha256": "3bd476ce5b4ccb1aa04e53b6906c8b33ded09b9992bb40bc24e393e2da271700",
+      "bytes": 20115,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/context-cards.js",
+      "gitBlob": "d0032f10e4f8dbefb3de95682cb181c8b5eae927",
+      "sha256": "8117fae0c123c2c4f421e0908c9f6e1d0f205b57091a61916ee6ae66e072da84",
+      "bytes": 26557,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/filter-runner.js",
+      "gitBlob": "aa0c855cfb22e1df510837607b632fe178aa08c5",
+      "sha256": "9430a0bc0512013b0c1733f52c89edb77e0173c5f10d75f141f7af61985dd600",
+      "bytes": 4037,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/ia-store-owner.js",
+      "gitBlob": "fcda8a488b0f0993de2ccbc16757ddd415b6e240",
+      "sha256": "39b5e96ceb945add2de2462987b29af140319667f8ebf0b42605f93140a8f8a2",
+      "bytes": 28918,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/ia-store.js",
+      "gitBlob": "ae47b2b2cfb78ca87f0f0864446e851882b67da6",
+      "sha256": "98ce8f4c1b7aaec41598af2ea9c575c65e28e0c052be5ddb3c3f507afd019755",
+      "bytes": 142,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/idb-repository.js",
+      "gitBlob": "0f0014cb0425a55cc0cec65cac545e59dc9d679b",
+      "sha256": "80f4332634d357a246f66f4cbe2919c0c1e2bc98a98ab15787f86a7fee56271d",
+      "bytes": 117231,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/import/ledger.js",
+      "gitBlob": "dec6c590dfbb566e9237f48a8cd546d595088e8b",
+      "sha256": "171859e869a47bc0c333ca53d97c317db167c254fd8b38a29396212a1da1288b",
+      "bytes": 23109,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/indexed-store.js",
+      "gitBlob": "af656f584b5cc07b989c0067576f00194ddab979",
+      "sha256": "872b163954483f1e6a2db4de619d142b019330bd370935eec1780278e261c742",
+      "bytes": 82265,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/integrity-checker.js",
+      "gitBlob": "ffbeb7db65c2d53a6aecdf8930fac9cf86eb0a29",
+      "sha256": "db431bfbe882157f45315464519b4e0ec6f7fcbe4c58dd6d4e4f6d338614a016",
+      "bytes": 7969,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/library-documents-owner.js",
+      "gitBlob": "624c961bca06e8ddbed7325baa4ae1498df3920e",
+      "sha256": "a87033ad7c79ffd239c67704b8bdae0bd8b129ef3f7f42bd62de1585ffd8eea5",
+      "bytes": 26770,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/library-runner.js",
+      "gitBlob": "f308ad66c12f0379389c6163c652eaa43bd6356d",
+      "sha256": "3e2b83d0b5120dd75011b08de007a475356bace6e33c6dcc1fe791534f00d8a5",
+      "bytes": 244,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/local-control-publication-keys.js",
+      "gitBlob": "5b4f3c85a732bdbdeb20b692de44c3eac8b9e056",
+      "sha256": "da6f4d1509655551b2b974af9ce8d35d369e2b829e36077221875c5f94cb9d9a",
+      "bytes": 327,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/local-control-publication.js",
+      "gitBlob": "ea84d16670c690d8c68b1b12ba2802baef568225",
+      "sha256": "a63a36cd6c8470212f0510d67f5381e8d5052d2d7bcaab310544870491142266",
+      "bytes": 6824,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/local-tool-selection-hold.js",
+      "gitBlob": "2ef3f6fa89f44cad8d46fa4a4afe84b0c7fea607",
+      "sha256": "9183cd2cfc1fedcc41d29cd6ab928f9901035cb0deb74ce1224596ff58f4dbdd",
+      "bytes": 16701,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/manual-materials.js",
+      "gitBlob": "e01fe05f6b3d489e5ca5be1cdccd583931cd9486",
+      "sha256": "c267fd934f82553a36750c61160fd979f1b0d1b95e213521c3557dd263782d4c",
+      "bytes": 10417,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/organizer/application-selection-owner.js",
+      "gitBlob": "14eb4a8122e637c1dcf191f78a5244d3f4157cdc",
+      "sha256": "6761cd92ba39e269758fdb2899436d61e569db275bf45307130ac6879858545e",
+      "bytes": 5197,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/organizer/bounded-workflow.js",
+      "gitBlob": "a919b7ffed53bf16d07159aab373fcad100a5258",
+      "sha256": "6d4e1222aa1189a780b2986bbf1acdc950587d85feb4ede480d3ffeec095cc1c",
+      "bytes": 10948,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/organizer/configured-organize-runner.js",
+      "gitBlob": "0c63f7c5355424bc37a6b6660a4a6f8c0d6fec50",
+      "sha256": "843bde1b7a9f8feba70348d1723dd13cd7327395f4be8fc9cfd22da443348fed",
+      "bytes": 5427,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/organizer/original-simple.js",
+      "gitBlob": "378465e8a44b807e2cb20ccd40b45c2095d06316",
+      "sha256": "ce83f0971a672ae2bf809df4d69bc715bf435b325e8f4dd87ddf11bf4324c2db",
+      "bytes": 23858,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/organizer/store-owner.js",
+      "gitBlob": "1c3e96ca5efb180d88b7bec2ea211d808acc9361",
+      "sha256": "0ca81b8c8824bbe2501af920e1e1586ede69a8976e915a9049050610183eaeb3",
+      "bytes": 32428,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/organizer/store.js",
+      "gitBlob": "3dba63cbd256cba936bf2cd2486125d0ba533e89",
+      "sha256": "9fe10d693377721fbf6e8c557609cb1d3dcd68873c686cb8b58c2123af78d23b",
+      "bytes": 196,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/prompt-insertion-runtime-format.js",
+      "gitBlob": "f665d89cb5d95088661f21c2c6bb7ab081cf0734",
+      "sha256": "9a4e8c42da895c8a1a78c2b8081ad9c3a5f70f14e1a8611318413b853fa01a0e",
+      "bytes": 5072,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/prompt-reuse-service.js",
+      "gitBlob": "66310a60e521fdcfb7532e7ca75fdb96fb9225e4",
+      "sha256": "9cef03c01ae8eb67b2c21f427106c05775364d23ce9ddebe2926c4f419889562",
+      "bytes": 32517,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/smart-filter-store-owner.js",
+      "gitBlob": "add0e855578363a428b6d55aeace59e246a6b165",
+      "sha256": "3f45e685e028649d62b4ee2d4c15df61287348cae6356541a55abe43d3b7d2a4",
+      "bytes": 41113,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/smart-filter-store.js",
+      "gitBlob": "cdd0bfa16edd32c6923aba91081adc33953b5406",
+      "sha256": "35b824acbe90154b2b0ae78bcb3e7a5bc5401177fbe12c758e9b8e5733c58f86",
+      "bytes": 179,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/thought-binding.js",
+      "gitBlob": "5a8bd8747586cb80446026a6131d4b84e605b5db",
+      "sha256": "cc6c6b9f855326b53ad49295fae404b01f95c9da0fbd2800000932ff9819a2f6",
+      "bytes": 7771,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/thought-runner.js",
+      "gitBlob": "eb5d99ca1163602b9407696469be5bc30a1127ae",
+      "sha256": "e8cac2d840353b5f6e7283d488b3e5d0f2ef4325a68bbd2017b694ee6d4ba601",
+      "bytes": 5220,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/thought-store-owner.js",
+      "gitBlob": "555c4acb9550800c895071c97ba920f21e906105",
+      "sha256": "64a2ea4de197fc515fa68752a5c6b1ab7e0f4633ccb4eefdc0189f7c75fb389b",
+      "bytes": 41996,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/core/thought-store.js",
+      "gitBlob": "ef73dda648ae44baae5ff3310d5830cf2e6970c7",
+      "sha256": "27b1edbce0b7e7c9c2531a6479be8c4b0c45de39381d37880a0be263dbd98d3f",
+      "bytes": 183,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/tests/application-selection-main-bound-adapter.test.mjs",
+      "gitBlob": "11391fb1cc103739f4448aeeb364eaecd3e2b023",
+      "sha256": "5d540164203d5f15259b77d66da17fc2fc0e28b21169b345f33da1a4ed1c530a",
+      "bytes": 8187,
+      "kind": "test/harness",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/tests/application-selection-main-bound-complete-owner.test.mjs",
+      "gitBlob": "9342f0278a3270d3849ebb6545b1651dc64b7e9d",
+      "sha256": "14d37e017ee119453006e3aeeffaae962f576cccffcdccd79dda1070472a1e4c",
+      "bytes": 14487,
+      "kind": "test/harness",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/tests/harness/main-bound-existing-application-selection.mjs",
+      "gitBlob": "ada06f0cacc2d36e24ad95d3d4f9969345134073",
+      "sha256": "94fa74d76d627d9f2a7be84c93e8edde39c9b33b7e472e98a0daf280f6c0a96c",
+      "bytes": 5137,
+      "kind": "test/harness",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/tests/harness/main-bound-native-host-fixture.mjs",
+      "gitBlob": "cf903acdba7ec31fe731416678916a72d4b976d7",
+      "sha256": "54b99cf03c02b17e2b6489d437d09555e0457c07b9296f456d12cfbca743ba1c",
+      "bytes": 3034,
+      "kind": "test/harness",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/tests/harness/main-bound-selection-tail-composition.mjs",
+      "gitBlob": "64fcccea2145f8ad739f65516ad8967a8c5b015f",
+      "sha256": "3f252689e24b1fa6df0445f652dcd7d0755ddd3a37f16b70102e1f10711a8727",
+      "bytes": 20358,
+      "kind": "test/harness",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/tests/main-sync-foundation-options.test.mjs",
+      "gitBlob": "e2b60d0028718d55781bda84aa15bf3ebdbf816c",
+      "sha256": "3899667d39831b1c5c2407df985158aa1f1f6a1f15dc2cd855f5197124f57761",
+      "bytes": 16247,
+      "kind": "test/harness",
+      "sameAsOwnerPass": true
+    },
+    {
+      "path": "extension/ui/application-editor-guard.js",
+      "gitBlob": "f15876ab1f475c07b1b6257e6dcf89c26b8f53cd",
+      "sha256": "041989fdfdd787059892e5451aade3365ff9cf34dd1f97d9d1f40c73fff2e49b",
+      "bytes": 3927,
+      "kind": "runtime",
+      "sameAsOwnerPass": true
+    }
+  ]
+}

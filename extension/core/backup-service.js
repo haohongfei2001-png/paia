@@ -1,3 +1,4 @@
+import {localToolSelectionHold} from './local-tool-selection-hold.js';
 import {topicIdentityMetaAllowed,validateTopicIdentityGraph} from './topic-identity-backup.js';
 import {PROMPT_REUSE_ROW} from './prompt-reuse-preferences.js';
 import {AI_STYLE_KEY,portableAIStyle} from './ai-organize-style-preference.js';
@@ -16,7 +17,7 @@ import {sourceStructureMetaAllowed,validateSourceStructureBackupGraph,restoreSou
 import {STORAGE_KEY} from './constants.js';
 import {validatePreferences,defaults} from './workspace.js';
 const stores={sources:'records',inputDocuments:'documents',inputs:'blocks',inputStates:'inputStates',removals:'inputRemovals',timeEvidence:'times',filterIntents:'filterIntents',filterStates:'filterInputs',entries:'thoughts',topics:'topics',sections:'sections',placements:'placements',evidence:'provenance',dependencies:'dependencies',revisions:'revisions',suppressions:'thoughtSuppressions',relations:'entryRelations',completedLayouts:'organizerJobs',receipts:'operationReceipts',deletionFences:'tombstones',organizationState:'meta'};
-const sections=Object.keys(BACKUP_SECTIONS),plain=value=>value&&typeof value==='object'&&!Array.isArray(value),activeRequest=row=>['prepared','sent','response_received','validated'].includes(row?.state);
+const originalBackupSectionKeys=Object.keys,sections=()=>originalBackupSectionKeys(BACKUP_SECTIONS),plain=value=>value&&typeof value==='object'&&!Array.isArray(value),activeRequest=row=>['prepared','sent','response_received','validated'].includes(row?.state);
 // These stores can retain user work or migration/import evidence even when the
 // portable library stores have no rows. Never treat that state as an empty target.
 const RESTORE_NONEMPTY_GUARD_STORES=['recordIndex','blockIndex','migrationBackup','sourceCounts','importTasks','importBatches','importEvidence','importSources'];
@@ -29,15 +30,32 @@ const REPLACE_CLEAR_STORES=[...new Set([
 async function busy(t){for(const key of ['originalProviderRequest','aiPresentationRequest']){const p=await t.get('meta',key+'Current');if(p&&activeRequest(await t.get('meta',key+':'+p.requestId)))return true;}const p=await t.get('meta','boundedOrganizerCurrent');if(p&&(await t.get('meta','boundedOrganizerAction:'+p.actionId))?.state==='running')return true;return (await t.all('topics')).some(x=>x.layoutJobId);}
 function sourceIds(value,out=new Set()){if(!value||typeof value!=='object')return out;if(Array.isArray(value)){for(const v of value)sourceIds(v,out);return out;}for(const [key,v]of Object.entries(value)){if(key==='sourceRecordIds'&&Array.isArray(v))for(const id of v)out.add(id);else if(['sourceRecordId','originalTextReference'].includes(key)&&typeof v==='string')out.add(v);else if(typeof v==='object')sourceIds(v,out);}return out;}
 export class BackupService {
- constructor(store,{appVersion='0.8.1'}={}){this.s=store;this.appVersion=appVersion;this.restores=new Map();}
- expire(){for(const map of [this.restores])for(const [id,row]of map)if(Date.now()-row.lastAt>15*60*1000)map.delete(id);}
+ beginRestore(){return this.#selection.entry(admission=>this.#beginRestore(admission));}
+ stageRestore(q){return this.#selection.entry(admission=>this.#stageRestore(q,admission));}
+ previewRestore(q){return this.#selection.entry(admission=>this.#previewRestore(q,admission));}
+ restore(q){return this.#selection.entry(admission=>this.#restore(q,admission));}
+ recoverSettings(){return this.#selection.entry(admission=>this.#recoverSettings(admission));}
+ validateReferences(state){return this.#selection.entry(admission=>this.#validateReferences(state,admission));}
+ targetSafety(t,state,mode='empty'){return this.#selection.entry(admission=>this.#targetSafety(t,state,mode,admission));}
+ mergeSafety(t,state){return this.#selection.entry(admission=>this.#mergeSafety(t,state,admission));}
+ #selection;
+ applicationSelectionSourceIs(store){return this.#selection.sourceIs(store);}
+ applicationSelectionCutSource(){return this.#selection.cutSource();}
+ holdForApplicationSelection(action=null,cut=null){return this.#selection.hold(action,cut);}
+ applicationSelectionHeld(token){return this.#selection.held(token);}
+ fenceApplicationSelection(token,cut=null){return this.#selection.fence(token,cut);}
+ releaseApplicationSelection(token,action=null){return this.#selection.release(token,action);}
+ releaseFailedApplicationSelection(error,action=null){return this.#selection.releaseFailed(error,action);}
+
+ constructor(store,{appVersion='0.8.1'}={}){this.s=store;this.appVersion=appVersion;this.restores=new Map();const restores=this.restores;this.#selection=localToolSelectionHold(store,()=>Object.getPrototypeOf(this)===originalPrototype&&this.s===store&&this.restores===restores&&originalMethods.every(([k,v])=>this[k]===v),{owner:this,kind:'local-backup'});}
+ expire(){this.#selection.admit();for(const map of [this.restores])for(const [id,row]of map)if(Date.now()-row.lastAt>15*60*1000)map.delete(id);}
  session(map,id){this.expire();const row=map.get(id);if(!row)backupError('BACKUP_SESSION_EXPIRED');row.lastAt=Date.now();return row;}
  // Retired entry points reject before reading arguments, storage, or session state.
  async beginExport(){backupError('FEATURE_UNAVAILABLE');}
  async exportPage(){backupError('FEATURE_UNAVAILABLE');}
- async beginRestore(){this.expire();this.restores.clear();const sessionId=crypto.randomUUID();this.restores.set(sessionId,{validator:new BackupValidator(),items:[],lastAt:Date.now(),validated:false});return {sessionId};}
- async stageRestore({sessionId,items}){const state=this.session(this.restores,sessionId);if(state.staging)backupError('BACKUP_BUSY');if(!Array.isArray(items)||items.length>50||state.validated)backupError('BACKUP_INVALID');state.staging=true;try{for(const item of items){await state.validator.add(item);if(item.type==='item')state.items.push(structuredClone(item));}return {received:state.validator.count};}catch(e){this.restores.delete(sessionId);throw e;}finally{state.staging=false;}}
- async validateReferences(state){const bySection=Object.fromEntries(sections.map(k=>[k,new Map(state.items.filter(x=>x.section===k).map(x=>[x.value.id,x]))]));state.bySection=bySection;const records=bySection.sources,inputs=bySection.inputs,entries=bySection.entries,topics=bySection.topics;
+ async #beginRestore(admission){this.expire();this.restores.clear();const sessionId=crypto.randomUUID();this.restores.set(sessionId,{validator:new BackupValidator(),items:[],lastAt:Date.now(),validated:false});return {sessionId};}
+ async #stageRestore({sessionId,items},admission){const state=this.session(this.restores,sessionId);if(state.staging)backupError('BACKUP_BUSY');if(!Array.isArray(items)||items.length>50||state.validated)backupError('BACKUP_INVALID');state.staging=true;try{for(const item of items){await state.validator.add(item);if(item.type==='item')state.items.push(structuredClone(item));}return {received:state.validator.count};}catch(e){this.restores.delete(sessionId);throw e;}finally{state.staging=false;}}
+ async #validateReferences(state,admission){const bySection=Object.fromEntries(sections().map(k=>[k,new Map(state.items.filter(x=>x.section===k).map(x=>[x.value.id,x]))]));state.bySection=bySection;const records=bySection.sources,inputs=bySection.inputs,entries=bySection.entries,topics=bySection.topics;
   const required=(condition)=>{if(!condition)backupError('BACKUP_INVALID');};
   for(const item of records.values()){const r=item.value;if(r.chatId&&r.sourceMessageId){const identity=await identify(sourceIdentityChat(r.platform||'chatgpt',r.chatId),r.sourceMessageId,r.originalText);required(r.contentHash===identity.contentHash&&(!r.sourceKey||r.sourceKey===identity.sourceKey));if(r.sourceKey)required(r.dedupeKey===identity.dedupeKey);item.derivedSourceKey=identity.sourceKey;}else required(r.contentHash===await hashText(r.originalText));}
   const importEvidence=new Map();for(const {value:r}of records.values())if(r.importEvidence){const key=r.importEvidence.sourceKey,serialized=JSON.stringify(projectImportEvidence(r.importEvidence));required(!importEvidence.has(key)||importEvidence.get(key)===serialized);importEvidence.set(key,serialized);}
@@ -59,7 +77,7 @@ export class BackupService {
   const ansRows=[...bySection.organizationState.values()].map(x=>x.value.data).filter(x=>sourceStructureMetaAllowed(x.id));try{await validateSourceStructureBackupGraph(ansRows,{documents:[...bySection.inputDocuments.values()].map(x=>x.value)});}catch{backupError('BACKUP_INVALID');}
   const preferences=bySection.settings.get('preferences')?.value.preferences;if(preferences){validatePreferences({timeDisplay:preferences.timeDisplay,timeEmphasis:preferences.timeEmphasis});const editable=['timeDisplay','timeEmphasis','appearance','language','fontSize','readingWidth','sidebarCollapsed','hideContentPreviews'];validatePreferences(Object.fromEntries(Object.entries(preferences).filter(([key])=>editable.includes(key))));for(const [key,value]of Object.entries(defaults()))if(!editable.includes(key))required(preferences[key]===value);if(Object.hasOwn(preferences,AI_STYLE_KEY))required(portableAIStyle(preferences[AI_STYLE_KEY]));required(Object.keys(preferences).every(k=>k===AI_STYLE_KEY||Object.hasOwn(defaults(),k)));}state.validated=true;
  }
- async targetSafety(t,state,mode='empty'){
+ async #targetSafety(t,state,mode='empty',admission){
   if(!['empty','replace','merge'].includes(mode))return 'BACKUP_INVALID';
   if(await busy(t))return 'BACKUP_BUSY';
   for(const item of state.bySection.sources.values()){
@@ -72,7 +90,7 @@ export class BackupService {
   if(mode==='replace'||mode==='merge'){
    if(await t.count('migrationBackup'))return 'BACKUP_BUSY';
    if((await t.all('importTasks')).some(row=>!['completed','partial','cancelled'].includes(row.phase)))return 'BACKUP_BUSY';
-   if(mode==='merge')return this.mergeSafety(t,state);
+   if(mode==='merge')return this.#mergeSafety(t,state,admission);
    return null;
   }
   for(const prefix of Object.values(SOURCE_STRUCTURE_PREFIXES))
@@ -85,7 +103,7 @@ export class BackupService {
    if(await t.count(name))return 'BACKUP_TARGET_NOT_EMPTY';
   return null;
  }
- async mergeSafety(t,state){
+ async #mergeSafety(t,state,admission){
   const seenChats=new Set();
   for(const item of state.items){
    const {section,value}=item;
@@ -127,23 +145,23 @@ export class BackupService {
   }
   return null;
  }
- async previewRestore({sessionId,mode='empty'}){
+ async #previewRestore({sessionId,mode='empty'},admission){
   if(!['empty','replace','merge'].includes(mode))backupError('BACKUP_INVALID');
   const state=this.session(this.restores,sessionId);
   if(state.staging)backupError('BACKUP_BUSY');
   const preview=state.validator.preview();
   await this.s.finishFoundation();
-  if(!state.validated)await this.validateReferences(state);
+  if(!state.validated)await this.#validateReferences(state,admission);
   const target=await this.s.run(()=>this.s.repository.transaction(false,async t=>({
-   reason:await this.targetSafety(t,state,mode),
+   reason:await this.#targetSafety(t,state,mode,admission),
    generation:(await t.get('meta','backup-data-generation'))?.value||0,
   })));
   return {...preview,canRestore:!target.reason,reason:target.reason,
    restoreScope:mode==='replace'?'replace-current-library':mode==='merge'?'merge-disjoint-library':'empty-library-only',
    targetGeneration:target.generation};
  }
- async restore({sessionId,confirmation,mode='empty',targetGeneration,confirmReplace=false,confirmMerge=false}){const state=this.session(this.restores,sessionId),preview=await this.previewRestore({sessionId,mode});if(confirmation!==preview.integrity)backupError('BACKUP_CONFIRMATION_REQUIRED');if(!preview.canRestore)backupError(preview.reason);if(['replace','merge'].includes(mode)&&((mode==='replace'&&confirmReplace!==true)||(mode==='merge'&&confirmMerge!==true)||!Number.isSafeInteger(targetGeneration)||targetGeneration!==preview.targetGeneration))backupError('BACKUP_CONFIRMATION_REQUIRED');
-  const result=await this.s.run(()=>this.s.repository.transaction(true,async t=>{const reason=await this.targetSafety(t,state,mode);if(reason)backupError(reason);
+ async #restore({sessionId,confirmation,mode='empty',targetGeneration,confirmReplace=false,confirmMerge=false},admission){const state=this.session(this.restores,sessionId),preview=await this.#previewRestore({sessionId,mode},admission);if(confirmation!==preview.integrity)backupError('BACKUP_CONFIRMATION_REQUIRED');if(!preview.canRestore)backupError(preview.reason);if(['replace','merge'].includes(mode)&&((mode==='replace'&&confirmReplace!==true)||(mode==='merge'&&confirmMerge!==true)||!Number.isSafeInteger(targetGeneration)||targetGeneration!==preview.targetGeneration))backupError('BACKUP_CONFIRMATION_REQUIRED');
+  const result=await this.s.run(()=>this.s.repository.transaction(true,async t=>{this.#selection.check(admission);const reason=await this.#targetSafety(t,state,mode,admission);if(reason)backupError(reason);
    if(['replace','merge'].includes(mode)){
     if(((await t.get('meta','backup-data-generation'))?.value||0)!==targetGeneration)backupError('BACKUP_CHANGED');
     if(mode==='replace')for(const name of REPLACE_CLEAR_STORES)await t.clear(name);
@@ -197,8 +215,14 @@ export class BackupService {
     if(p.candidate)await t.put('libraryMigrationItems',{id:'ai-presentation-candidate-fence:'+p.topicId,entityKind:'organizer_metadata',ownerKind:'ai_presentation_candidate',ownerId:p.topicId,statusKey:1,sourceRecordIds:sourceIds(p.candidate.proposal.evidenceEntryIds)});
    }
    return {restored:true,counts:preview.counts};
-  }));this.restores.delete(sessionId);if(mode!=='merge')await this.recoverSettings();return result;
+  }));this.restores.delete(sessionId);if(mode!=='merge')await this.#recoverSettings(admission);return result;
  }
- async recoverSettings(){const pending=await this.s.run(()=>this.s.repository.transaction(false,t=>t.get('meta','backup-recovery-settings'),['meta']));if(!pending)return;await this.s.finishFoundation();await this.s.write(async t=>{const c=await this.s.control(t);for(const key of ['preferences','memoryAccessPolicy','classificationRules','filterRules'])if(pending.value[key]!==undefined)c[key]=pending.value[key];await this.s.saveControl(t,c);});await this.s.run(()=>this.s.repository.transaction(true,t=>t.delete('meta','backup-recovery-settings'),['meta']));}
- cancel({sessionId}){this.restores.delete(sessionId);return {cancelled:true};}
+ async #recoverSettings(admission){const pending=await this.s.run(()=>this.s.repository.transaction(false,t=>t.get('meta','backup-recovery-settings'),['meta']));if(!pending)return;await this.s.finishFoundation();await this.s.write(async t=>{this.#selection.check(admission);const c=await this.s.control(t);for(const key of ['preferences','memoryAccessPolicy','classificationRules','filterRules'])if(pending.value[key]!==undefined)c[key]=pending.value[key];await this.s.saveControl(t,c);});await this.s.run(()=>this.s.repository.transaction(true,t=>{this.#selection.check(admission);return t.delete('meta','backup-recovery-settings');},['meta']));}
+ cancel({sessionId}){this.#selection.admit();this.restores.delete(sessionId);return {cancelled:true};}
 }
+
+const originalPrototype=BackupService.prototype;
+const originalMethods=Object.getOwnPropertyNames(originalPrototype).filter(k=>k!=='constructor').map(k=>[k,originalPrototype[k]]);
+
+const originalBackupSelectionMethods=Object.freeze({prototype:BackupService.prototype,cutSource:BackupService.prototype.applicationSelectionCutSource,hold:BackupService.prototype.holdForApplicationSelection,current:BackupService.prototype.applicationSelectionHeld,fence:BackupService.prototype.fenceApplicationSelection,release:BackupService.prototype.releaseApplicationSelection,source:BackupService.prototype.applicationSelectionSourceIs,members:BackupService.prototype.applicationSelectionMembers,failed:BackupService.prototype.releaseFailedApplicationSelection});
+export function readOriginalBackupSelectionMethods(){return originalBackupSelectionMethods;}

@@ -1,10 +1,17 @@
+import {readCanonicalCheckpointProof,requireCanonicalCheckpointProof,requireCanonicalCheckpointInputProof} from './canonical-generation-checkpoint-stage.js';
+import {equalSourceWorkingPhysicalTree} from './source-working-physical.js';
+import {readGroupRows} from './group-page-reader.js';
+import {originalGenerationRepositoryTransaction,requireRepositoryTransactionDataMethods,registerRepositoryWorkLimit,registerRepositoryFinalReadFence} from '../idb-repository.js';
+import {ArchiveError} from '../constants.js';
+import {observeOriginalControlPublication,requireOriginalControlObservation,requireOriginalControlObservationSelectionTail,renewOriginalControlObservationSelectionTail} from '../indexed-store.js';
+import {requireOriginalLibraryDocumentsGenerationMethods} from '../library-documents-owner.js';
 import {captureSourceWorkingCurrentGroupProjection,requireSourceWorkingCurrentGroupProjection,encodeSourceWorkingCurrentGroupCheckpoint,publishSourceWorkingCurrentGroupCheckpoint,captureMixedCurrentGroupProjection,requireMixedCurrentGroupProjection,encodeMixedCurrentGroupCheckpoint,publishMixedCurrentGroupCheckpoint,releaseHumanCurrentUnindexedProjection} from './human-library-plan.js';
 import {InputWorkingCommitReceiver,prepareWorkingApplication} from './input-working-commit.js';
 import {prepareHumanGroupApplication,requireHumanGroupApplication,applyHumanGroupStep} from './human-library-group.js';
 import {FilterIntentSyncJournal,prepareRestoredFilterSources,prepareFilterApplication} from './filter-intent-journal.js';
 import {manualSyncOwners} from './manual-owners.js';
-import {contextDesiredMaterializer} from './context-desired-journal.js';
-import {BrowserNativeSyncCore,acceptSequence,CORE_LIMITS} from './core.js';
+import {contextDesiredMaterializer} from './context-desired-journal-owner.js';
+import {BrowserNativeSyncCore,requireOriginalGenerationCoreMethods,acceptSequence,CORE_LIMITS} from './core.js';
 import {buildCheckpoint,checkpointItems} from './checkpoints.js';
 import {protocolObject,readObject,SEGMENT_PROFILE} from './segments.js';
 import {prepareGroupCheckpointPlan} from './group-checkpoint-plan.js';
@@ -13,7 +20,7 @@ import {prepareBootstrapApplication,applyBootstrapApplication} from './source-bo
 import {prepareAppendApplication,applyAppendApplication} from './source-append-receive.js';
 import {JournalRestoreFence,readRestoreEpoch,materializePromptBinding} from './prompt-journal.js';
 import {CONSENT_VERSION} from '../constants.js';
-import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque} from './value.js';
+import {bytes,clone,decodeJSON,digest,equal,exact,fail,hash,opaque,SyncError} from './value.js';
 import {assertGroupedCheckpointManifest} from './group-checkpoint-manifest.js';
 import {awaitRepositoryTransactionSettled,requireRepositoryCommittedIdentity} from '../idb-repository.js';
 import {finalConsumerPreferenceOperations,prepareRestoredConsumerPreferenceApplication,applyRestoredConsumerPreferenceOwners} from './consumer-preference-restore.js';
@@ -21,8 +28,35 @@ import {CONSUMER_PUBLICATION_PENDING_ID,requireConsumerPublicationSettled} from 
 import {topicDesiredMaterializer} from './topic-desired-journal.js';
 const own=(x,keys)=>exact(x,keys)&&Object.keys(x).length===keys.length;
 const withoutId=({id,...row})=>row;
+const canonicalGenerationStates=new WeakMap(),canonicalGenerationProofs=new WeakMap(),canonicalGenerationPublications=new WeakMap(),canonicalGenerationBindings=new WeakMap();
+function originalGenerationBinding(restore){const b=canonicalGenerationBindings.get(restore);if(!b||['store','live','stage','restoreId'].some(key=>Object.getOwnPropertyDescriptor(restore,key)?.value!==b[key]))fail('BNS_GENERATION_PROOF_REQUIRED');return b;}
+const generationRepositoryAuthorities=new WeakMap(),generationStorageChecks=new WeakMap(),defaultCheckpoint=async()=>{};
+export function readOriginalGroupGenerationRepositoryAuthority(token,repository,scope){
+ const r=generationRepositoryAuthorities.get(token);if(!r)return null;const b=originalGenerationBinding(r.restore);
+ if(b.store.repository!==repository||b.live.repository!==repository||b.stage.repository!==repository||b.live.prefix!==r.livePrefix||b.stage.prefix!==r.stagePrefix||b.stage.fixedNamespace!==r.namespace||Object.getOwnPropertyDescriptor(r.restore,'checkpoint')?.value!==r.checkpoint||scope!==null&&r.scope!==null&&r.scope!==scope)fail('GENERATION_REPOSITORY_WRITE_DENIED');
+ if(scope!==null){requireOriginalLibraryDocumentsGenerationMethods(b.store);requireOriginalGenerationCoreMethods(b.live);requireOriginalGenerationCoreMethods(b.stage);if(r.scope===null)r.scope=scope;}return r.authority;
+}
+async function generationTerminal(restore,t){
+ // The original delta owner alone appends rebuildable body-free scheduling
+ // metadata. Canonical data, protocol receipts and all other metadata close.
+ if(t.navigationChanges?.size)fail('BNS_GENERATION_TARGET_NOT_EMPTY');
+ const {store}=originalGenerationBinding(restore),snapshots=[],ranges=[IDBKeyRange.upperBound('aiu:delta:',true),IDBKeyRange.lowerBound('aiu:delta:\uffff',true)];
+ for(const table of t.tx.objectStoreNames){
+  const rows=[];let after=null;
+  do{const page=await t.primaryRangePage(table,{after,limit:64});for(const row of page.rows){if(table==='meta'&&typeof row.key==='string'&&row.key.startsWith('aiu:delta:'))continue;let value=clone(row.value);if(table==='meta'&&row.key==='backup-data-generation'&&t.backupChanged)value={...value,value:value.value+1};rows.push([row.key,value]);}after=page.next;}while(after);
+  if(table==='meta')requireGenerationStorageBudgets(restore,t,rows);
+  const counts=table==='meta'?ranges.map(key=>({key,count:rows.filter(([id])=>key.includes(id)).length})):[{count:await t.count(table)}];snapshots.push({table,counts,rows});
+ }
+ registerRepositoryFinalReadFence(store.repository,t,{isCurrent:()=>{originalGenerationBinding(restore);return true;},plan:function*(){for(const {table,counts,rows}of snapshots){for(const {key,count}of counts)if((yield {method:'count',table,...(key?{key}:{})})!==count)throw new ArchiveError('BNS_RESTORE_STAGE_CHANGED');for(const [key,value]of rows)if(!equalSourceWorkingPhysicalTree(yield {method:'get',table,key},value))throw new ArchiveError('BNS_RESTORE_STAGE_CHANGED');}return true;}});
+}
+async function generationTransaction(restore,kind,fn,stores){
+ const b=originalGenerationBinding(restore),token=Object.freeze(Object.create(null));let semantic,scope;
+ generationRepositoryAuthorities.set(token,{restore,scope:null,livePrefix:b.live.prefix,stagePrefix:b.stage.prefix,namespace:b.stage.fixedNamespace,checkpoint:Object.getOwnPropertyDescriptor(restore,'checkpoint')?.value,authority:Object.freeze({kind:Object.getOwnPropertyDescriptor(restore,'checkpoint')?.value===defaultCheckpoint?kind:'group-debug',prefix:b.stage.prefix+'generation:'+b.stage.fixedNamespace+':'})});
+ try{return await originalGenerationRepositoryTransaction(b.store.repository,token,async t=>{scope=t;registerRepositoryWorkLimit(b.store.repository,t);requireRepositoryTransactionDataMethods(b.store.repository,t);const authority=generationRepositoryAuthorities.get(token);if(authority.scope===t&&authority.checkpoint===defaultCheckpoint&&['group-stage','group-apply'].includes(kind))generationStorageChecks.set(t,{restore,stage:b.stage,token,kind,checks:[]});try{const result=await fn(t);await generationTerminal(restore,t);return result;}catch(e){if(e instanceof SyncError)semantic=e;throw e;}},stores);}catch(e){throw semantic??e;}finally{generationStorageChecks.delete(scope);generationRepositoryAuthorities.delete(token);}
+}
 async function authority(store,core,t){const c=await store.control(t);if(!c.settings.enabled||c.settings.consentVersion!==CONSENT_VERSION)fail('BNS_GROUP_PERMISSION');return{namespace:await core.bind(t),generation:(await core.get(t,'generation'))?.value||0,ownerGeneration:(await t.get('meta','backup-data-generation'))?.value||0,fence:await new JournalRestoreFence(core).snapshot(t),settings:c.settings};}
 async function allOperations(core){const operations=[];for await(const row of core.rows('revision')){if(row.redacted)fail('BNS_GROUP_OWNER_UNSUPPORTED');if(operations.length===128)fail('BNS_GROUP_RESOURCE_LIMIT');operations.push(row.operation);}return operations;}
+async function stageItems(stage){return stage.transaction(false,async t=>(await readGroupRows(t,'meta',{prefix:await stage.idIn(t,'groupItem')})).map(row=>row.item),['meta']);}
 async function requireCommittedPlan(core,t,plan){
  const operations=plan.groups.flatMap(group=>group.operations);
  for(const op of operations){
@@ -82,7 +116,7 @@ async function manifest(ref,get,core,profile,supported){
  const v=decodeJSON(await readObject(ref,get,{profile}),profile.decoded);
  assertGroupedCheckpointManifest(v,{core,supported});return v;
 }
-async function compile(core,items,manifest,store){
+async function compile(core,items,manifest,store,recoveryWork=null){
  const scope=manifest.ownerScope;
  const operations=[],heads=[],frontiers=[];for(const item of items){
   if(item.kind==='revision'&&own(item,['kind','operation','redacted'])&&item.redacted===false)operations.push(item.operation);
@@ -90,7 +124,7 @@ async function compile(core,items,manifest,store){
   else if(item.kind==='frontier'&&own(item,['kind','deviceId','frontier','ranges'])){const{kind,...row}=item;frontiers.push(row);}
   else fail('BNS_GROUP_OWNER_UNSUPPORTED');
  }
- const plan=await prepareGroupCheckpointPlan(core,operations),canonical=await prepareGroupScope(plan,{store});
+ const plan=await prepareGroupCheckpointPlan(core,operations),canonical=await prepareGroupScope(plan,{store,recoveryWork});
  const sorted=rows=>[...rows].sort((a,b)=>JSON.stringify([a.type,a.entityId]).localeCompare(JSON.stringify([b.type,b.entityId])));
  const families=new Map();for(const head of plan.heads){const operation=operations.find(op=>op.revisionId===head.revisions[0]);const x=families.get(head.type)||{type:head.type,version:operation.codecVersion,count:0};x.count++;families.set(head.type,x);}const coverage=[...families.values()].sort((a,b)=>a.type.localeCompare(b.type));
  if(!equal(coverage,manifest.coverage)||!equal(sorted(heads),plan.heads)||!equal(canonical.ownerScope,scope))fail('BNS_GROUP_SCOPE_INVALID');
@@ -99,15 +133,93 @@ async function compile(core,items,manifest,store){
  for(const row of frontiers)if(!equal(row,{deviceId:row.deviceId,...expected.get(row.deviceId)}))fail('BNS_CHECKPOINT_FRONTIER');
  return {plan,canonical,frontiers};
 }
+// Read-only consuming discovery check. Reuse the exact original compiler;
+// return only its digest, never a plan, stage, writer or activation capability.
+export async function validateGroupedCheckpointGraph(core,items,manifest,{store,recoveryWork=null}={}){
+ if(store?.repository!==core?.repository||!core?.repository)fail('BNS_GROUP_BINDING');
+ assertGroupedCheckpointManifest(manifest,{core});
+ return (await compile(core,items,manifest,store,recoveryWork)).plan.digest;
+}
+// The explicit phased task reuses the same complete original compiler once.
+// A branded plan is semantic input only; it grants no repository writer.
+export async function prepareValidatedGroupedCheckpointGraph(core,items,manifest,{store,recoveryWork=null}={}){
+ if(store?.repository!==core?.repository||!core?.repository)fail('BNS_GROUP_BINDING');
+ assertGroupedCheckpointManifest(manifest,{core});return (await compile(core,items,manifest,store,recoveryWork)).plan;
+}
 // Both protocol namespaces count toward one explicit local admission budget.
 // Reuse the two existing per-batch byte envelopes; never count just wire bodies.
-async function requireStorageBudget(t,stage,replayId){
+function requireGenerationStorageBudgets(restore,t,rows){
+ const held=generationStorageChecks.get(t);if(!held)return;
+ if(held.restore!==restore)fail('BNS_GENERATION_PROOF_REQUIRED');readOriginalGroupGenerationRepositoryAuthority(held.token,held.stage.repository,t);
+ for(const check of held.checks){let total=0,matched=!check.before;
+  for(const range of check.ranges)for(const [key,row]of rows)if(range.includes(key)){
+   let value=row;if(check.before&&key===check.before.id){if(!equal(row,{...check.before,phase:'activated'}))fail('BNS_RESTORE_STAGE_CHANGED');value=check.before;matched=true;}
+   if((total+=bytes(value).length)>CORE_LIMITS.batchBytes*2)fail('BNS_GROUP_RESOURCE_LIMIT');
+  }
+  if(!matched)fail('BNS_RESTORE_STAGE_CHANGED');
+ }
+}
+async function requireStorageBudget(t,stage,replayId,before=null){
+ const held=generationStorageChecks.get(t);
+ // Only the original protected writer with its fixed callback can defer this
+ // scan. Generic and debug transactions retain the original admission point.
+ if(held&&held.stage===stage&&(held.kind==='group-stage'&&before===null||held.kind==='group-apply'&&before?.phase==='validated'&&before.replayId===replayId)){
+  readOriginalGroupGenerationRepositoryAuthority(held.token,stage.repository,t);
+  // After this point the fixed apply tail writes only the out-of-namespace
+  // active pointer and this exact restore phase. Count its original preimage,
+  // not a smaller final row. Consumer publication is refused before staging.
+  held.checks.push({ranges:[stage.fixedNamespace,replayId].map(namespace=>{const prefix=stage.prefix+'generation:'+namespace+':';return IDBKeyRange.bound(prefix,prefix+'\uffff',false,true);}),before:before?clone(before):null});return;
+ }
  let total=0,rows=0;for(const namespace of [stage.fixedNamespace,replayId]){let after=null;do{const page=await t.primaryRangePage('meta',{prefix:stage.prefix+'generation:'+namespace+':',after,limit:100});for(const {value}of page.rows){rows++;if((total+=bytes(value).length)>CORE_LIMITS.batchBytes*2)fail('BNS_GROUP_RESOURCE_LIMIT');}after=page.next;}while(after);}return {rows,bytes:total};
 }
 export class GroupedCheckpointRestore{
- constructor(core,{store,restoreId,profile=SEGMENT_PROFILE,checkpoint=async()=>{}}){
+ constructor(core,{store,restoreId,profile=SEGMENT_PROFILE,checkpoint=defaultCheckpoint}){
   if(store?.repository!==core.repository||!opaque(restoreId))fail('BNS_GROUP_BINDING');this.store=store;this.live=core;this.restoreId=restoreId;this.profile=profile;this.checkpoint=checkpoint;
-  this.stage=new BrowserNativeSyncCore(core.repository,{datasetId:core.datasetId,deviceId:core.deviceId,namespace:restoreId});
+  this.stage=new BrowserNativeSyncCore(core.repository,{datasetId:core.datasetId,deviceId:core.deviceId,namespace:restoreId});canonicalGenerationBindings.set(this,{store,live:core,stage:this.stage,restoreId});
+ }
+ // A bounded consumer for an independently staged canonical database. Only
+ // the original authenticated stage can mint proof; owner application remains
+ // the same activate() path below. This is not the application DB switch and
+ // does not raise the original whole-graph or transaction limits.
+ async stageCanonicalGeneration(proof){
+  const {store,live,stage}=originalGenerationBinding(this),verified=readCanonicalCheckpointProof(proof,{store,core:live});
+  await store.finishFoundation();
+  const replayId=crypto.randomUUID(),replay=new BrowserNativeSyncCore(live.repository,{datasetId:live.datasetId,deviceId:live.deviceId,namespace:replayId});
+  const compiled=await compile(replay,verified.items,verified.manifest,store);
+  if(compiled.plan.digest!==verified.graphDigest)fail('BNS_RESTORE_STAGE_CHANGED');
+  // chrome.local publication needs its own cross-database coordinator. An
+  // invisible staging database must never publish those preferences early.
+  if(compiled.plan.groups.some(group=>group.type==='consumerPreference'))fail('BNS_GENERATION_CONSUMER_PUBLICATION_UNSUPPORTED');
+  const binding={stateId:verified.stateId,identity:verified.generationIdentity};
+  const result=await store.run(()=>generationTransaction(this,'group-stage',async t=>{
+   registerRepositoryWorkLimit(live.repository,t);
+   await requireCanonicalCheckpointProof(proof,{store,core:live},t);
+   const old=await stage.get(t,'restore');
+   if(old){
+    if(!own(old,['id','manifestId','manifestRef','manifest','phase','base','replayId','received','graphDigest','canonicalGeneration'])||old.manifestId!==verified.manifestRef.id||old.graphDigest!==verified.graphDigest||!equal(old.canonicalGeneration,binding)||!['validated','activated'].includes(old.phase))fail('BNS_RESTORE_ID_COLLISION');
+    return old;
+   }
+   if((await t.primaryRangePage('meta',{prefix:stage.prefix+'generation:'+stage.fixedNamespace+':',limit:1})).rows.length)fail('BNS_RESTORE_ID_COLLISION');
+   const base=await authority(store,live,t);
+   for(let at=0;at<verified.items.length;at++)await stage.put(t,'groupItem',[String(at).padStart(4,'0')],{item:verified.items[at]});
+   const row={manifestId:verified.manifestRef.id,manifestRef:clone(verified.manifestRef),manifest:clone(verified.manifest),phase:'validated',base,replayId,received:verified.items.length,graphDigest:verified.graphDigest,canonicalGeneration:binding};
+   await stage.put(t,'restore',[],row);await requireStorageBudget(t,stage,replayId);return stage.get(t,'restore');
+  },['meta']));
+  canonicalGenerationProofs.set(this,proof);canonicalGenerationStates.set(this,clone(result));return result;
+ }
+ // Compilation may hash protocol data, so prepare outside a live native
+ // write TX. The fixed publication consumer below rechecks all owner facts
+ // and seals physical rows inside the actual sealing transaction.
+ async prepareCanonicalGenerationPublication(proof){
+  originalGenerationBinding(this);
+  if(canonicalGenerationProofs.get(this)!==proof)fail('BNS_GENERATION_PROOF_REQUIRED');
+  const verified=readCanonicalCheckpointProof(proof,{store:this.store,core:this.live}),state=await this.stage.read('restore');
+  if(state?.phase!=='activated'||state.manifestId!==verified.manifestRef.id||state.graphDigest!==verified.graphDigest||!equal(state.canonicalGeneration,{stateId:verified.stateId,identity:verified.generationIdentity}))fail('BNS_RESTORE_NOT_READY');
+  const items=await stageItems(this.stage);if(!equal(items,verified.items)||!equal(state.manifest,verified.manifest))fail('BNS_RESTORE_STAGE_CHANGED');
+  const replay=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.replayId}),compiled=await compile(replay,items,state.manifest,this.store);
+  if(compiled.plan.digest!==verified.graphDigest)fail('BNS_RESTORE_STAGE_CHANGED');
+  canonicalGenerationPublications.set(this,{proof,verified,state,replay,...compiled});
+  return {state:'publication-prepared',manifestId:state.manifestId,graphDigest:state.graphDigest};
  }
  async begin(ref,get,{supported}={}){
   const {store,live,stage}=this;await store.finishFoundation();
@@ -143,7 +255,15 @@ export class GroupedCheckpointRestore{
    if(!equal(current,state)||active?.namespace!==state.replayId||active.manifestId!==state.manifestId||active.graphDigest!==state.graphDigest||await readRestoreEpoch(t)!==state.base.fence.epoch)fail('BNS_RESTORE_LOCAL_CHANGED');
    return {state:'activated',namespace:state.replayId};
   }));
+  const generationProof=canonicalGenerationProofs.get(this);
+  if(state.canonicalGeneration&&!generationProof)fail('BNS_GENERATION_PROOF_REQUIRED');
+  if(generationProof&&!equal(state,canonicalGenerationStates.get(this)))fail('BNS_RESTORE_STAGE_CHANGED');
   const items=[];for await(const row of this.stage.rows('groupItem'))items.push(row.item);
+  if(generationProof){
+   const proofRecord=readCanonicalCheckpointProof(generationProof,{store:this.store,core:this.live});
+   if(!equal(state.canonicalGeneration,{stateId:proofRecord.stateId,identity:proofRecord.generationIdentity})||state.manifestId!==proofRecord.manifestRef.id||!equal(state.manifestRef,proofRecord.manifestRef)||!equal(state.manifest,proofRecord.manifest)||state.graphDigest!==proofRecord.graphDigest||state.received!==proofRecord.items.length||!equal(items,proofRecord.items))fail('BNS_RESTORE_STAGE_CHANGED');
+  }
+
   const replay=new BrowserNativeSyncCore(this.live.repository,{datasetId:this.live.datasetId,deviceId:this.live.deviceId,namespace:state.replayId}),{plan,canonical,frontiers}=await compile(replay,items,state.manifest,this.store);
   if(plan.digest!==state.graphDigest)fail('BNS_RESTORE_STAGE_CHANGED');
   const filter=new FilterIntentSyncJournal(replay),working=new InputWorkingCommitReceiver(this.store,replay,{filterJournal:filter}),manual=manualSyncOwners(replay),desired=contextDesiredMaterializer(replay),topicDesired=topicDesiredMaterializer(replay),consumerOperations=finalConsumerPreferenceOperations(plan);
@@ -152,7 +272,9 @@ export class GroupedCheckpointRestore{
   const applications=[];for(const group of plan.groups){if(group.type==='sourceBootstrapCommit')applications.push([group,await prepareBootstrapApplication(this.store,replay,group.operations)]);else if(group.type==='sourceAppendCommit'){const anchor=plan.groups.find(x=>x.id===group.prepared.descriptor.value.bootstrap.revisionId);applications.push([group,await prepareAppendApplication(this.store,replay,group.operations,anchor.operations)]);}else if(group.type==='inputWorkingCommit')applications.push([group,await prepareWorkingApplication(working,group.operations)]);else if(group.type==='filterIntent')applications.push([group,await prepareFilterApplication(filter,group.operations[0])]);else applications.push([group,null]);}
   const consumerApplication=consumerOperations.length?await prepareRestoredConsumerPreferenceApplication(this.store,replay,plan,this.stage,state):null;
   const empty=await prepareGroupScope(await prepareGroupCheckpointPlan(replay,[]));
-  return this.store.run(async()=>{const result=await this.live.transaction(true,async t=>{
+  const applyTransaction=generationProof?(fn=>generationTransaction(this,'group-apply',fn)):(fn=>this.live.transaction(true,fn));
+  return this.store.run(async()=>{const result=await applyTransaction(async t=>{
+   if(generationProof){registerRepositoryWorkLimit(this.store.repository,t);await requireCanonicalCheckpointProof(generationProof,{store:this.store,core:this.live},t);}
    const current=await this.stage.get(t,'restore');if(!equal(current,state))fail('BNS_RESTORE_STAGE_CHANGED');
    if(state.phase==='activated'){const active=await t.get('meta',this.live.prefix+'active');if(active?.namespace!==state.replayId||active.manifestId!==state.manifestId||await readRestoreEpoch(t)!==state.base.fence.epoch)fail('BNS_RESTORE_LOCAL_CHANGED');return {state:'activated',namespace:state.replayId};}
    if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');
@@ -162,14 +284,24 @@ export class GroupedCheckpointRestore{
    if((await t.primaryRangePage('meta',{prefix:replay.prefix+'generation:'+replay.fixedNamespace+':',limit:1})).rows.length)fail('BNS_RESTORE_STAGE_CHANGED');
    for(const [group,cap]of applications){if(group.type==='humanLibraryCommit')await applyHumanGroupStep(t,humanApplication,group.id);else if(group.type==='sourceBootstrapCommit')await applyBootstrapApplication(t,cap);else if(group.type==='sourceAppendCommit')await applyAppendApplication(t,cap);else if(group.type==='inputWorkingCommit')await working.applyRestored(t,cap,sourceProof);else if(group.type==='filterIntent')await filter.applyRestored(t,cap,sourceProof);else{replay.materialize=group.type==='contextDesired'?desired:group.type==='topicDesired'?topicDesired:group.type==='promptBinding'?materializePromptBinding:manual.materialize;const result=await replay.applyInTransaction(t,group.operations[0],{materialize:group.type!=='consumerPreference'});if(result.state!=='applied')fail('BNS_GROUP_CAUSAL_GAP');}await this.checkpoint('applied-group',group.id);}
    const publication=consumerApplication?await applyRestoredConsumerPreferenceOwners(t,consumerApplication):null;
-   await requireGroupScope(this.store,t,canonical);if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');await requireStorageBudget(t,this.stage,state.replayId);
+   await requireGroupScope(this.store,t,canonical);if(!equal(await authority(this.store,this.live,t),state.base))fail('BNS_RESTORE_LOCAL_CHANGED');await requireStorageBudget(t,this.stage,state.replayId,state);
    for(const expected of plan.heads){const actual=await replay.get(t,'head',expected.type,expected.entityId);if(!actual||!equal(withoutId(actual),expected))fail('BNS_CHECKPOINT_HEAD');}
    for(const expected of frontiers){const actual=await replay.get(t,'frontier',expected.deviceId);if(!actual||!equal(withoutId(actual),expected))fail('BNS_CHECKPOINT_FRONTIER');}
    await this.checkpoint('before-activation',t);await t.put('meta',{id:this.live.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:state.graphDigest});
    const publishing=!!publication?.operations.length;
    await this.stage.put(t,'restore',[],{...withoutId(state),phase:publishing?'publishing':'activated'});
    if(publishing){const binding=await this.store.controlPublicationBinding(t);await t.put('meta',{id:CONSUMER_PUBLICATION_PENDING_ID,version:2,namespace:state.replayId,databaseId:binding.reservation.databaseId,controlRevision:binding.reservation.revision,nonce:binding.reservation.nonce,terminal:false,before:publication.before,operations:publication.operations,restore:{stageId:state.id,manifestId:state.manifestId,graphDigest:state.graphDigest,replayId:state.replayId,operations:publication.allOperations,smartFilter:publication.smartFilter}});}
-   await this.checkpoint('after-activation',t);return {state:publishing?'publishing':'activated',namespace:state.replayId};
+   await this.checkpoint('after-activation',t);
+   if(generationProof){
+    await requireCanonicalCheckpointProof(generationProof,{store:this.store,core:this.live},t);
+    const active={id:this.live.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:state.graphDigest},completed={...state,phase:'activated'};
+    // Bind the real original activation receipt through native completion;
+    // neither a user callback nor a stage DTO can stand in for this receipt.
+    registerRepositoryFinalReadFence(this.store.repository,t,{isCurrent:()=>true,plan:function*(){
+     if(!equal(yield {method:'get',table:'meta',key:active.id},active)||!equal(yield {method:'get',table:'meta',key:state.id},completed))fail('BNS_RESTORE_STAGE_CHANGED');return true;
+    }});
+   }
+   return {state:publishing?'publishing':'activated',namespace:state.replayId};
   });if(result.state==='publishing'){await this.store.publish();return {state:'activated',namespace:state.replayId};}return result;});
  }
  async cleanup({abandon=false,limit=100}={}){
@@ -209,4 +341,80 @@ export class GroupedCheckpointRestore{
    await this.stage.put(t,'restore',[],{...withoutId(old),manifestId:ref.id,manifestRef:clone(ref),manifest:m,received:items.length,graphDigest:compiled.plan.digest});await requireStorageBudget(t,this.stage,old.replayId);
   },['meta']);return {state:'validated',operations:delta.length};
  }
+}
+
+// Read-only existing-library inheritance evidence. The original compiler and
+// canonical owner qualify every represented family; this opaque proof grants no
+// write, provider or activation capability and never initializes Foundation.
+const applicationInheritanceCuts=new WeakMap();
+export async function prepareOriginalApplicationInheritanceCut(store,core){
+ requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(core);
+ if(store.repository!==core.repository||store.loaded!==true||!store.repository.db)fail('BNS_GROUP_BINDING');
+ const observation=await observeOriginalControlPublication(store),tail=store.tail,repository=store.repository;
+ const plan=await prepareGroupCheckpointPlan(core,await allOperations(core)),scope=await prepareGroupScope(plan,{store});
+ const held={store,core,repository,datasetId:core.datasetId,prefix:core.prefix,fixedNamespace:core.fixedNamespace,db:repository.db,tail,observation:observation.token,plan,scope,canonicalDigest:await digest(scope.ownerScope),cut:null,control:clone(observation.row)};
+ const token=Object.freeze(Object.create(null));applicationInheritanceCuts.set(token,held);
+ held.cut=await requireOriginalApplicationInheritanceCut(token);return token;
+}
+export async function requireOriginalApplicationInheritanceCut(token){
+ const p=applicationInheritanceCuts.get(token);if(arguments.length!==1||!p)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');
+ const {store,core,repository}=p;
+ const current=()=>requireOriginalApplicationInheritanceCutCurrent(token);
+ current();const observed=await observeOriginalControlPublication(store,p.observation);if(!equal(observed.row,p.control))fail('BNS_SNAPSHOT_CHANGED');
+ const cut=await core.transaction(false,async t=>{const value=await authority(store,core,t);await store.qualifyControlPublicationRead(t);await requireCommittedPlan(core,t,p.plan);await requireGroupScope(store,t,p.scope);return value;});current();
+ if(p.cut!==null&&!equal(cut,p.cut))fail('BNS_SNAPSHOT_CHANGED');
+ return clone(cut);
+}
+// Stricter existing-cut action profile: this only rechecks the ORIGINAL
+// prepared proof's in-memory provenance. It neither refreshes a proof nor reads
+// a new local row. The fixed selection consumer must additionally compare its
+// complete raw repository/local/registry/control cut before any mutation.
+export function requireOriginalApplicationInheritanceCutCurrent(token){
+ const p=applicationInheritanceCuts.get(token);if(!p)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');const {store,core,repository}=p;
+ requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(core);
+ if(store.repository!==repository||core.repository!==repository||repository.db!==p.db||store.tail!==p.tail||core.datasetId!==p.datasetId||core.prefix!==p.prefix||core.fixedNamespace!==p.fixedNamespace)fail('BNS_SNAPSHOT_CHANGED');requireOriginalControlObservation(store,p.observation);return true;
+}
+export function requireOriginalApplicationInheritanceSelectionTail(token,action){
+ const p=applicationInheritanceCuts.get(token);if(!p||p.selectionRenewed&&p.selectionRenewed!==action)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');const {store,core,repository}=p;
+ requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(core);if(store.repository!==repository||core.repository!==repository||repository.db!==p.db||core.datasetId!==p.datasetId||core.prefix!==p.prefix||core.fixedNamespace!==p.fixedNamespace)fail('BNS_SNAPSHOT_CHANGED');requireOriginalControlObservationSelectionTail(store,p.observation,action);return true;
+}
+export function renewOriginalApplicationInheritanceSelectionTail(token,action){
+ requireOriginalApplicationInheritanceSelectionTail(token,action);const p=applicationInheritanceCuts.get(token);if(p.selectionRenewed)fail('BNS_SNAPSHOT_CHANGED');p.observation=renewOriginalControlObservationSelectionTail(p.store,p.observation,action);p.tail=p.store.tail;p.selectionRenewed=action;requireOriginalApplicationInheritanceCutCurrent(token);return true;
+}
+export function readOriginalApplicationInheritanceCut(token){
+ const p=applicationInheritanceCuts.get(token);if(!p||!p.cut)fail('BNS_GROUP_SCOPE_PROOF_REQUIRED');requireOriginalControlObservation(p.store,p.observation);
+ return Object.freeze({datasetId:p.datasetId,databaseName:p.repository.name,databaseId:p.control.databaseId,namespace:p.cut.namespace,epoch:p.cut.fence,graphDigest:p.plan.digest,canonicalDigest:p.canonicalDigest,control:clone(p.control)});
+}
+
+// Fixed original-owner entry for CanonicalGenerationPublication. No supplied
+// callback, public receipt DTO or activated return value grants graph validity.
+export async function requireOriginalCanonicalGenerationActivation(restore,proof,t){
+ const held=canonicalGenerationPublications.get(restore);
+ if(!held||held.proof!==proof||canonicalGenerationProofs.get(restore)!==proof)fail('BNS_GENERATION_PROOF_REQUIRED');
+ const {store,live}=originalGenerationBinding(restore),{state,verified,replay,plan,canonical}=held;
+ if(await t.get('meta','canonical-generation:repository-protection:v1')){requireOriginalLibraryDocumentsGenerationMethods(store);requireOriginalGenerationCoreMethods(live);requireOriginalGenerationCoreMethods(restore.stage);}
+ registerRepositoryWorkLimit(store.repository,t);
+ await requireCanonicalCheckpointInputProof(proof,{store,core:live},t);
+ const active={id:live.prefix+'active',namespace:state.replayId,manifestId:state.manifestId,graphDigest:state.graphDigest};
+ if(!equal((await t.get('meta',state.id))??null,state)||!equal((await t.get('meta',active.id))??null,active))fail('BNS_RESTORE_STAGE_CHANGED');
+ const now=await authority(store,live,t);
+ if(now.namespace!==state.replayId||now.fence.epoch!==state.base.fence.epoch||!equal(now.settings,state.base.settings))fail('BNS_RESTORE_LOCAL_CHANGED');
+ await requireConsumerPublicationSettled(t);await store.qualifyControlPublicationRead(t);
+ await requireCommittedPlan(replay,t,plan);await requireGroupScope(store,t,canonical);
+ // A bounded physical closure includes extra/removed rows and protocol facts,
+ // not merely the active pointer. The publication owner owns the sole gate
+ // mutation; its own terminal fence pins the new sealed gate value.
+ const snapshots=[];
+ for(const table of t.tx.objectStoreNames){
+  const rows=[];let after=null;
+  do{const page=await t.primaryRangePage(table,{after,limit:64});for(const row of page.rows)if(table!=='meta'||row.key!=='canonical-generation:gate:v1')rows.push([row.key,clone(row.value)]);after=page.next;}while(after);
+  snapshots.push({table,count:await t.count(table),rows});
+ }
+ registerRepositoryFinalReadFence(store.repository,t,{isCurrent:()=>true,plan:function*(){
+  for(const snapshot of snapshots){
+   if((yield {method:'count',table:snapshot.table})!==snapshot.count)fail('BNS_RESTORE_STAGE_CHANGED');
+   for(const [key,value]of snapshot.rows)if(!equalSourceWorkingPhysicalTree(yield {method:'get',table:snapshot.table,key},value))fail('BNS_RESTORE_STAGE_CHANGED');
+  }return true;
+ }});
+ return Object.freeze({manifestId:state.manifestId,graphDigest:state.graphDigest,generationIdentity:verified.generationIdentity});
 }

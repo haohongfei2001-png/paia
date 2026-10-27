@@ -1,9 +1,10 @@
+import {CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION} from './local-control-publication-keys.js';
+export {CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION} from './local-control-publication-keys.js';
+import {chargeOriginalApplicationSelectionScopeOperands,readOriginalApplicationSelectionMetaGroup} from './idb-repository.js';
 import {ArchiveError} from './constants.js';
 import {hashText} from './dedupe.js';
 import {requireConsumerPublicationSettled} from './browser-native-sync/consumer-publication-state.js';
 
-export const CONTROL_PUBLICATION_REVISION='local-control-publication:revision';
-export const CONTROL_PUBLICATION_RESERVATION='local-control-publication:reservation';
 const refuse=code=>{throw new ArchiveError(code);};
 const exact=(value,keys)=>value&&Object.getPrototypeOf(value)===Object.prototype&&Reflect.ownKeys(value).length===keys.length&&keys.every(key=>Object.hasOwn(value,key));
 
@@ -30,16 +31,19 @@ export const controlPublicationEqual=(a,b)=>controlPublicationEncoding(a)===cont
 export function validateControlPublicationStamp(stamp){if(!exact(stamp,['version','revision','nonce'])||stamp.version!==1||!Number.isSafeInteger(stamp.revision)||stamp.revision<1||typeof stamp.nonce!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(stamp.nonce))refuse('CONTROL_PUBLICATION_INVALID');return stamp;}
 export function controlPublicationRow(control,databaseId,reservation){const controlPublication=validateControlPublicationStamp({version:1,revision:reservation.revision,nonce:reservation.nonce});return {schemaVersion:6,databaseId,...control,controlPublication};}
 export async function readControlPublicationFence(t){
- const revision=await t.get('meta',CONTROL_PUBLICATION_REVISION),reservation=await t.get('meta',CONTROL_PUBLICATION_RESERVATION);
+ const [revision,reservation]=await readOriginalApplicationSelectionMetaGroup(t,[CONTROL_PUBLICATION_REVISION,CONTROL_PUBLICATION_RESERVATION]);
  if(revision!==undefined&&(!exact(revision,['id','version','revision'])||revision.id!==CONTROL_PUBLICATION_REVISION||revision.version!==1||!Number.isSafeInteger(revision.revision)||revision.revision<1))refuse('CONTROL_PUBLICATION_INVALID');
  if(reservation!==undefined&&(!exact(reservation,['id','version','revision','nonce','databaseId','beforeDigest','afterDigest','fenceDigest'])||reservation.id!==CONTROL_PUBLICATION_RESERVATION||reservation.version!==1||reservation.revision!==revision?.revision||typeof reservation.nonce!=='string'||!/^[A-Za-z0-9_-]{8,128}$/.test(reservation.nonce)||typeof reservation.databaseId!=='string'||reservation.databaseId.length>128||typeof reservation.beforeDigest!=='string'||!/^[a-f0-9]{64}$/.test(reservation.beforeDigest)||!['afterDigest','fenceDigest'].every(key=>reservation[key]===null||typeof reservation[key]==='string'&&/^[a-f0-9]{64}$/.test(reservation[key]))))refuse('CONTROL_PUBLICATION_INVALID');
- return {revision:revision?.revision??0,reservation,migration:await t.get('meta','migration'),gate:await t.get('meta','gate'),epoch:await t.get('meta','recovery-restore-epoch')};
+ // The original validation above precedes accepting any of these requests.
+ // The repository helper keeps each real get and the ordinary sequential path.
+ const [migration,gate,epoch]=await readOriginalApplicationSelectionMetaGroup(t,['migration','gate','recovery-restore-epoch']);
+ return {revision:revision?.revision??0,reservation,migration,gate,epoch};
 }
 export async function reserveControlPublication(t,before,{nonce,databaseId,beforeDigest}){
  try{await requireConsumerPublicationSettled(t);}catch(error){if(error.code==='BNS_CONSUMER_PUBLICATION_PENDING')refuse(error.code);throw error;}
  const current=await readControlPublicationFence(t);
  if(current.reservation)refuse('CONTROL_PUBLICATION_PENDING');
- if(!controlPublicationEqual(current,before))refuse('CONTROL_PUBLICATION_CHANGED');
+ chargeOriginalApplicationSelectionScopeOperands(t,[current,before],0);if(!controlPublicationEqual(current,before))refuse('CONTROL_PUBLICATION_CHANGED');
  if(current.revision>=Number.MAX_SAFE_INTEGER)refuse('CONTROL_PUBLICATION_LIMIT');
  if(typeof beforeDigest!=='string'||!/^[a-f0-9]{64}$/.test(beforeDigest))refuse('CONTROL_PUBLICATION_REQUIRED');
  const reservation={id:CONTROL_PUBLICATION_RESERVATION,version:1,revision:current.revision+1,nonce,databaseId,beforeDigest,afterDigest:null,fenceDigest:null};
@@ -48,7 +52,7 @@ export async function reserveControlPublication(t,before,{nonce,databaseId,befor
 }
 export async function requireControlPublicationOwner(t,reservation,expected){
  const current=await readControlPublicationFence(t);
- if(!controlPublicationEqual(current.reservation,reservation)||current.revision!==reservation.revision||expected&&!controlPublicationEqual({migration:current.migration,gate:current.gate,epoch:current.epoch},expected))refuse('CONTROL_PUBLICATION_CHANGED');
+ chargeOriginalApplicationSelectionScopeOperands(t,[current.reservation,reservation,...(expected?[{migration:current.migration,gate:current.gate,epoch:current.epoch},expected]:[])],0);if(!controlPublicationEqual(current.reservation,reservation)||current.revision!==reservation.revision||expected&&!controlPublicationEqual({migration:current.migration,gate:current.gate,epoch:current.epoch},expected))refuse('CONTROL_PUBLICATION_CHANGED');
  return current;
 }
 export async function renewControlPublication(t,reservation,fences,{nonce,beforeDigest}){

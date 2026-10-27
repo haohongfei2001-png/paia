@@ -1,0 +1,66 @@
+{
+  "scope": "Original local raw output and same-run V8; no additional execution",
+  "localEvidenceRoot": "/tmp/paia-main-sync-integration-evidence-20261026T1653Z",
+  "files": [
+    {
+      "relativePath": "coverage-adapter/coverage-37-1793034079461-0.json",
+      "bytes": 631396,
+      "sha256": "2fa5a31439c17589cc9a31e68763e14295a997b55d7cebf892e796333538506f"
+    },
+    {
+      "relativePath": "coverage-foundation/coverage-60-1793034079949-0.json",
+      "bytes": 1334926,
+      "sha256": "01dacf0fe652f0bb58810b37a20e5eb0ad63dd4c6016695d5fea7033c8f5c64e"
+    },
+    {
+      "relativePath": "coverage-foundation-second-after-backup-cycle-fix/coverage-13-1793034344286-0.json",
+      "bytes": 1768924,
+      "sha256": "c6ecd75404d7744811bcfe1479b55995a4b516ca854c2d8bce386fa58a2f11bc"
+    },
+    {
+      "relativePath": "coverage-owner/coverage-14-1793034079100-0.json",
+      "bytes": 1863092,
+      "sha256": "77fec867f15c4f51ddb8f5c1537e88668bfcfb1f36362f33440e81d3d247a98d"
+    },
+    {
+      "relativePath": "first-adapter.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "relativePath": "first-adapter.tap",
+      "bytes": 2722,
+      "sha256": "676a0a93f817fe7ba3ddc8f3b6091037128ef62f39cdd457a861766fefb086c5"
+    },
+    {
+      "relativePath": "first-foundation.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "relativePath": "first-foundation.tap",
+      "bytes": 1092,
+      "sha256": "ba4724f8e1806363a32906248670f3280c455ce02d2ab42dab7ce542f5a87d4f"
+    },
+    {
+      "relativePath": "first-owner.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "relativePath": "first-owner.tap",
+      "bytes": 134841,
+      "sha256": "cf90b6ca067e053fd1bb659e8c7ef4bac4e0c61b214eef36138ebc3151f68807"
+    },
+    {
+      "relativePath": "second-after-backup-cycle-fix-foundation.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "relativePath": "second-after-backup-cycle-fix-foundation.tap",
+      "bytes": 1032,
+      "sha256": "ec8d8718e983a9878af417a471c947729e16d9707eadf1f7a271d09000a15780"
+    }
+  ]
+}

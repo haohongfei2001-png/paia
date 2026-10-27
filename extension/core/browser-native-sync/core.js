@@ -606,3 +606,18 @@ export async function prepareOriginalCurrentMixedGroupReceive(core,type,input){
  if(arguments.length!==3||!['sourceBootstrapCommit','sourceAppendCommit','inputWorkingCommit','humanLibraryCommit'].includes(type))fail('BNS_SOURCE_WORKING_OWNER_REQUIRED');requireOriginalSourceWorkingCore(core);
  const value=await currentMixedCorePreparation.call(core,type,input);requireOriginalSourceWorkingCore(core);return value;
 }
+
+// The protected route checks original data methods without invoking accessors.
+// Ordinary unmarked Core diagnostics remain on their existing public path.
+const generationCorePrototype=BrowserNativeSyncCore.prototype,generationCoreParent=Object.getPrototypeOf(generationCorePrototype),generationCoreDescriptors=Object.getOwnPropertyNames(generationCorePrototype).filter(name=>!['constructor','transaction'].includes(name)).map(name=>[name,Object.getOwnPropertyDescriptor(generationCorePrototype,name)]);
+export function requireOriginalGenerationCoreMethods(core){
+ if(Object.getPrototypeOf(core)!==generationCorePrototype||Object.getPrototypeOf(generationCorePrototype)!==generationCoreParent)throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
+ for(const [name,expected]of generationCoreDescriptors){const actual=Object.getOwnPropertyDescriptor(generationCorePrototype,name);if(Object.getOwnPropertyDescriptor(core,name)||!actual||['value','get','set','writable','enumerable','configurable'].some(key=>actual[key]!==expected[key]))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');}
+}
+
+
+const originalContextCorePrototype=BrowserNativeSyncCore.prototype,originalContextCoreMethods=Object.getOwnPropertyNames(originalContextCorePrototype).filter(name=>name!=='constructor').map(name=>[name,Object.getOwnPropertyDescriptor(originalContextCorePrototype,name)]);
+export function requireOriginalContextMutationCore(core){
+ requireOriginalSourceWorkingCore(core);
+ for(const [name,expected]of originalContextCoreMethods){const actual=Object.getOwnPropertyDescriptor(originalContextCorePrototype,name);if(Object.getOwnPropertyDescriptor(core,name)||!actual||['value','get','set','writable','enumerable','configurable'].some(key=>actual[key]!==expected[key]))fail('BNS_CONTEXT_OWNER_REQUIRED');}
+}
