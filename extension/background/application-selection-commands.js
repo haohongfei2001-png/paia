@@ -136,6 +136,17 @@ export function requirePinnedOriginalApplicationSelectionActivity(selection,toke
 
 export function createInjectedApplicationSelectionCommandsForTest(api,options){return createSelectionCommands(api,options,injectedCommandOrigin);}
 export function createApplicationSelectionCommands(api,options){if(options&&Object.hasOwn(options,'localComposition'))fail('GENERATION_SELECTION_CAPABILITY');return createInjectedApplicationSelectionCommandsForTest(api,options);}
+// The ordinary worker exposes ONLY this observation closure, not the dormant
+// command object, coordinator or lifecycle. Reuse the original exact caller /
+// request validation and source-owned rollout. NULL configuration performs no
+// isolation wait, database enumeration/read, SDK operation or recovery action.
+export function createApplicationSelectionStatusReader(api,{isolated}={}){
+ const selection=createSelectionCommands(api,{isolated,lifecycle:()=>null},ordinaryCommandOrigin);
+ return (request,sender)=>{
+  if(request?.type!=='PAIA_GENERATION_STATUS')return Promise.reject(new ArchiveError('INVALID_REQUEST'));
+  return selection.handle(request,sender);
+ };
+}
 export function createOrdinaryApplicationSelectionCommands(api,options){return createSelectionCommands(api,options,ordinaryCommandOrigin);}
 export function createProductionApplicationSelectionCommands(options){if(arguments.length!==1)fail('GENERATION_SELECTION_CAPABILITY');const api=readOriginalBootstrapHost(),owner=createSelectionCommands(api,options,productionCommandOrigin);requireOriginalBootstrapHost(api);return owner;}
 export function isProductionApplicationSelectionCommands(owner,activity){const api=readOriginalBootstrapHost(),r=originalBootstrapWeakGet(originalSelections,owner);return !!r&&r.origin===productionCommandOrigin&&r.api===api&&r.activity===activity;}

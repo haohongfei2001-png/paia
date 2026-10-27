@@ -1,0 +1,2 @@
+extension/ui/settings-sync-recovery.js e333c46b3a017b56bf2866a8f8edfd1bd79429c2
+extension/tests/settings-sync-interruption-readonly.test.mjs 0f0ed2868a9244786bfcb35e7c4d6234eb465c17

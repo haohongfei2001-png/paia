@@ -7,6 +7,7 @@ import {ContextCardsService,CONTEXT_CARDS_ROW} from '../../../extension/core/con
 import {rows} from '../../../extension/tests/harness/original-complete.mjs';
 import {hashText} from '../../../extension/core/dedupe.js';
 import {canonical} from '../../../extension/core/ai-usage/contracts.js';
+import {DIRTY_PREFIX} from '../../../extension/core/ai-usage/delta.js';
 const options={scope:'synthetic-maintenance',contractVersion:'synthetic-aiu-1',routeVersion:'synthetic-maintenance-1'};
 const read=(s,n,id)=>s.repository.transaction(false,t=>t.get(n,id));
 const acks=async f=>(await rows(f.s,'organizerWorkItems')).filter(r=>r.state==='ACKNOWLEDGED');
@@ -173,7 +174,7 @@ test('NO_CHANGE cannot borrow a sent Item to ACK an unrelated newly selected Inp
  let before;const f=await maintenanceServiceFixture(t,{configure:async({local})=>{before=(await pendingExisting(local)).item;const {capture}=await import('../../../extension/tests/harness/thought-m1.mjs');await local.s.capture(capture((await local.s.status()).epoch,'synthetic-unrelated-existing-check','SYNTHETIC different new Input outside original Item provenance'));},transformResponse:({value,payload})=>{assert.equal(payload.material.inputs.length,2);existingGroup(value,payload,'NO_CHANGE');}}),result=await f.run();assert.equal(result.state,'PARTIAL',JSON.stringify(result));assert.equal((await acks(f)).filter(a=>a.jobId===result.jobId&&a.unit.facet==='context').length,0);assert.equal(result.facets.filter(x=>x.facet==='context'&&x.state==='DEFERRED').reduce((n,x)=>n+x.units,0),2);assert.deepEqual((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.find(i=>i.id===before.id),before);await f.run();assert.equal(f.physical(),1);
 });
 
-for(const operation of ['UPDATE','NO_CHANGE'])test('same-child ungranted partial-excerpt Entry refuses existing Context '+operation,async t=>{
+async function partialExcerptFixture(t,operation='UPDATE'){
  let before,topicId,priorEntries,priorPlacements,priorDependencies,inputId,excerpt;
  const f=await maintenanceServiceFixture(t,{configure:async({local})=>{
   const pending=await pendingExisting(local);before=pending.item;topicId=pending.topic.id;
@@ -185,11 +186,33 @@ for(const operation of ['UPDATE','NO_CHANGE'])test('same-child ungranted partial
   // attempts original new graph staging rather than reused membership.
   const span=value.citations.length;value.citations.push({inputId,field:'body',start:0,end:excerpt.length});value.topic.entries=[{span,type:'idea',entryId:''}];value.topic.additional=[];
   existingGroup(value,payload,operation);
- }}),result=await f.run();
- assert.equal(result.state,'PARTIAL',JSON.stringify(result));assert.equal(f.physical(),1);assert.ok(result.facets.some(x=>x.facet==='topic'&&x.state==='FAILED'&&x.reason==='UNAVAILABLE'));
- assert.equal((await rows(f.s,'thoughts')).filter(e=>!priorEntries.has(e.id)).length,0);assert.equal((await rows(f.s,'placements')).filter(p=>!priorPlacements.has(p.id)).length,0);assert.equal((await rows(f.s,'dependencies')).filter(d=>!priorDependencies.has(d.id)).length,0);
- assert.equal((await acks(f)).filter(a=>a.jobId===result.jobId).length,0);assert.deepEqual((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.find(i=>i.id===before.id),before);
- const graph={entries:await rows(f.s,'thoughts'),placements:await rows(f.s,'placements'),dependencies:await rows(f.s,'dependencies')};await f.run();assert.equal(f.physical(),1);assert.deepEqual({entries:await rows(f.s,'thoughts'),placements:await rows(f.s,'placements'),dependencies:await rows(f.s,'dependencies')},graph);
+ }});return {f,before,topicId,priorEntries,priorPlacements,priorDependencies,details:()=>({inputId,excerpt})};
+}
+
+for(const operation of ['UPDATE','NO_CHANGE'])test('same-child partial-excerpt commits Topic and defers ungranted existing Context '+operation,async t=>{
+ const {f,before,priorEntries,priorPlacements,priorDependencies,details}=await partialExcerptFixture(t,operation),result=await f.run(),{inputId,excerpt}=details();
+ assert.equal(result.state,'PARTIAL',JSON.stringify(result));assert.equal(f.physical(),1);assert.ok(result.facets.some(x=>x.facet==='topic'&&x.state==='COMMITTED'),JSON.stringify(result));
+ const created=(await rows(f.s,'thoughts')).filter(e=>!priorEntries.has(e.id));assert.equal(created.length,1);assert.equal(created[0].bodyBinding,'thought');assert.equal(created[0].thoughtText,excerpt);assert.equal((await rows(f.s,'placements')).filter(p=>!priorPlacements.has(p.id)).length,1);assert.equal((await rows(f.s,'dependencies')).filter(d=>!priorDependencies.has(d.id)).length,1);
+ const committed=(await acks(f)).filter(a=>a.jobId===result.jobId);assert.equal(committed.length,1);assert.equal(committed[0].unit.facet,'topic');const pending=(await defers(f)).filter(a=>a.jobId===result.jobId);assert.equal(pending.length,1);assert.equal(pending[0].unit.facet,'context');assert.equal(pending[0].retryCondition,'CONTEXT_MAPPING_UNAVAILABLE');assert.ok(result.facets.some(x=>x.facet==='context'&&x.state==='DEFERRED'));const dirty=(await rows(f.s,'meta')).find(r=>r.id===DIRTY_PREFIX+JSON.stringify(['input',inputId]));assert.deepEqual(dirty?.pendingFacets,['context']);assert.deepEqual((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.find(i=>i.id===before.id),before);
+ const settled=await rows(f.s,'organizerWorkItems');
+ const graph={entries:await rows(f.s,'thoughts'),placements:await rows(f.s,'placements'),dependencies:await rows(f.s,'dependencies')};await f.run();assert.equal(f.physical(),1);assert.deepEqual({entries:await rows(f.s,'thoughts'),placements:await rows(f.s,'placements'),dependencies:await rows(f.s,'dependencies')},graph);assert.deepEqual(await rows(f.s,'organizerWorkItems'),settled);
+});
+
+for(const drift of ['source','working','item','graph'])test('partial-excerpt Topic final ACK refuses genuine '+drift+' drift without any facet ACK',async t=>{
+ const {f,before,priorEntries}=await partialExcerptFixture(t),transaction=f.s.repository.transaction.bind(f.s.repository);let reached=false;
+ f.s.repository.transaction=(write,fn,...rest)=>transaction(write,async tx=>{if(write){const put=tx.put.bind(tx);tx.put=async(name,row,...more)=>{const value=await put(name,row,...more);if(!reached&&name==='organizerWorkItems'&&row.state==='ACKNOWLEDGED'&&row.unit?.facet==='topic'){
+  reached=true;if(drift==='source'){const row=(await tx.all('records'))[0];row.value.originalText+=' SYNTHETIC drift';await put('records',row);}
+  else if(drift==='working'){const row=(await tx.all('blocks'))[0];row.value.libraryText='SYNTHETIC unjournalled Working drift';await put('blocks',row);}
+  else if(drift==='item'){const row=await tx.get('meta',CONTEXT_CARDS_ROW);row.items.find(i=>i.id===before.id).body+=' SYNTHETIC drift';await put('meta',row);}
+  else {const row=(await tx.all('placements')).find(p=>!priorEntries.has(p.entryId));row.excludedByUser=true;await put('placements',row);}
+ }return value;};}return fn(tx);},...rest);
+ try{const result=await f.run();assert.equal(reached,true);assert.equal(result.state,'PARTIAL',JSON.stringify(result));assert.ok(result.facets.some(x=>x.facet==='topic'&&x.state==='FAILED'));assert.equal((await acks(f)).filter(a=>a.jobId===result.jobId).length,0);assert.equal((await defers(f)).filter(a=>a.jobId===result.jobId).length,0);assert.equal((await rows(f.s,'thoughts')).filter(e=>!priorEntries.has(e.id)).length,0);assert.deepEqual((await read(f.s,'meta',CONTEXT_CARDS_ROW)).items.find(i=>i.id===before.id),before);await f.run();assert.equal(f.physical(),1);}finally{f.s.repository.transaction=transaction;}
+});
+
+test('partial-excerpt late Item change after Topic commit cannot submit stale Context DEFER or replay',async t=>{
+ const {f,before}=await partialExcerptFixture(t),{TopicFormationService}=await import('../../../extension/core/topic-formation.js'),commit=TopicFormationService.prototype.commit;let reached=false,changed;
+ t.mock.method(TopicFormationService.prototype,'commit',async function(...args){const result=await commit.apply(this,args);if(this.store===f.s&&!reached){reached=true;await f.s.repository.transaction(true,async tx=>{const row=await tx.get('meta',CONTEXT_CARDS_ROW);row.items.find(i=>i.id===before.id).body+=' SYNTHETIC late change';changed=structuredClone(row);await tx.put('meta',row);});}return result;});
+ const result=await f.run();assert.equal(reached,true);assert.equal(result.state,'PARTIAL',JSON.stringify(result));const committed=(await acks(f)).filter(a=>a.jobId===result.jobId);assert.equal(committed.length,1);assert.equal(committed[0].unit.facet,'topic');assert.equal((await defers(f)).filter(a=>a.jobId===result.jobId).length,0);assert.deepEqual(await read(f.s,'meta',CONTEXT_CARDS_ROW),changed);const work=await rows(f.s,'organizerWorkItems');await f.run();assert.equal(f.physical(),1);assert.deepEqual(await rows(f.s,'organizerWorkItems'),work);
 });
 
 async function existingGraphFixture(t,operation){

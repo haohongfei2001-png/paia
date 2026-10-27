@@ -108,10 +108,13 @@ test('Q4 main existing-only cold owner cannot create or migrate and binds the re
 });
 
 test('Q4 main original terminal get/count and successful commit consume the same ticket without refill',async t=>{
- const r=repository(t,'terminal');await seed(r);const ticket=createOriginalRecoveryWork(r);chargeOriginalRecoveryWork(r,ticket,0,4093);const seen=[];let scope;
+ const r=repository(t,'terminal');await seed(r);const ticket=createOriginalRecoveryWork(r);
+ // One put + the owner's terminal get/count + six real selection/protection
+ // admission, settlement and terminal gets consume exactly nine references.
+ chargeOriginalRecoveryWork(r,ticket,0,4096-9);const seen=[];let scope;
  const originalGet=IDBObjectStore.prototype.get,originalCount=IDBObjectStore.prototype.count;
- IDBObjectStore.prototype.get=function(...args){if(this.transaction.db===r.db)seen.push('get');return Reflect.apply(originalGet,this,args);};
- IDBObjectStore.prototype.count=function(...args){if(this.transaction.db===r.db)seen.push('count');return Reflect.apply(originalCount,this,args);};
+ IDBObjectStore.prototype.get=function(...args){if(this.transaction.db===r.db)seen.push(['get',args[0]]);return Reflect.apply(originalGet,this,args);};
+ IDBObjectStore.prototype.count=function(...args){if(this.transaction.db===r.db){const q=args[0];seen.push(['count',{lower:q.lower,upper:q.upper,lowerOpen:q.lowerOpen,upperOpen:q.upperOpen}]);}return Reflect.apply(originalCount,this,args);};
  t.after(()=>{IDBObjectStore.prototype.get=originalGet;IDBObjectStore.prototype.count=originalCount;});
  await withOriginalRecoveryWork(r,ticket,()=>r.transaction(true,async tx=>{
   scope=tx;await tx.put('meta',{id:'SYNTHETIC_terminal',value:4});
@@ -121,7 +124,13 @@ test('Q4 main original terminal get/count and successful commit consume the same
   }});
  },['meta']));
  IDBObjectStore.prototype.get=originalGet;IDBObjectStore.prototype.count=originalCount;
- assert.deepEqual(seen,['get','count']);assert.equal(requireRepositoryTransactionSucceeded(r,scope),true);
+ assert.deepEqual(seen,[
+  ['get','application-generation-selection:v1'],['get','canonical-generation:repository-protection:v1'],
+  ['get','application-generation-selection:v1'],['get','canonical-generation:repository-protection:v1'],
+  ['get','SYNTHETIC_terminal'],['count',{lower:'SYNTHETIC_terminal',upper:'SYNTHETIC_terminal',lowerOpen:false,upperOpen:false}],
+  ['get','application-generation-selection:v1'],['get','canonical-generation:repository-protection:v1']
+ ]);assert.equal(requireRepositoryTransactionSucceeded(r,scope),true);checkOriginalRecoveryWork(r,ticket);
+ // The successful commit exactly exhausts, rather than refills, the same 4096 refs.
  let entered=false;await assert.rejects(withOriginalRecoveryWork(r,ticket,()=>r.transaction(false,()=>{entered=true;},['meta'])),limit);
  assert.equal(entered,false);assert.equal((await r.transaction(false,tx=>tx.get('meta','SYNTHETIC_terminal'),['meta'])).value,4);
 });

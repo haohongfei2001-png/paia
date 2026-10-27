@@ -1,0 +1,193 @@
+2026-10-27T03:02:42.1284417Z FAIL human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: original before snapshot covers complete independently collected fixture closure
+2026-10-27T03:02:42.1286323Z Error [ERR_TEST_FAILURE]: Expected values to be strictly deep-equal:
+2026-10-27T03:02:42.1287057Z + actual - expected
+2026-10-27T03:02:42.1287545Z 
+2026-10-27T03:02:42.1287885Z   [
+2026-10-27T03:02:42.1288619Z     'background/ai-filter-consent.js',
+2026-10-27T03:02:42.1289358Z +   'background/application-editor-guard.js',
+2026-10-27T03:02:42.1290122Z +   'background/application-local-tools-coordination.js',
+2026-10-27T03:02:42.1290816Z +   'background/application-selection-commands.js',
+2026-10-27T03:02:42.1291347Z +   'background/application-selection-reservation-coordination.js',
+2026-10-27T03:02:42.1292063Z +   'background/application-startup-events.js',
+2026-10-27T03:02:42.1292756Z +   'background/application-store-configuration.js',
+2026-10-27T03:02:42.1293450Z +   'background/application-store-selection.js',
+2026-10-27T03:02:42.1293972Z +   'background/application-transport-coordination.js',
+2026-10-27T03:02:42.1295070Z +   'background/application-worker-coordination.js',
+2026-10-27T03:02:42.1295704Z +   'background/assist-consent.js',
+2026-10-27T03:02:42.1296046Z +   'background/assist-reply-lease.js',
+2026-10-27T03:02:42.1296587Z +   'background/capture-recovery.js',
+2026-10-27T03:02:42.1297391Z +   'background/context-connection-configuration.js',
+2026-10-27T03:02:42.1298094Z +   'background/context-connection-policy.js',
+2026-10-27T03:02:42.1298749Z +   'background/context-connections.js',
+2026-10-27T03:02:42.1299349Z +   'background/import-handler.js',
+2026-10-27T03:02:42.1299937Z     'background/maintenance-processing-commands.js',
+2026-10-27T03:02:42.1300529Z     'background/maintenance-processing-consent.js',
+2026-10-27T03:02:42.1301454Z +   'background/native-host-bootstrap.js',
+2026-10-27T03:02:42.1302007Z +   'background/prompt-assist.js',
+2026-10-27T03:02:42.1302595Z +   'background/prompt-insertion-receipts.js',
+2026-10-27T03:02:42.1303201Z +   'background/prompt-next.js',
+2026-10-27T03:02:42.1303754Z +   'background/prompt-reuse-commands.js',
+2026-10-27T03:02:42.1304320Z +   'background/prompt-surface.js',
+2026-10-27T03:02:42.1304933Z +   'background/sync-lifecycle-configuration.js',
+2026-10-27T03:02:42.1305570Z +   'background/sync-local-lifecycle.js',
+2026-10-27T03:02:42.1306083Z +   'ui/input-search.js'
+2026-10-27T03:02:42.1306461Z   ]
+2026-10-27T03:02:42.1306666Z 
+2026-10-27T03:02:42.1307421Z Caused by: AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+2026-10-27T03:02:42.1308176Z + actual - expected
+2026-10-27T03:02:42.1308402Z 
+2026-10-27T03:02:42.1308542Z   [
+2026-10-27T03:02:42.1308932Z     'background/ai-filter-consent.js',
+2026-10-27T03:02:42.1309529Z +   'background/application-editor-guard.js',
+2026-10-27T03:02:42.1310275Z +   'background/application-local-tools-coordination.js',
+2026-10-27T03:02:42.1311017Z +   'background/application-selection-commands.js',
+2026-10-27T03:02:42.1311881Z +   'background/application-selection-reservation-coordination.js',
+2026-10-27T03:02:42.1312701Z +   'background/application-startup-events.js',
+2026-10-27T03:02:42.1313396Z +   'background/application-store-configuration.js',
+2026-10-27T03:02:42.1314088Z +   'background/application-store-selection.js',
+2026-10-27T03:02:42.1314805Z +   'background/application-transport-coordination.js',
+2026-10-27T03:02:42.1315545Z +   'background/application-worker-coordination.js',
+2026-10-27T03:02:42.1316153Z +   'background/assist-consent.js',
+2026-10-27T03:02:42.1316700Z +   'background/assist-reply-lease.js',
+2026-10-27T03:02:42.1317621Z +   'background/capture-recovery.js',
+2026-10-27T03:02:42.1318266Z +   'background/context-connection-configuration.js',
+2026-10-27T03:02:42.1318954Z +   'background/context-connection-policy.js',
+2026-10-27T03:02:42.1319568Z +   'background/context-connections.js',
+2026-10-27T03:02:42.1320118Z +   'background/import-handler.js',
+2026-10-27T03:02:42.1320710Z     'background/maintenance-processing-commands.js',
+2026-10-27T03:02:42.1321357Z     'background/maintenance-processing-consent.js',
+2026-10-27T03:02:42.1322009Z +   'background/native-host-bootstrap.js',
+2026-10-27T03:02:42.1322573Z +   'background/prompt-assist.js',
+2026-10-27T03:02:42.1323152Z +   'background/prompt-insertion-receipts.js',
+2026-10-27T03:02:42.1323744Z +   'background/prompt-next.js',
+2026-10-27T03:02:42.1324311Z +   'background/prompt-reuse-commands.js',
+2026-10-27T03:02:42.1324866Z +   'background/prompt-surface.js',
+2026-10-27T03:02:42.1325471Z +   'background/sync-lifecycle-configuration.js',
+2026-10-27T03:02:42.1326137Z +   'background/sync-local-lifecycle.js',
+2026-10-27T03:02:42.1326638Z +   'ui/input-search.js'
+2026-10-27T03:02:42.1326999Z   ]
+2026-10-27T03:02:42.1327320Z 
+2026-10-27T03:02:42.1328254Z     at TestContext.<anonymous> (file:///home/runner/work/paia/paia/extension/tests/human-current-native-source-inventory.test.mjs:55:10)
+2026-10-27T03:02:42.1329512Z     at async Test.run (node:internal/test_runner/test:1054:7)
+2026-10-27T03:02:42.1330659Z     at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+2026-10-27T03:02:42.1331574Z FAILURE_METADATA {"failureType":"testCodeFailure"}
+2026-10-27T03:02:42.2165635Z PASS human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: unchanged original core and background served bytes are both re-read
+2026-10-27T03:02:42.2188495Z PASS human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: source background/ai-filter-consent.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:42.2216324Z PASS human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: release background/ai-filter-consent.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:42.2281311Z PASS human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: source background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:42.2299789Z PASS human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: release background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:42.2314339Z PASS human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: source background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:42.2331335Z PASS human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: release background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:42.3147998Z PASS human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: unlisted served path still refuses before a runtime read
+2026-10-27T03:02:42.4534852Z PASS human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/ai-filter-consent.js
+2026-10-27T03:02:42.6089030Z PASS human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-commands.js
+2026-10-27T03:02:42.7598115Z PASS human-current-native-source-inventory.test.mjs: human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-consent.js
+2026-10-27T03:02:42.9232134Z FAIL human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: original before snapshot covers complete independently collected fixture closure
+2026-10-27T03:02:42.9233879Z Error [ERR_TEST_FAILURE]: Expected values to be strictly deep-equal:
+2026-10-27T03:02:42.9234491Z + actual - expected
+2026-10-27T03:02:42.9234715Z 
+2026-10-27T03:02:42.9234848Z   [
+2026-10-27T03:02:42.9235220Z     'background/ai-filter-consent.js',
+2026-10-27T03:02:42.9235847Z +   'background/application-editor-guard.js',
+2026-10-27T03:02:42.9236486Z +   'background/application-local-tools-coordination.js',
+2026-10-27T03:02:42.9236933Z +   'background/application-selection-commands.js',
+2026-10-27T03:02:42.9237649Z +   'background/application-selection-reservation-coordination.js',
+2026-10-27T03:02:42.9238479Z +   'background/application-startup-events.js',
+2026-10-27T03:02:42.9239181Z +   'background/application-store-configuration.js',
+2026-10-27T03:02:42.9239602Z +   'background/application-store-selection.js',
+2026-10-27T03:02:42.9240259Z +   'background/application-transport-coordination.js',
+2026-10-27T03:02:42.9240974Z +   'background/application-worker-coordination.js',
+2026-10-27T03:02:42.9241341Z +   'background/assist-consent.js',
+2026-10-27T03:02:42.9241853Z +   'background/assist-reply-lease.js',
+2026-10-27T03:02:42.9242408Z +   'background/capture-recovery.js',
+2026-10-27T03:02:42.9243581Z +   'background/context-connection-configuration.js',
+2026-10-27T03:02:42.9244348Z +   'background/context-connection-policy.js',
+2026-10-27T03:02:42.9244900Z +   'background/context-connections.js',
+2026-10-27T03:02:42.9245462Z +   'background/import-handler.js',
+2026-10-27T03:02:42.9246054Z     'background/maintenance-processing-commands.js',
+2026-10-27T03:02:42.9246708Z     'background/maintenance-processing-consent.js',
+2026-10-27T03:02:42.9247511Z +   'background/native-host-bootstrap.js',
+2026-10-27T03:02:42.9248063Z +   'background/prompt-assist.js',
+2026-10-27T03:02:42.9248648Z +   'background/prompt-insertion-receipts.js',
+2026-10-27T03:02:42.9249230Z +   'background/prompt-next.js',
+2026-10-27T03:02:42.9250046Z +   'background/prompt-reuse-commands.js',
+2026-10-27T03:02:42.9250614Z +   'background/prompt-surface.js',
+2026-10-27T03:02:42.9251199Z +   'background/sync-lifecycle-configuration.js',
+2026-10-27T03:02:42.9251830Z +   'background/sync-local-lifecycle.js',
+2026-10-27T03:02:42.9252330Z +   'ui/input-search.js'
+2026-10-27T03:02:42.9252694Z   ]
+2026-10-27T03:02:42.9252867Z 
+2026-10-27T03:02:42.9253444Z Caused by: AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+2026-10-27T03:02:42.9254138Z + actual - expected
+2026-10-27T03:02:42.9254338Z 
+2026-10-27T03:02:42.9254459Z   [
+2026-10-27T03:02:42.9254820Z     'background/ai-filter-consent.js',
+2026-10-27T03:02:42.9255378Z +   'background/application-editor-guard.js',
+2026-10-27T03:02:42.9256050Z +   'background/application-local-tools-coordination.js',
+2026-10-27T03:02:42.9256673Z +   'background/application-selection-commands.js',
+2026-10-27T03:02:42.9257600Z +   'background/application-selection-reservation-coordination.js',
+2026-10-27T03:02:42.9258273Z +   'background/application-startup-events.js',
+2026-10-27T03:02:42.9258871Z +   'background/application-store-configuration.js',
+2026-10-27T03:02:42.9259426Z +   'background/application-store-selection.js',
+2026-10-27T03:02:42.9260017Z +   'background/application-transport-coordination.js',
+2026-10-27T03:02:42.9260677Z +   'background/application-worker-coordination.js',
+2026-10-27T03:02:42.9261288Z +   'background/assist-consent.js',
+2026-10-27T03:02:42.9261831Z +   'background/assist-reply-lease.js',
+2026-10-27T03:02:42.9262429Z +   'background/capture-recovery.js',
+2026-10-27T03:02:42.9263067Z +   'background/context-connection-configuration.js',
+2026-10-27T03:02:42.9263758Z +   'background/context-connection-policy.js',
+2026-10-27T03:02:42.9264391Z +   'background/context-connections.js',
+2026-10-27T03:02:42.9264941Z +   'background/import-handler.js',
+2026-10-27T03:02:42.9265551Z     'background/maintenance-processing-commands.js',
+2026-10-27T03:02:42.9266231Z     'background/maintenance-processing-consent.js',
+2026-10-27T03:02:42.9266901Z +   'background/native-host-bootstrap.js',
+2026-10-27T03:02:42.9267626Z +   'background/prompt-assist.js',
+2026-10-27T03:02:42.9268203Z +   'background/prompt-insertion-receipts.js',
+2026-10-27T03:02:42.9268817Z +   'background/prompt-next.js',
+2026-10-27T03:02:42.9269355Z +   'background/prompt-reuse-commands.js',
+2026-10-27T03:02:42.9269911Z +   'background/prompt-surface.js',
+2026-10-27T03:02:42.9270535Z +   'background/sync-lifecycle-configuration.js',
+2026-10-27T03:02:42.9271163Z +   'background/sync-local-lifecycle.js',
+2026-10-27T03:02:42.9271679Z +   'ui/input-search.js'
+2026-10-27T03:02:42.9272047Z   ]
+2026-10-27T03:02:42.9272216Z 
+2026-10-27T03:02:42.9273151Z     at TestContext.<anonymous> (file:///home/runner/work/paia/paia/extension/tests/human-current-native-source-inventory.test.mjs:55:10)
+2026-10-27T03:02:42.9274423Z     at async Test.run (node:internal/test_runner/test:1054:7)
+2026-10-27T03:02:42.9275282Z     at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+2026-10-27T03:02:42.9276171Z FAILURE_METADATA {"failureType":"testCodeFailure"}
+2026-10-27T03:02:42.9898615Z PASS human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: unchanged original core and background served bytes are both re-read
+2026-10-27T03:02:42.9911118Z PASS human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: source background/ai-filter-consent.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:42.9923479Z PASS human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: release background/ai-filter-consent.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:42.9937455Z PASS human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: source background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:42.9950028Z PASS human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: release background/maintenance-processing-commands.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:42.9962073Z PASS human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: source background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:42.9973902Z PASS human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: release background/maintenance-processing-consent.js change after serving is refused by original runtime recheck
+2026-10-27T03:02:43.0761645Z PASS human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: unlisted served path still refuses before a runtime read
+2026-10-27T03:02:43.2211590Z PASS human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/ai-filter-consent.js
+2026-10-27T03:02:43.3728810Z PASS human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-commands.js
+2026-10-27T03:02:43.5088158Z PASS human-current-native-source-inventory.test.mjs: human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-consent.js
+2026-10-27T03:02:43.9239404Z PASS human-graph-edit-owner-seams.test.mjs: original topic-edit transaction writer preserves ordered allocations and rollback
+2026-10-27T03:02:43.9706121Z PASS human-graph-edit-owner-seams.test.mjs: original topic-rename transaction writer preserves ordered allocations and rollback
+2026-10-27T03:02:44.0062616Z PASS human-graph-edit-owner-seams.test.mjs: original section-edit transaction writer preserves ordered allocations and rollback
+2026-10-27T03:02:44.0431485Z PASS human-graph-edit-owner-seams.test.mjs: public editTopic captures the validated changes object before its first await
+2026-10-27T03:02:44.4556658Z PASS human-graph-index-transition.test.mjs: complete pure metadata transition matches frozen original actual invalidate across qualifying, no-allocation and source-time cases
+2026-10-27T03:02:44.4897101Z PASS human-graph-index-transition.test.mjs: three repeated actual invalidations inherit every complete original field and consume exactly original ordered allocations
+2026-10-27T03:02:44.5189318Z PASS human-graph-index-transition.test.mjs: current invalidation refuses old projection versions without allocating or mutating them
+2026-10-27T03:02:44.9118797Z PASS human-graph-owner-planning.test.mjs: real journal preserves coalesced identity, sixty-second boundary and ordered clock UUID allocation
+2026-10-27T03:02:44.9409642Z PASS human-graph-owner-planning.test.mjs: important history never coalesces in either pure domain plan or real journal
+2026-10-27T03:02:45.0038251Z PASS human-graph-owner-planning.test.mjs: actual move composes both placement intentions atomically and stale target leaves the source intact
+2026-10-27T03:02:45.0039542Z PASS human-graph-owner-planning.test.mjs: request-local allocation preserves ordered distinct slots and refuses missing, reordered or foreign consumption
+2026-10-27T03:02:45.0433029Z PASS human-graph-owner-planning.test.mjs: actual Topic touch consumes index generation only for an existing active index, including repeated touches
+2026-10-27T03:02:45.4976159Z PASS human-graph-section-edit-plan.test.mjs: named Section edit and historical title restore use the real same-transaction owner
+2026-10-27T03:02:45.8309890Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors normal
+2026-10-27T03:02:45.8314051Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors source-date
+2026-10-27T03:02:45.8316528Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors capture-date
+2026-10-27T03:02:45.8319590Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors invalid-date
+2026-10-27T03:02:45.8321234Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors await-mutation
+2026-10-27T03:02:45.8333024Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors removed-placement
+2026-10-27T03:02:45.8339963Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors null-placement
+2026-10-27T03:02:45.8359178Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors missing-entry
+2026-10-27T03:02:45.8361275Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors wrong-schema
+2026-10-27T03:02:45.8363033Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors removed-entry
+2026-10-27T03:02:45.8364879Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors source-unreadable
+2026-10-27T03:02:45.8366761Z PASS human-projection-descriptor-sharing.test.mjs: original descriptor exact body/order/aliases/errors ai-unreadable

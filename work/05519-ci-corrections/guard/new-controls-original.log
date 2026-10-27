@@ -1,0 +1,150 @@
+Traceback (most recent call last):
+  File "<string>", line 16, in <module>
+AssertionError: [',', ',', ',', ']; const double=[', ',', ']; const template=`local-import`; import ', './b.js', './c.js', './d.js']
+Traceback (most recent call last):
+  File "<string>", line 11, in <module>
+AssertionError: ['background/capture-recovery.js:40: forbidden credential, history or unrelated privileged API']
+Traceback (most recent call last):
+  File "<string>", line 12, in <module>
+AssertionError: ('google-drive.js', ['core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal', 'core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal', 'core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal'])
+✖ package import keywords exclude quoted schema and local-import identities without losing real references (38.869227ms)
+✖ capture package guard admits only the original API identity and pinned dispatches (36.610594ms)
+✖ only existing injected Sync adapters retain their exact URL inventory without network or scope expansion (34.207657ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 0
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 200.968913
+
+✖ failing tests:
+
+test at extension/tests/current-runtime-package-guard.test.mjs:15:1
+✖ package import keywords exclude quoted schema and local-import identities without losing real references (38.869227ms)
+  Error: Command failed: python3 -c 
+  import sys
+  sys.path.insert(0, 'scripts')
+  import check_package as c
+  def errors(path, source):
+   c.ERRORS.clear()
+   c.audit_js(path, source)
+   return list(c.ERRORS)
+  
+  path=c.ROOT/'core/example.js'
+  references=[]
+  original=c.local_reference
+  c.local_reference=lambda reference,*args:references.append(reference)
+  source="const kinds=['local-import','from','import','native-import']; const double=[\"local-import\",\"from\"]; const template=\x60local-import\x60; import './a.js'; import x from\"./b.js\"; export {x} from './c.js'; const y=import('./d.js');"
+  assert not errors(path,source)
+  assert references==['./a.js','./b.js','./c.js','./d.js'],references
+  c.local_reference=original
+  for source in ["import './not-packaged.js';", "import x from\"./not-packaged.js\";", "export {x} from './not-packaged.js';", "import('./not-packaged.js');", "import(moduleName);"]:
+   assert errors(path,source),source
+  print('import controls passed')
+  
+  Traceback (most recent call last):
+    File "<string>", line 16, in <module>
+  AssertionError: [',', ',', ',', ']; const double=[', ',', ']; const template=`local-import`; import ', './b.js', './c.js', './d.js']
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at checkExecSyncError (node:child_process:942:11)
+      at execFileSync (node:child_process:978:15)
+      at audit (file:///tmp/paia-05518-guard-fix-20261027/extension/tests/current-runtime-package-guard.test.mjs:5:23)
+      at TestContext.<anonymous> (file:///tmp/paia-05518-guard-fix-20261027/extension/tests/current-runtime-package-guard.test.mjs:16:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    status: 1,
+    signal: null,
+    output: [ null, '', 'Traceback (most recent call last):\n  File "<string>", line 16, in <module>\nAssertionError: [\',\', \',\', \',\', \']; const double=[\', \',\', \']; const template=`local-import`; import \', \'./b.js\', \'./c.js\', \'./d.js\']\n' ],
+    pid: 20,
+    stdout: '',
+    stderr: 'Traceback (most recent call last):\n  File "<string>", line 16, in <module>\nAssertionError: [\',\', \',\', \',\', \']; const double=[\', \',\', \']; const template=`local-import`; import \', \'./b.js\', \'./c.js\', \'./d.js\']\n'
+  }
+
+test at extension/tests/current-runtime-package-guard.test.mjs:31:1
+✖ capture package guard admits only the original API identity and pinned dispatches (36.610594ms)
+  Error: Command failed: python3 -c 
+  import sys
+  sys.path.insert(0, 'scripts')
+  import check_package as c
+  def errors(path, source):
+   c.ERRORS.clear()
+   c.audit_js(path, source)
+   return list(c.ERRORS)
+  
+  path=c.ROOT/'background/capture-recovery.js';source=path.read_text()
+  assert not errors(path,source),c.ERRORS
+  cases=[source+'\nchrome.scripting.executeScript({});',source+'\nscripting.executeScript({});',source+'\nscripting["executeScript"]({});',source.replace('const scripting = chrome.scripting,','const scripting = alternate,'),source.replace('chrome.scripting === scripting &&','true &&'),source+'\nconst scripting = chrome.scripting, tabs = chrome.tabs, runtime = chrome.runtime;',source.replace('apply(execute, scripting, [{','apply(alternate, scripting, [{',1),source+'\nchrome.history.search({});',source+'\nchrome.cookies.getAll({});',source+'\nexecute.call(scripting,{});',source+'\nReflect.apply(execute,scripting,[{}]);',source+'\nconst extra=scripting; extra.executeScript({});']
+  for candidate in cases:
+   assert errors(path,candidate),'expanded capture access accepted'
+  assert errors(c.ROOT/'background/unrelated.js',source)
+  print('capture controls passed')
+  
+  Traceback (most recent call last):
+    File "<string>", line 11, in <module>
+  AssertionError: ['background/capture-recovery.js:40: forbidden credential, history or unrelated privileged API']
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at checkExecSyncError (node:child_process:942:11)
+      at execFileSync (node:child_process:978:15)
+      at audit (file:///tmp/paia-05518-guard-fix-20261027/extension/tests/current-runtime-package-guard.test.mjs:5:23)
+      at TestContext.<anonymous> (file:///tmp/paia-05518-guard-fix-20261027/extension/tests/current-runtime-package-guard.test.mjs:32:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19) {
+    status: 1,
+    signal: null,
+    output: [ null, '', `Traceback (most recent call last):\n  File "<string>", line 11, in <module>\nAssertionError: ['background/capture-recovery.js:40: forbidden credential, history or unrelated privileged API']\n` ],
+    pid: 21,
+    stdout: '',
+    stderr: `Traceback (most recent call last):\n  File "<string>", line 11, in <module>\nAssertionError: ['background/capture-recovery.js:40: forbidden credential, history or unrelated privileged API']\n`
+  }
+
+test at extension/tests/current-runtime-package-guard.test.mjs:43:1
+✖ only existing injected Sync adapters retain their exact URL inventory without network or scope expansion (34.207657ms)
+  Error: Command failed: python3 -c 
+  import sys
+  sys.path.insert(0, 'scripts')
+  import check_package as c
+  def errors(path, source):
+   c.ERRORS.clear()
+   c.audit_js(path, source)
+   return list(c.ERRORS)
+  
+  for name in ['google-drive.js','onedrive.js']:
+   path=c.ROOT/'core/browser-native-sync/providers'/name;source=path.read_text()
+   assert not errors(path,source),(name,c.ERRORS)
+   candidates=[source.replace('www.googleapis.com','evil.example').replace('graph.microsoft.com','evil.example'),source+"\nconst x='https://www.googleapis.com/auth/drive';",source+'\n'+source,source+"\nfetch('https://chatgpt.com');",source+'\nchrome.identity.getAuthToken();',source.replace('/drive/v3/files','/drive/v3/changes').replace('/v1.0/me/drive','/v1.0/me/drive/root'),source.replace('https://','http://')]
+   for candidate in candidates:
+    assert errors(path,candidate),(name,'expanded provider access accepted')
+   assert errors(c.ROOT/'core/unreviewed.js',source)
+  print('provider controls passed')
+  
+  Traceback (most recent call last):
+    File "<string>", line 12, in <module>
+  AssertionError: ('google-drive.js', ['core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal', 'core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal', 'core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal'])
+  
+      at genericNodeError (node:internal/errors:985:15)
+      at wrappedFn (node:internal/errors:539:14)
+      at checkExecSyncError (node:child_process:942:11)
+      at execFileSync (node:child_process:978:15)
+      at audit (file:///tmp/paia-05518-guard-fix-20261027/extension/tests/current-runtime-package-guard.test.mjs:5:23)
+      at TestContext.<anonymous> (file:///tmp/paia-05518-guard-fix-20261027/extension/tests/current-runtime-package-guard.test.mjs:44:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19) {
+    status: 1,
+    signal: null,
+    output: [ null, '', `Traceback (most recent call last):\n  File "<string>", line 12, in <module>\nAssertionError: ('google-drive.js', ['core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal', 'core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal', 'core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal'])\n` ],
+    pid: 22,
+    stdout: '',
+    stderr: `Traceback (most recent call last):\n  File "<string>", line 12, in <module>\nAssertionError: ('google-drive.js', ['core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal', 'core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal', 'core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal'])\n`
+  }

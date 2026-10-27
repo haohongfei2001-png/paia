@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: repository refusal token survives original readonly Source status but is private and owner-bound
+ok 1 - repository refusal token survives original readonly Source status but is private and owner-bound
+  ---
+  duration_ms: 80.829279
+  type: 'test'
+  ...
+# Subtest: write admission invalidates synchronously before open, while concurrent writers drain independently
+ok 2 - write admission invalidates synchronously before open, while concurrent writers drain independently
+  ---
+  duration_ms: 42.047886
+  type: 'test'
+  ...
+# Subtest: nested writer and aborted outer transaction cannot clear each other or revive old observations
+ok 3 - nested writer and aborted outer transaction cannot clear each other or revive old observations
+  ---
+  duration_ms: 22.566159
+  type: 'test'
+  ...
+# Subtest: failed open write releases activity without restoring stale tokens
+ok 4 - failed open write releases activity without restoring stale tokens
+  ---
+  duration_ms: 20.224475
+  type: 'test'
+  ...
+# Subtest: failed native-creation write releases activity without restoring stale tokens
+ok 5 - failed native-creation write releases activity without restoring stale tokens
+  ---
+  duration_ms: 13.923613
+  type: 'test'
+  ...
+# Subtest: failed callback write releases activity without restoring stale tokens
+ok 6 - failed callback write releases activity without restoring stale tokens
+  ---
+  duration_ms: 17.86228
+  type: 'test'
+  ...
+# Subtest: failed finalizer write releases activity without restoring stale tokens
+ok 7 - failed finalizer write releases activity without restoring stale tokens
+  ---
+  duration_ms: 13.456428
+  type: 'test'
+  ...
+# Subtest: close and reopen invalidate old observations even without a content write
+ok 8 - close and reopen invalidate old observations even without a content write
+  ---
+  duration_ms: 17.793369
+  type: 'test'
+  ...
+# Subtest: write admission revokes observations before the real async prelude reaches open
+ok 9 - write admission revokes observations before the real async prelude reaches open
+  ---
+  duration_ms: 79.667956
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 615.030129

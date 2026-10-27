@@ -1,0 +1,4 @@
+55c05f11f2f9252c3ac9545d4d568b7cdd152d1009dd7d231f3ff553f32a4fa3  extension/ui/settings-details.js
+be5f3c914adeeceb44f38e9d273425d257afcbab1bd0f2edf15031cc515d6ed0  extension/ui/settings-sync-recovery.js
+dd3f63e3d2b630d60881fe3a71be0de79aeb9627d2d272afb962b7955fe21f5b  extension/tests/settings-sync-interruption-readonly.test.mjs
+a2198fe3ec8f30d0794340261f940b245f2b08fb0e5e95354d9dee824daf790f  work/sync-interruption-readonly-20261026/ui-focused-attempt-3-prepared-copy.tap

@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {UniversalSearchService,aiProjectionMatches,inputTimeline,contextReuseQuery} from '../core/universal-search.js';
 import {assertFeatureAvailable} from '../core/feature-availability.js';
+import {OrganizerStore} from '../core/organizer/store.js';
+import {originalOrganizerConstructor} from '../core/organizer/store-owner.js';
 
 const inputPages=[
  {items:[{id:'i2',documentId:'d2',title:'Later',text:'Later PAIA product thought '+'.'.repeat(500),sourceSentAt:'2026-08-10T00:00:00Z',rank:2}],nextCursor:{phase:2,offset:9}},
@@ -47,7 +49,8 @@ test('retired signals reject even old valid enum events without examining privat
 
 test('Universal Search remains a read coordinator, not another persistence or network layer',()=>{
  const core=fs.readFileSync(new URL('../core/universal-search.js',import.meta.url),'utf8');
- const store=fs.readFileSync(new URL('../core/organizer/store.js',import.meta.url),'utf8');
+ const store=['../core/organizer/store.js','../core/organizer/store-owner.js'].map(path=>fs.readFileSync(new URL(path,import.meta.url),'utf8')).join('\n');
+ assert.equal(OrganizerStore,originalOrganizerConstructor(),'the public facade exposes the original owner constructor');
  assert.equal(/\.put\s*\(|objectStore|indexedDB|fetch\s*\(|XMLHttpRequest|WebSocket/.test(core),false);
  assert.match(store,/o\?\.universal===true/);assert.match(store,/new UniversalSearchService/);
  assert.equal(/embedding|vector/i.test(core),false);

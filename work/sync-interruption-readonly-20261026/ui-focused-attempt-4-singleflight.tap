@@ -1,0 +1,13 @@
+✔ singleflight coalesces repeated refresh controls until actual settlement and ignores capability fields (6.155026ms)
+✔ singleflight Close and reopening keep one physical request without painting its stale result (1.227937ms)
+✔ singleflight panel hide invalidates presentation but holds the physical read through rejection (1.032539ms)
+✔ singleflight group hide invalidates presentation but holds the physical read through rejection (0.859204ms)
+✔ singleflight dialog hide invalidates presentation but holds the physical read through rejection (0.698287ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 96.083768

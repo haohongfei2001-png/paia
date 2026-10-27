@@ -1,0 +1,60 @@
+✔ human-current-checkpoint-recovery-native.test.mjs: original before snapshot covers complete independently collected fixture closure (298.971404ms)
+✖ human-current-checkpoint-recovery-native.test.mjs: every newly imported background/UI module is hashed and rechecked without admitting omitted dynamic imports (127.876663ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: unchanged original core and background served bytes are both re-read (128.824548ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: source background/ai-filter-consent.js change after serving is refused by original runtime recheck (5.487851ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: release background/ai-filter-consent.js change after serving is refused by original runtime recheck (1.482873ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: source background/maintenance-processing-commands.js change after serving is refused by original runtime recheck (1.541359ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: release background/maintenance-processing-commands.js change after serving is refused by original runtime recheck (1.680504ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: source background/maintenance-processing-consent.js change after serving is refused by original runtime recheck (1.382445ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: release background/maintenance-processing-consent.js change after serving is refused by original runtime recheck (2.71258ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: unlisted served path still refuses before a runtime read (144.230854ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/ai-filter-consent.js (265.350758ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-commands.js (263.372094ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-consent.js (300.525253ms)
+✔ human-current-scope-checkpoint-native.test.mjs: original before snapshot covers complete independently collected fixture closure (278.885267ms)
+✖ human-current-scope-checkpoint-native.test.mjs: every newly imported background/UI module is hashed and rechecked without admitting omitted dynamic imports (140.147887ms)
+✔ human-current-scope-checkpoint-native.test.mjs: unchanged original core and background served bytes are both re-read (140.334302ms)
+✔ human-current-scope-checkpoint-native.test.mjs: source background/ai-filter-consent.js change after serving is refused by original runtime recheck (1.880298ms)
+✔ human-current-scope-checkpoint-native.test.mjs: release background/ai-filter-consent.js change after serving is refused by original runtime recheck (1.511356ms)
+✔ human-current-scope-checkpoint-native.test.mjs: source background/maintenance-processing-commands.js change after serving is refused by original runtime recheck (1.436695ms)
+✔ human-current-scope-checkpoint-native.test.mjs: release background/maintenance-processing-commands.js change after serving is refused by original runtime recheck (1.271753ms)
+✔ human-current-scope-checkpoint-native.test.mjs: source background/maintenance-processing-consent.js change after serving is refused by original runtime recheck (1.272183ms)
+✔ human-current-scope-checkpoint-native.test.mjs: release background/maintenance-processing-consent.js change after serving is refused by original runtime recheck (1.394524ms)
+✔ human-current-scope-checkpoint-native.test.mjs: unlisted served path still refuses before a runtime read (136.55181ms)
+✔ human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/ai-filter-consent.js (332.081793ms)
+✔ human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-commands.js (323.18979ms)
+✔ human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-consent.js (320.313218ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 24
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3331.525839
+
+✖ failing tests:
+
+test at extension/tests/human-current-native-source-inventory.test.mjs:89:2
+✖ human-current-checkpoint-recovery-native.test.mjs: every newly imported background/UI module is hashed and rechecked without admitting omitted dynamic imports (127.876663ms)
+  TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+      at Hash.update (node:internal/crypto/hash:153:11)
+      at digest (file:///tmp/paia-05518-native-inventory-fix-20261027/extension/tests/human-current-native-source-inventory.test.mjs:14:42)
+      at evalmachine.<anonymous>:1:322
+      at async TestContext.<anonymous> (file:///tmp/paia-05518-native-inventory-fix-20261027/extension/tests/human-current-native-source-inventory.test.mjs:94:4)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    code: 'ERR_INVALID_ARG_TYPE'
+  }
+
+test at extension/tests/human-current-native-source-inventory.test.mjs:89:2
+✖ human-current-scope-checkpoint-native.test.mjs: every newly imported background/UI module is hashed and rechecked without admitting omitted dynamic imports (140.147887ms)
+  TypeError [ERR_INVALID_ARG_TYPE]: The "data" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received undefined
+      at Hash.update (node:internal/crypto/hash:153:11)
+      at digest (file:///tmp/paia-05518-native-inventory-fix-20261027/extension/tests/human-current-native-source-inventory.test.mjs:14:42)
+      at evalmachine.<anonymous>:1:313
+      at async TestContext.<anonymous> (file:///tmp/paia-05518-native-inventory-fix-20261027/extension/tests/human-current-native-source-inventory.test.mjs:94:4)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    code: 'ERR_INVALID_ARG_TYPE'
+  }

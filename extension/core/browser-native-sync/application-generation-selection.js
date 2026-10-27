@@ -558,6 +558,11 @@ async function settleSelection(source,target,registry,local,s){
 async function openSelection(local,factory,authority){
  const source=new (originalOrganizerConstructor())(local,{indexedDB:factory});let target,registry;
  try{await openOriginalExistingRepository(source.repository);const s=await point(source.repository,APPLICATION_SELECTION_MARKER);if(s===undefined)return {source,record:null,close:()=>source.repository.db?.close()};marker(s);if(s.role!=='source'||(await point(source.repository,'migration'))?.databaseId!==s.sourceDatabaseId)fail();
+  // An incomplete SOURCE receipt is already enough to refuse cold writes.
+  // Do not require a reachable target/registry merely to explain that receipt:
+  // either may be missing after interruption. This is an observed restriction,
+  // not proof that the target is intact, the SDK was untouched, or work can resume.
+  if(s.phase!=='selected'){if(!equal(await point(source.repository,APPLICATION_SELECTION_MARKER),s))fail();return {source,record:s,close:()=>source.repository.db?.close()};}
   registry=new ArchiveRepository(local,{indexedDB:factory,name:APPLICATION_SELECTION_REGISTRY});const p=new CanonicalGenerationPublication(registry);target=await openOriginalPublishedOrganizerForSelection(p,local,authority);if(target.repository.name!==s.targetName||(await point(target.repository,'migration'))?.databaseId!==s.targetDatabaseId)fail();await sameRegistry(registry,s);
   return {source,target,registry,record:s,close:()=>{source.repository.db?.close();target.repository.db?.close();registry.db?.close();}};
  }catch(error){source.repository.db?.close();target?.repository.db?.close();registry?.db?.close();throw error;}
@@ -565,7 +570,7 @@ async function openSelection(local,factory,authority){
 // V1 receipts retain identity/phase, not the original nonrenewable accounting
 // or deadline. A new process may OBSERVE them, never resume their writes, SDK
 // dispatch or cancellation. Even a matching SDK after-row cannot finish UNKNOWN.
-const coldIncomplete=(s,state)=>({state,operationId:s.operationId,retryAllowed:false,cancelAvailable:false,coldWriteAllowed:false,recoveryReason:'original-accounting-unavailable'});
+const coldIncomplete=(s,state)=>({state,operationId:s.operationId,retryAllowed:false,cancelAvailable:false,coldWriteAllowed:false,recoveryReason:'original-accounting-unavailable',observationOnly:true,originalDeadlineAvailable:false,originalAllowanceAvailable:false});
 async function observeColdSelection(o,local){
  const s=o.record;if(!s)return {state:'not-prepared'};
  if(s.phase!=='selected')return coldIncomplete(s,s.phase==='dispatched'?'outcome-unknown':'prepared');

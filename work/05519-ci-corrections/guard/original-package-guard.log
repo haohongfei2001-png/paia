@@ -1,0 +1,25 @@
+FAIL: 16 package guardrail issue(s), 23229 checks
+- background/capture-recovery.js:40: forbidden credential, history or unrelated privileged API
+- background/import-handler.js import: missing resource })]);}
+ applicationSelectionHeld(token){try{this.#selectionIdentity();return this.#originalLedger.applicationSelectionHeld(token);}catch{return false;}}
+ fenceApplicationSelection(token,cut=null){this.#selectionIdentity();return this.#originalLedger.fenceApplicationSelection(token,cut);}
+ releaseApplicationSelection(token,action=null){return this.#originalLedger.releaseApplicationSelection(token,action);}
+ releaseFailedApplicationSelection(error,action=null){return this.#originalLedger.releaseFailedApplicationSelection(error,action);}
+
+ constructor(store,runtime){this.ledger=new ImportLedger(store);this.runtime=runtime;this.#originalLedger=this.ledger;this.#originalRuntime=runtime;this.#originalGetURL=runtime?.getURL;this.#runtimeId=runtime?.id;}
+ trusted(sender){return sender?.id===this.runtime.id&&sender.url===this.runtime.getURL(
+- background/native-host-bootstrap.js import: missing resource ],true,
+- core/browser-native-sync/canonical-generation-publication.js import: missing resource ,
+- core/browser-native-sync/canonical-generation-publication.js import: missing resource ,
+- core/browser-native-sync/canonical-generation-publication.js import: missing resource ,
+- core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal
+- core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal
+- core/browser-native-sync/providers/google-drive.js: unexpected remote URL literal
+- core/browser-native-sync/providers/onedrive.js: unexpected remote URL literal
+- core/browser-native-sync/providers/onedrive.js: unexpected remote URL literal
+- core/idb-repository.js import: missing resource &&p.applicationSelectionKind!==
+- core/idb-repository.js import: missing resource ||participants[1].kind!==
+- core/import/ledger.js import: missing resource });}
+ authorize(q,owner){const g=this.grants.get(q.grant);if(!g||g.owner!==owner||g.taskId!==q.taskId||g.expires<Date.now())fail(
+- core/local-tool-selection-hold.js import: missing resource ,
+- core/local-tool-selection-hold.js import: missing resource ?0:kind===

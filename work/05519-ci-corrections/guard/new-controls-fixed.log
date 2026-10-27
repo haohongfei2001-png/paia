@@ -1,0 +1,11 @@
+✔ package import keywords exclude quoted schema and local-import identities without losing real references (36.972305ms)
+✔ capture package guard admits only the original API identity and pinned dispatches (89.818387ms)
+✔ only existing injected Sync adapters retain their exact URL inventory without network or scope expansion (112.768253ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 328.67923

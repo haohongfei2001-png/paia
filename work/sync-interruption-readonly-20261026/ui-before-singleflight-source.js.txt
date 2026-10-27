@@ -1,0 +1,107 @@
+// Read-only presentation of the original local selection inspector. This is
+// neither a Sync engine nor authority to resume an interrupted operation.
+const states=new Set(['unavailable','not-prepared','review-ready','prepared','outcome-unknown','finishing','selected']);
+export function readSyncInterruptionState(response){
+ const value=response?.ok===true?response.data:null;
+ return value?.version===1&&states.has(value.state)?value.state:null;
+}
+const copy={
+ unavailable:[
+  ['同步当前不可用','Sync unavailable'],
+  ['当前无法使用同步恢复。这里只能查看可用的本机状态，不会连接云端或开始恢复。','Sync recovery is currently unavailable. This page only inspects available local status; it does not connect to the cloud or start recovery.']
+ ],
+ 'not-prepared':[
+  ['没有已准备的本机恢复','No prepared local recovery'],
+  ['本次检查未发现已准备的本机恢复。这不代表云端已有副本，也不会创建新的恢复操作。','This inspection found no prepared local recovery. It does not establish that a cloud copy exists or create a new recovery operation.']
+ ],
+ 'review-ready':[
+  ['本机恢复已准备审阅','Local recovery review ready'],
+  ['原操作已准备供审阅，尚未由这里开始恢复。查看状态不提供继续操作所需的编辑保护或授权。','The original operation is ready for review; this page has not started recovery. Viewing status supplies neither the edit protection nor the authority needed to continue.']
+ ],
+ prepared:[
+  ['本机恢复尚未完成：已准备','Local recovery incomplete: prepared'],
+  ['原操作仍保留。重新打开后无法核对原累计工作量与截止时间，因此这里不能继续、重试或取消它。','The original operation remains recorded. Its original cumulative work accounting and deadline are unavailable after reopening, so this page cannot continue, retry or cancel it.']
+ ],
+ 'outcome-unknown':[
+  ['本机恢复结果尚未确认','Local recovery outcome unknown'],
+  ['已发出的原操作结果仍未知，不能视为成功或失败。原累计工作量与截止时间不可用；这里保留未知结果，不会再次发送、继续或取消。','The dispatched original operation still has an unknown outcome, not success or failure. Its original cumulative work accounting and deadline are unavailable; this page preserves that unknown outcome without redispatching, continuing or cancelling.']
+ ],
+ finishing:[
+  ['本机恢复收尾尚未确认','Local recovery completion unconfirmed'],
+  ['已有本机选择记录，但收尾尚未确认完成。原累计工作量与截止时间不可用；这里不会补做、重试或取消。','A local selection is recorded, but its final cleanup is not confirmed complete. The original cumulative work accounting and deadline are unavailable; this page will not finish, retry or cancel the operation.']
+ ],
+ selected:[
+  ['已有本机选择已核对','Existing local selection verified'],
+  ['已有本机选择及收尾已核对。仍由原启动流程打开它；查看状态不会重新执行恢复，也不证明完整档案已恢复或云端已同步。','The existing local selection and cleanup are verified. The original startup flow still opens it; inspecting status does not repeat recovery or prove whole-archive recovery or cloud synchronization.']
+ ]
+};
+export function syncInterruptionCopy(state,{language='en',phase='ready'}={}){
+ const index=language==='zh-CN'?0:1,text=(zh,en)=>index===0?zh:en,entry=Object.hasOwn(copy,state)?copy[state]:null;
+ let summary=entry?.[0][index]??text('只读状态','Read-only status'),status=summary,description=entry?.[1][index]??text('选择“刷新状态”可读取本机已有的恢复状态。','Choose Refresh status to inspect existing local recovery status.');
+ if(phase==='reading'){
+  summary=text('正在读取状态…','Reading status…');
+  status=entry?text('正在读取；上次观察：','Reading; last observed: ')+entry[0][index]:summary;
+ }else if(phase==='failed'||phase==='unavailable'){
+  summary=phase==='unavailable'?copy.unavailable[0][index]:text('当前状态无法读取','Current status unavailable');
+  status=entry?summary+text('。上次观察（不是当前确认）：','; last observed (not a current confirmation): ')+entry[0][index]:summary;
+  if(!entry)description=text('本次读取未成功，不能据此判断恢复结果。可以手动刷新状态；这不会重试原操作。','This read did not succeed, so the recovery outcome cannot be determined from it. You can refresh status manually; this does not retry the original operation.');
+ }
+ return {summary,status,description,refresh:text('刷新状态','Refresh status'),boundary:text('只读查看：刷新不会重试、取消、重载应用或更改权限。这里不提供云端同步或完整档案恢复的成功证明。','Read-only inspection: refreshing does not retry, cancel, reload the app or change permissions. This page does not establish successful cloud synchronization or whole-archive recovery.')};
+}
+
+// The existing Settings detail owns modal behavior, keyboard containment and
+// return focus. Injection keeps the observation-only controller independently
+// testable without creating a second dialog/navigation owner.
+export function createSettingsSyncRecovery({dataGroup,language=()=>document.documentElement.lang,mountDetail,request=message=>globalThis.chrome.runtime.sendMessage(message)}={}){
+ const panel=document.getElementById('settings-panel'),content=document.createElement('section'),status=document.createElement('p'),description=document.createElement('p'),boundary=document.createElement('p'),refresh=document.createElement('button');
+ content.id='settings-sync-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');boundary.className='ux-settings-removed-note';refresh.type='button';refresh.id='settings-sync-refresh';refresh.setAttribute('aria-describedby',content.id+'-boundary');boundary.id=content.id+'-boundary';
+ // Reuse shared typography/colors; keep the sole read action at a 44px target
+ // without introducing a new Settings style or cloud-branded surface.
+ Object.assign(refresh.style,{minHeight:'44px',maxWidth:'100%',whiteSpace:'normal',overflowWrap:'anywhere'});
+ content.append(status,description,boundary,refresh);
+ let detail,observer,serial=0,state=null,phase='idle';
+ const visible=()=>!!detail?.dialog.open&&!detail.dialog.hidden&&!panel.hidden&&!dataGroup.hidden&&!document.hidden;
+ const current=value=>{observeVisibility(observer.takeRecords());return value===serial&&visible();};
+ const sync=()=>{
+  const view=syncInterruptionCopy(state,{language:language(),phase});
+  status.textContent=view.status;description.textContent=view.description;boundary.textContent=view.boundary;refresh.textContent=view.refresh;
+  content.setAttribute('aria-busy',phase==='reading'?'true':'false');detail?.sync();
+ };
+ const invalidate=()=>{++serial;state=null;phase='idle';sync();};
+ const read=async()=>{
+  observeVisibility(observer.takeRecords());
+  if(!visible())return;
+  const mine=++serial;phase='reading';sync();
+  try{
+   const response=await request({type:'PAIA_GENERATION_STATUS'});
+   if(!current(mine))return;
+   const observed=readSyncInterruptionState(response);
+   if(observed===null){phase='failed';}
+   else if(observed==='unavailable'&&state!==null&&state!=='unavailable'){phase='unavailable';}
+   else{state=observed;phase='ready';}
+  }catch{
+   if(!current(mine))return;
+   phase='failed';
+  }
+  if(current(mine))sync();
+ };
+ detail=mountDetail({id:'settings-sync',title:['同步','Sync'],content,language,value:()=>syncInterruptionCopy(state,{language:language(),phase}).summary,onOpen:read});
+ refresh.addEventListener('click',()=>void read());
+ detail.dialog.addEventListener('close',invalidate);
+ detail.dialog.addEventListener('cancel',invalidate);
+ function observeVisibility(records){
+  // A hide/show or close/reopen within one task still ends the old read. Drain
+  // queued mutations before using a response, not only at observer delivery.
+  const ended=records.some(record=>record.attributeName==='hidden'||record.attributeName==='open'&&record.oldValue!==null);
+  if(!ended&&visible())return;
+  invalidate();
+  if(detail.dialog.open&&(panel.hidden||dataGroup.hidden||detail.dialog.hidden))detail.dialog.close();
+ }
+ observer=new MutationObserver(observeVisibility);
+ for(const node of [panel,dataGroup])observer.observe(node,{attributes:true,attributeOldValue:true,attributeFilter:['hidden']});
+ observer.observe(detail.dialog,{attributes:true,attributeOldValue:true,attributeFilter:['hidden','open']});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)invalidate();});
+ document.addEventListener('paia:preferences-applied',sync);
+ const heading=dataGroup.querySelector('h2');if(heading)heading.after(detail.row);else dataGroup.prepend(detail.row);
+ sync();return {...detail,sync,refresh:read};
+}

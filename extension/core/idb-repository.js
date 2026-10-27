@@ -927,9 +927,11 @@ export class ArchiveRepository {
   if(recovery?.pending&&!localTools){recovery.failed=true;if(recovery.scope)workAbort(recovery.scope);throw new ArchiveError('BNS_GROUP_RESOURCE_LIMIT');}
   const staged=selectionPhase?readOriginalApplicationSelectionPhase(selectionPhase,this,selectionAuthority,stores):null,applicationSelectionAction=staged?.action??selectionReadAction??recovery?.applicationSelectionAction??null;if(applicationSelectionAction)requireOriginalApplicationSelectionRepositoryWork(applicationSelectionAction,this);if(selectionReadAction&&write||staged&&!write||readOriginalApplicationSelectionAuthority(selectionAuthority,this,null)?.action&&!staged)throw new ArchiveError('GENERATION_SELECTION_CAPABILITY');let activeToken=null;let recoveryPending;if(recovery&&!localTools){let resolve;recoveryPending={settled:new Promise(r=>resolve=r),resolve:()=>resolve()};recovery.pending=recoveryPending;}try{
   if(recovery&&(shadowAuthority!==null||selectionAuthority!==null))throw new ArchiveError('GENERATION_REPOSITORY_WRITE_DENIED');
-  if(write&&shadowAuthority===null){activeToken=await prepareOriginalActiveRepositoryWrite(this,!!recovery,applicationSelectionAction);if(activeToken)shadowAuthority=activeToken;}
+  // Revoke readonly observations synchronously at write admission, before even
+  // the unbound active-repository preparer's resolved promise can yield.
   if(write){writeState.generation=Object.freeze({});writeState.active++;}
   try{
+  if(write&&shadowAuthority===null){activeToken=await prepareOriginalActiveRepositoryWrite(this,!!recovery,applicationSelectionAction);if(activeToken)shadowAuthority=activeToken;}
   await this.open();if(localTools)localToolsCurrent(localTools);if(recovery)recoveryWork(recoveryTicket,this);if(write&&!stores.includes('meta'))stores=[...stores,'meta'];let tx;try{tx=this.db.transaction(stores,write?'readwrite':'readonly',write?{durability:'strict'}:undefined);}catch(error){throw fail(error);}
   const scope=new Transaction(tx,this.metrics,this.thoughtLibrary);
   const native=nativeTransactionEvidence(tx);

@@ -1,0 +1,15 @@
+{
+  "base": "397d9797ddb28d0a3f54857d4df4d835c7819c2d",
+  "scope": "five runtime files; two new focused tests; one contract receipt",
+  "files": {
+    "extension/background/application-selection-commands.js": "db7f8c1c6a57f945f208716029e1a0551de8dd9f062780f151c1c4658066410b",
+    "extension/background/service-worker.js": "6e0a1fcd5012721933387c5df1852c4657884e8790945e34c605fc09cb3bf516",
+    "extension/core/browser-native-sync/application-generation-selection.js": "e59a714fbbd2c2cfa1b77e8023e3526a96d4332a231633676ee71f4c2836669a",
+    "extension/ui/settings-details.js": "55c05f11f2f9252c3ac9545d4d568b7cdd152d1009dd7d231f3ff553f32a4fa3",
+    "extension/ui/settings-sync-recovery.js": "71472333509b70fcd91c4edf9c64c9a2d621618d6c171077c81c02922ffce341",
+    "extension/tests/sync-interruption-readonly.test.mjs": "69924adcd719074db8370db7058d37b9458756adbf8ac70cce73084073f793be",
+    "extension/tests/settings-sync-interruption-readonly.test.mjs": "331681ff8f63e3603cef5ee51e8fb5821387f5ef7802d4fe8786af213a9478d4",
+    "extension/docs/consumer-product-v1/implementation/sync/SYNC-INTERRUPTION-OBSERVATION.md": "480cdda29308ae73a062b32679687ea074be4e65e72016a27b14f166b736c6cc"
+  },
+  "supersedes": "01370f67ee3f5a59aef58ef1d14b447d21cb7c3e"
+}

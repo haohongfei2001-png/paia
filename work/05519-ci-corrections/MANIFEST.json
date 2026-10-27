@@ -1,0 +1,91 @@
+{
+  "runtimeSourceHead": "8cda2b19",
+  "finalSourceHead": "48d5859e132a3ef2a54ee1233870588170c227cd",
+  "evidence": [
+    {
+      "path": "work/05519-ci-corrections/REPORT.md",
+      "bytes": 3750,
+      "sha256": "d5348c14748e9be33a6835f6528e8e9132be2be5dbdd3ed2a749bae7106d3273"
+    },
+    {
+      "path": "work/05519-ci-corrections/STATIC-LINK-NOTE.txt",
+      "bytes": 271,
+      "sha256": "ace0ef51dfff8affd7b7f5d8b3231d4015da77ca7790d24a6e9f1030063f3af3"
+    },
+    {
+      "path": "work/05519-ci-corrections/STATIC-LINK.json",
+      "bytes": 370952,
+      "sha256": "507aa0e654ec6c164be9914706c7024adc6384623cf500b8516ac1605ca65c7e"
+    },
+    {
+      "path": "work/05519-ci-corrections/guard/fixed-package-guard.log",
+      "bytes": 153,
+      "sha256": "841884282ed43d17a239b4027edcda520a486c3e81868b3e8f66ef8b38c6bef4"
+    },
+    {
+      "path": "work/05519-ci-corrections/guard/new-controls-fixed.log",
+      "bytes": 461,
+      "sha256": "e400b41e8956ea75507b06108880456501f635768f3882343993fbe7372dc7e1"
+    },
+    {
+      "path": "work/05519-ci-corrections/guard/new-controls-original.log",
+      "bytes": 9890,
+      "sha256": "e93e974e71028edf8f37fc78f443c08642c663592336106c66a38752999acf2e"
+    },
+    {
+      "path": "work/05519-ci-corrections/guard/original-package-guard.log",
+      "bytes": 2271,
+      "sha256": "da202f59e6424fdc7accb7c19357dcff09d13379381eec9c6fc76b91dafa6a08"
+    },
+    {
+      "path": "work/05519-ci-corrections/inventory/original-ci-failure-excerpt.log",
+      "bytes": 19676,
+      "sha256": "5de4c4b4755847d882a5387fd8c86951f95b58290fbfa6fab88147b5b0f85114"
+    },
+    {
+      "path": "work/05519-ci-corrections/inventory/static-inventory-first-failure.log",
+      "bytes": 6297,
+      "sha256": "2b9ba6902e8ead65020f150c1b521964c2b01b4b0a7c25581eb613b90b990b6a"
+    },
+    {
+      "path": "work/05519-ci-corrections/inventory/static-inventory-repaired.log",
+      "bytes": 4309,
+      "sha256": "37d08ac3b80e972dbe9b403eae77d9145ea0eefe8d4e3353e58f197ae6c1deef"
+    },
+    {
+      "path": "work/05519-ci-corrections/shared/first-control-and-facade.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "work/05519-ci-corrections/shared/first-control-and-facade.tap",
+      "bytes": 892,
+      "sha256": "20565c560d70ca06e60a49da1f303e1eed8873e1b5ddd639f612ad55794155af"
+    },
+    {
+      "path": "work/05519-ci-corrections/shared/first-q4-and-nonnative.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "work/05519-ci-corrections/shared/first-q4-and-nonnative.tap",
+      "bytes": 884,
+      "sha256": "92a07403e5878e56993af1f35d624f043de3699c3ee3eb62bc2df14a1805955a"
+    },
+    {
+      "path": "work/05519-ci-corrections/shared/first-write-admission.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "work/05519-ci-corrections/shared/first-write-admission.tap",
+      "bytes": 2216,
+      "sha256": "dd427b28fd7cef300ddd1a8e3d7888d2e0e56415c54ac84778209481e23957d3"
+    },
+    {
+      "path": "work/05519-ci-corrections/worker/new-cold-entrypoint-once.tap",
+      "bytes": 1423,
+      "sha256": "59edc616d22185f8554f85b6efbd33691e1eb1902c456e141cced8adada6fd34"
+    }
+  ]
+}

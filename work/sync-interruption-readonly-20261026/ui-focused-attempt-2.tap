@@ -1,0 +1,28 @@
+✔ the status presenter accepts only the exact worker data envelope and known versioned states (1.278436ms)
+✔ all known states have distinct English and Chinese labels, and inspection never claims cloud success (0.430765ms)
+✔ prepared discloses unavailable original accounting and deadline without recovery actions (0.184272ms)
+✔ outcome-unknown discloses unavailable original accounting and deadline without recovery actions (0.146756ms)
+✔ finishing discloses unavailable original accounting and deadline without recovery actions (0.107749ms)
+✔ mount is inert and first in Data; the sole explicit action uses the default read-only worker command (7.784343ms)
+✔ newer explicit reads win and arbitrary capability fields or private strings are not rendered (0.85394ms)
+✔ failed refresh preserves UNKNOWN only as a labeled last observation and never releases or repeats it (0.707744ms)
+✔ a later unavailable observation does not erase a prior UNKNOWN or invent a missing-capability cause (0.792549ms)
+✔ a malformed first response stays unavailable rather than asserting no pending operation (0.900839ms)
+✔ Close and reopening invalidate the old response while allowing a fresh explicit observation (0.749616ms)
+✔ hiding panel closes through the original owner and invalidates a pending observation (0.547708ms)
+✔ hiding group closes through the original owner and invalidates a pending observation (1.291725ms)
+✔ hiding dialog closes through the original owner and invalidates a pending observation (0.971182ms)
+✔ a panel hide/show before observer delivery still invalidates an old response (0.659423ms)
+✔ a group hide/show before observer delivery still invalidates an old response (0.338349ms)
+✔ a dialog hide/show before observer delivery still invalidates an old response (0.417165ms)
+✔ document visibility and native Escape invalidate pending work without intercepting dismissal (0.492547ms)
+✔ language changes render local copy without reading, resetting UNKNOWN or taking focus (0.576671ms)
+✔ the tiny Settings integration delegates to the existing modal owner; the new module has no writes or timers (2.009644ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 130.192794

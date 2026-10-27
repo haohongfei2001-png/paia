@@ -1,0 +1,12 @@
+✔ new original worker status ingress answers NULL without startup, DB or SDK work and has no mutation aftereffect (6.535252ms)
+✔ prepared source receipt remains explainable with missing target/registry; no cold cancellation, budget, or DB creation (10.94651ms)
+✔ dispatched remains UNKNOWN on repeated observation and continue; no replay or missing-target allocation (2.904655ms)
+✔ missing, corrupt and incomplete selected dependencies fail closed without creating a database or modifying evidence (2.458797ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 411.347739

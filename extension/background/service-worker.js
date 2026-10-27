@@ -1,3 +1,4 @@
+import {createApplicationSelectionStatusReader} from './application-selection-commands.js';
 import {MaintenanceProcessingCommands,configureMaintenanceProcessingSource} from './maintenance-processing-commands.js';
 import {createAIFilterRuntime} from './ai-filter-commands.js';
 import {readAIFilterPolicyConfiguration} from './ai-filter-policy-configuration.js';
@@ -156,7 +157,9 @@ chrome.runtime.onConnect?.addListener(port=>{if(port.name==='official-export-ses
 chrome.runtime.onConnect?.addListener(port=>{if(port.name.startsWith('bounded-organizer:')&&isExtensionPage(port.sender)){const id=port.name.slice('bounded-organizer:'.length);port.onDisconnect.addListener(()=>{if(boundedOrganizer.currentId===id&&boundedOrganizer.running)void boundedOrganizer.stop();});}});
 // Fail closed if storage isolation cannot be established; never expose records
 // directly to a content script, including the brief worker-startup period.
-const ready = chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' }).then(()=>store.recoverControlPublication());
+const storageIsolated = chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
+const ready = storageIsolated.then(()=>store.recoverControlPublication());
+const selectionStatus = createApplicationSelectionStatusReader(chrome,{isolated:()=>storageIsolated});
 const privacyReady=Promise.resolve(privacySession.setAccessLevel?.({accessLevel:'TRUSTED_CONTEXTS'}));
 privacyReady.catch(()=>{});
 ready.catch(() => {});
@@ -179,6 +182,9 @@ function isChatGPTContent(sender) {
 }
 
 async function handle(request, sender) {
+  // Read-only recovery explanation must remain reachable if ordinary startup
+  // is blocked. Its own original guard excludes content scripts/foreign pages.
+  if(request?.type==='PAIA_GENERATION_STATUS')return selectionStatus(request,sender);
   await ready;
   if (!request || typeof request.type !== 'string') throw new ArchiveError('INVALID_REQUEST');
   if(request.type.startsWith('PAIA_MAINTENANCE_PROCESSING_'))return maintenanceProcessing.handle(request,sender);
@@ -563,7 +569,7 @@ const scheduleMaintenance=(local=ready.then(()=>scheduleFilter()))=>{
  void task.finally(()=>{if(maintenanceOpportunity===task)maintenanceOpportunity=null;});
  return task;
 };
-const localToolRequest=type=>['PAIA_MAINTENANCE_PROCESSING_STATUS','PAIA_MAINTENANCE_PROCESSING_CONFIGURE'].includes(type)||type==='PAIA_LIBRARY_SECTION_PROMOTION'||['PAIA_SETTINGS_AI_STYLE','PAIA_SETTINGS_UPDATE_STATUS','GET_LIBRARY_ROOT_PROJECTION','GET_LIBRARY_ROOT_PREVIEWS','GET_LIBRARY_SECTION_PROJECTION','GET_LIBRARY_SECTION_READING','GET_LIBRARY_TOPIC_READING_METADATA'].includes(type)||type.startsWith('PAIA_PROMPT_')||type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
+const localToolRequest=type=>['PAIA_GENERATION_STATUS','PAIA_MAINTENANCE_PROCESSING_STATUS','PAIA_MAINTENANCE_PROCESSING_CONFIGURE'].includes(type)||type==='PAIA_LIBRARY_SECTION_PROMOTION'||['PAIA_SETTINGS_AI_STYLE','PAIA_SETTINGS_UPDATE_STATUS','GET_LIBRARY_ROOT_PROJECTION','GET_LIBRARY_ROOT_PREVIEWS','GET_LIBRARY_SECTION_PROJECTION','GET_LIBRARY_SECTION_READING','GET_LIBRARY_TOPIC_READING_METADATA'].includes(type)||type.startsWith('PAIA_PROMPT_')||type.startsWith('PAIA_ARCHIVE_')||type.startsWith('PAIA_RECOVERY_')||['GET_THOUGHT_LAYOUT','SET_THOUGHT_LAYOUT','GET_THOUGHT_REVERSE_EDIT','SET_THOUGHT_REVERSE_EDIT','THOUGHT_POSITION','RECORD_TOPIC_READ','COMPARE_THOUGHT_INPUT','GET_LIBRARY_TRACKED_ENTRIES','GET_LIBRARY_TOPIC_SECTIONS','GET_LIBRARY_TOPIC_ADJACENCY'].includes(type)||type.startsWith('PAIA_READER_')||type.startsWith('PAIA_PRODUCT_')||type.startsWith('PAIA_PASSPORT_')||type.startsWith('PAIA_CONTEXT_')||type.startsWith('PAIA_REVISIT_')||type.startsWith('PAIA_CORE_LOOP_');
 const startupMaintenance=()=>{void scheduleMaintenance();};
 runtime.onStartup?.addListener(startupMaintenance);
 runtime.onInstalled?.addListener(()=>{void ready.then(()=>scheduleFilter()).catch(()=>{});});

@@ -93,7 +93,7 @@ export async function maintenanceExistingContextQualification(store,t,handle,{pu
 // inside this child. No sibling Input body is acquired or hashed to discover
 // eligibility. Whole mirrors have precisely the selected Input's body; other
 // Entry prose requires its own authored/bound/Entry-field selection.
-async function topicClosure(h,t,topicId){
+async function topicClosure(h,t,topicId,deferral=null){
  const topic=await t.get('topics',topicId);need(topic&&['active','dormant'].includes(topic.lifecycle)&&!topic.redirectTo&&!topic.layoutJobId&&!topic.identity?.noRecreation);
  const binding=await new ContextTopicAccessService(h.store).prospective(t,topic,h.admission.epoch);need(binding);
  const placements=await t.all('placements','byTopicOrder',prefix([topicId,topic.activeLayoutGeneration,0]));need(placements.length<=CONTEXT_TOPIC_SCOPE_LIMITS.refs,'BUDGET_EXCEEDED');
@@ -105,9 +105,18 @@ async function topicClosure(h,t,topicId){
   const ids=new Set([...(e.inputRefs||[]).map(x=>x.inputBlockId),...deps.map(d=>d.inputId),...(e.bodyBinding==='input'?[e.workingInputId]:[])]);
   need([...ids].every(id=>h.scope.inputs.some(i=>i.inputId===id)),'UNAVAILABLE');
   need(deps.every(d=>d.selectedFields?.every(f=>h.scope.inputs.find(i=>i.inputId===d.inputId)?.selectedFields.includes(f))),'UNAVAILABLE');
-  if(e.bodyBinding!=='input')need(h.scope.authoredEntries.some(x=>x.entryId===e.id)||h.scope.entries.some(x=>x.entryId===e.id&&x.revision===e.revision&&x.selectedFields.includes('body')),'UNAVAILABLE');
-  entries.push(values(e,['id','revision','lifecycle','freshness','staleReasons','bodyBinding','workingInputId','bindingRevision','bindingLength','sourceRecordIds','inputRefs','provenanceType','integrity']));dependencies.push(...deps);
-  provenance.push(...await t.all('provenance','byOwner',prefix(['entry',e.id])));
+  const entry=values(e,['id','revision','lifecycle','freshness','staleReasons','bodyBinding','workingInputId','bindingRevision','bindingLength','sourceRecordIds','inputRefs','provenanceType','integrity']);
+  const refs=await t.all('provenance','byOwner',prefix(['entry',e.id]));
+  if(e.bodyBinding!=='input'&&!h.scope.authoredEntries.some(x=>x.entryId===e.id)&&!h.scope.entries.some(x=>x.entryId===e.id&&x.revision===e.revision&&x.selectedFields.includes('body'))){
+   // A genuine newly committed Topic excerpt is not permission to read it for
+   // Context. Only its exact original-owner metadata may preserve Topic's own
+   // transaction; the dependent Context facet must remain unacknowledged.
+   need(deferral&&deferral.ids.has(e.id)&&!h.snapshot.closures.some(c=>c.entries.some(x=>x.id===e.id))&&e.bodyBinding==='thought'&&e.provenanceType==='input_original','UNAVAILABLE');
+   need(deferral.publication.writes.some(w=>w.store==='thoughts'&&w.id===e.id&&equal(w.value,entry)));
+   need(refs.length&&refs.every(r=>{const input=h.snapshot.sources.inputs.find(x=>x.inputId===r.inputId),span=r.span;return r.generationId===deferral.publication.operationId&&r.contributionType==='exact_excerpt'&&r.role==='primary'&&input&&typeof input.fields.body==='string'&&span?.field==='body'&&Number.isSafeInteger(span.start)&&Number.isSafeInteger(span.end)&&span.start>=0&&span.end>span.start&&span.end<=input.fields.body.length&&(span.start>0||span.end<input.fields.body.length);}),'UNAVAILABLE');
+   deferral.found.add(e.id);
+  }
+  entries.push(entry);dependencies.push(...deps);provenance.push(...refs);
  }
  return {topicId,binding,placements,entries,dependencies,provenance};
 }
@@ -236,15 +245,21 @@ function expectedClosure(before,writes){
  return expected;
 }
 const closureEqual=(a,b)=>equal({...a,...Object.fromEntries(['placements','entries','dependencies','provenance'].map(k=>[k,[...a[k]].sort((x,y)=>x.id.localeCompare(y.id))]))},{...b,...Object.fromEntries(['placements','entries','dependencies','provenance'].map(k=>[k,[...b[k]].sort((x,y)=>x.id.localeCompare(y.id))]))});
-export async function assertMaintenanceExistingContext(store,t,handle,{settledItems=[],phase='prepared',publications=[]}={}){
+export async function assertMaintenanceExistingContext(store,t,handle,{settledItems=[],phase='prepared',publications=[],topicDeferral=null}={}){
  const h=state(handle);need(h.store===store&&['prepared','settlement'].includes(phase)&&list(settledItems,MAINTENANCE_EXISTING_CONTEXT_LIMITS.items));live(h);
+ let deferral=null;
+ if(topicDeferral){
+  need(phase==='settlement'&&publications.includes(topicDeferral.publication)&&list(topicDeferral.entryIds,100));
+  const publication=topicPublicationOwner.readTopicFormationPublication(topicDeferral.publication,store,{transaction:t})||topicPublicationOwner.readTopicFormationPublication(topicDeferral.publication,store);
+  need(publication);deferral={publication,ids:new Set(topicDeferral.entryIds),found:new Set()};
+ }
  const published=publishedExpected(h,t,publications),admission=await contextLineageAdmission(store,t,h.admission.epoch);need(admission.gate===h.admission.gate&&((!h.selected.length||h.captured&&!h.items.length)||admission.authority===published.authority));
  const row=await t.get('meta',CONTEXT_CARDS_ROW),settled=new Map();for(const x of settledItems){need(x&&x.itemId===x.item?.id&&!settled.has(x.itemId)&&h.items.some(v=>v.original.id===x.itemId));settled.set(x.itemId,x.item);}
  if(!h.captured){need(!settled.size);for(const m of h.selected){const actual=row?.items?.find(x=>x.id===m.id);need(actual&&equal(metadata(actual),m));}live(h);return true;}
  for(const x of h.items){const actual=row?.items?.find(i=>i.id===x.original.id),expected=settled.get(x.original.id)||x.original;need(actual&&equal(actual,expected));need(equal(contextTemporalProjection(x.original),Object.hasOwn(x.dto,'temporal')?{temporal:x.dto.temporal,temporalStatus:x.dto.temporalStatus}:null));}
  if(h.snapshot){
   const current=await sourceSnapshot(h,contextScopeTransactionReader(store,t,h.budget),h.snapshot.sources.inputs.map(x=>x.inputId));need(equal(current,h.snapshot.sources));
-  for(const before of h.snapshot.closures){const now=await topicClosure(h,contextScopeTransactionReader(store,t,h.budget),before.topicId);need(sameContextTopicBinding(before.binding,now.binding));
+  for(const before of h.snapshot.closures){const now=await topicClosure(h,contextScopeTransactionReader(store,t,h.budget),before.topicId,deferral);need(sameContextTopicBinding(before.binding,now.binding));
    need(closureEqual(expectedClosure(before,published.writes),now));
   }
   if(phase==='prepared'&&!publications.length)await fenceContextLineage(store,h.lineage,{transaction:t});
@@ -253,6 +268,6 @@ export async function assertMaintenanceExistingContext(store,t,handle,{settledIt
   // Topic transaction advances unrelated global bookkeeping.
   for(const {spec,snapshot}of h.structureSnapshots.values()){const current=await readStructuralContextEvidence(store,t,spec);need(current&&equal(current,snapshot));}
  }
- live(h);return true;
+ live(h);return !deferral?.found.size;
 }
 export function releaseMaintenanceExistingContext(handle){const h=held.get(handle);if(!h)return;h.released=true;releaseContextLineage(h.lineage);h.items.length=0;h.selected.length=0;h.snapshot=null;h.scope=null;h.read=null;h.assertProcessing=null;h.lineage=null;h.entrySnapshots.clear();h.structureSnapshots.clear();h.removeAbort?.();h.removeAbort=null;held.delete(handle);}

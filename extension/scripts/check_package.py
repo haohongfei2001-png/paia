@@ -178,8 +178,25 @@ def audit_js(path, text):
         if label == "credential, history or unrelated privileged API" and path == ROOT / "background/capture-recovery.js":
             # Only this reviewed coordinator may inject bundled capture scripts.
             # Exact host/manifest bounds and document pinning have owning tests.
-            scanned = scanned.replace("chrome.scripting?.executeScript", "APPROVED_CAPTURE_SCRIPTING_AVAILABLE")
-            scanned = scanned.replace("chrome.scripting.executeScript(", "APPROVED_CAPTURE_SCRIPTING(")
+            # The live hold captures the exact scripting object and method so
+            # swapping the API cannot bless a different dispatch. Exempt only
+            # these reviewed declarations/checks, never arbitrary alias access.
+            captured = "const scripting = chrome.scripting, tabs = chrome.tabs, runtime = chrome.runtime;"
+            identity = "chrome.scripting === scripting && chrome.tabs === tabs && chrome.runtime === runtime &&"
+            method = "const execute = scripting.executeScript, get = tabs.get, query = tabs.query, getManifest = runtime.getManifest;"
+            stable = "scripting.executeScript === execute && tabs.get === get && tabs.query === query && runtime.getManifest === getManifest"
+            for exact in (captured, identity, method, stable):
+                require(text.count(exact) == 1, "Capture recovery must retain its exact captured API identity")
+                scanned = scanned.replace(exact, "APPROVED_CAPTURE_IDENTITY")
+            available = "chrome.scripting?.executeScript"
+            require(text.count(available) == 1, "Capture recovery must retain one scripting availability check")
+            scanned = scanned.replace(available, "APPROVED_CAPTURE_SCRIPTING_AVAILABLE")
+            require(text.count("apply(execute, scripting, [{") == 3,
+                    "Capture recovery must retain its three original pinned dispatch sites")
+            captured_uses = scanned.replace("apply(execute, scripting, [{", "APPROVED_CAPTURE_DISPATCH")
+            captured_uses = captured_uses.replace("change.permissions?.includes('scripting')", "APPROVED_CAPTURE_PERMISSION_EVENT")
+            require(not re.search(r"\b(?:execute|scripting)\b", captured_uses),
+                    "Capture recovery cannot add unreviewed captured API use")
         if label == "network API" and path == ROOT / "core/organizer/deepseek.js":
             scanned = scanned.replace("this.fetchImpl(", "APPROVED_DEEPSEEK_FETCH(")
         if label == "website storage or nonlocal extension storage" and path in {ROOT / "background/service-worker.js"}:
@@ -324,15 +341,34 @@ def audit_js(path, text):
                 "About must retain its single verified native-anchor origin")
         require(not re.search(r"\b(?:location|window|chrome|globalThis)\s*(?:\.|\[)|\bopen\s*\(|\.\s*(?:click|submit)\s*\(|\.\s*(?:src|srcset|action)\s*=|setAttribute\s*\(\s*['\"](?:src|srcset|action)['\"]", text),
                 "About links must not navigate, load resources, or invoke privileged actions automatically")
+    # Inert, injected Sync transports already present in this package. These
+    # exact module/literal inventories do not grant permissions, default fetch,
+    # OAuth or activation. Do not admit absent HTTP adapters or whole domains.
+    sync_literals = {
+        "core/browser-native-sync/providers/google-drive.js": {
+            "https://www.googleapis.com/auth/drive.appdata",
+            "https://www.googleapis.com/drive/v3/files",
+            "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
+        },
+        "core/browser-native-sync/providers/onedrive.js": {
+            "https://graph.microsoft.com/v1.0/me/drive",
+            "https://graph.microsoft.com",
+        },
+    }.get(path.relative_to(ROOT).as_posix(), set())
+    if sync_literals:
+        require(sorted(m.group(1) for m in remote_literals) == sorted(sync_literals),
+                f"{path.relative_to(ROOT)}: reviewed Sync URL set changed or duplicated")
     for match in remote_literals:
         parsed = urlsplit(match.group(1))
         approved_document_origin = about_links and match.group(1) == "https://inputarchive.com"
-        require(parsed.scheme == "https" and (parsed.netloc == "chatgpt.com" or approved_document_origin),
+        require(parsed.scheme == "https" and (parsed.netloc == "chatgpt.com" or approved_document_origin or match.group(1) in sync_literals),
                 f"{path.relative_to(ROOT)}: unexpected remote URL literal")
     for match in re.finditer(r"\b(?:chrome\s*\.\s*)?runtime\s*\.\s*getURL\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
         local_reference(match.group(1), ROOT / "manifest.json",
                         f"{path.relative_to(ROOT)} runtime.getURL")
-    for match in re.finditer(r"(?:\bfrom\s*|\bimport\s*)['\"]([^'\"]+)['\"]", text):
+    # Quoted schema keys and hyphenated identities such as 'local-import' are
+    # not module keywords. Keep legal zero-space syntax (from"./module.js").
+    for match in re.finditer(r"(?<![\w$'\"`-])(?:from\s*|import\s*)['\"]([^'\"]+)['\"]", text):
         local_reference(match.group(1), path, f"{path.relative_to(ROOT)} import")
     for match in re.finditer(r"\bimport\s*\(\s*['\"]([^'\"]+)['\"]\s*\)", text):
         local_reference(match.group(1), path, f"{path.relative_to(ROOT)} dynamic import")

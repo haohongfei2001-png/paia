@@ -19,16 +19,36 @@ test('reading controls remain local and never scan old request logs or expose us
  const f=await completeFixture();
  const prior={id:'organizer-controls',dailyRequests:7,batchMode:'compact',aiOnboardingSeen:true};
  await f.s.repository.transaction(true,t=>t.put('meta',prior));
- const transaction=f.s.repository.transaction.bind(f.s.repository),reads=[];
- f.s.repository.transaction=(write,fn,stores)=>transaction(write,t=>{
+ const transaction=f.s.repository.transaction.bind(f.s.repository),reads=[],transactions=[];
+ f.s.repository.transaction=(write,fn,stores)=>{transactions.push(write);return transaction(write,t=>{
   const get=t.get.bind(t);t.get=(name,id)=>{reads.push([name,id]);return get(name,id);};
   t.all=()=>{throw Error('controls must not scan usage history');};return fn(t);
- },stores);
- const controls=await organizerControls(f.s);f.s.repository.transaction=transaction;
+ },stores);};
+ let controls,settledControls,initialReads,initialTransactions;
+ try{
+  controls=await organizerControls(f.s);initialReads=reads.splice(0);initialTransactions=transactions.splice(0);
+  settledControls=await organizerControls(f.s);
+ }finally{f.s.repository.transaction=transaction;}
  assert.deepEqual(controls,{readingSort:'desc',inputReadingSort:'desc',libraryView:'original'});
  const publicationFence=['local-control-publication:revision','local-control-publication:reservation','migration','gate','recovery-restore-epoch'];
  const fenced=keys=>[...publicationFence,...publicationFence,...keys];
- assert.deepEqual(reads,[...fenced(['thought-binding:v1','thought-reverse-edit:v1']),...fenced(['library-documents-compat-v2']),...fenced(['organizer-controls'])].map(id=>['meta',id]));
+ const writeSettlement=['application-generation-selection:v1','canonical-generation:repository-protection:v1'];
+ // Each original run brackets its SDK control read with both publication fences.
+ // Cold foundation probes precede the existing migration writers; their final
+ // selection/protection checks are not reads of usage or provider history.
+ assert.deepEqual(initialReads,[
+  ...fenced(['thought-binding:v1']),
+  ...fenced(['thought-binding:v1','thought-reverse-edit:v1',...writeSettlement]),
+  ...fenced(['library-documents-compat-v2']),
+  ...fenced(['library-documents-compat-v2',...writeSettlement]),
+  ...fenced(['organizer-controls'])
+ ].map(id=>['meta',id]));
+ assert.deepEqual(initialTransactions,[false,false,false,false,false,true,false,false,false,false,false,true,false,false,false]);
+ // Once the original owners have completed initialization, controls need only
+ // their own fenced readonly read: no repeated migration probes or writers.
+ assert.deepEqual(settledControls,controls);
+ assert.deepEqual(reads,fenced(['organizer-controls']).map(id=>['meta',id]));
+ assert.deepEqual(transactions,[false,false,false]);
  await setOrganizerControls(f.s,{readingSort:'desc',inputReadingSort:'desc',libraryView:'ai'});
  assert.deepEqual(await organizerControls(f.s),{readingSort:'desc',inputReadingSort:'desc',libraryView:'ai'});
  const saved=await meta(f.s,'organizer-controls');for(const key of ['dailyRequests','batchMode','aiOnboardingSeen'])assert.equal(saved[key],prior[key]);

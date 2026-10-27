@@ -1,4 +1,5 @@
 import {createSettingsSupportedSites} from './settings-supported-sites.js';
+import {createSettingsSyncRecovery} from './settings-sync-recovery.js';
 import {refreshSettingsRecovery} from './maintenance-recovery.js';
 import {createIcon} from './icons.js';
 import {refreshStorage,subscribeStorageEstimate,storageSummaryText} from './r6-settings.js';
@@ -156,6 +157,7 @@ function mountSearchRepair(dataGroup,language){
 }
 export function installSettingsDetails({dataGroup,language,backup=null}={}){
  if(owner)return owner;const storage=document.getElementById('r6-data-status'),sites=document.getElementById('settings-supported-sites');if(!storage||!sites)return null;
+ const syncDetail=createSettingsSyncRecovery({dataGroup,language,mountDetail:mountSettingsDetail});
  const storageWrapper=storage.closest('.ux-settings-detail');let storageState;const storageDetail=mountSettingsDetail({id:'settings-storage',title:['存储空间','Storage space'],content:storage,language,value:chinese=>storageSummaryText(storageState,!chinese),onOpen:refreshStorage});
  if(storageWrapper)storageWrapper.replaceWith(storageDetail.row);else dataGroup.append(storageDetail.row);
  const siteFacts=createSettingsSupportedSites({language});
@@ -176,5 +178,5 @@ export function installSettingsDetails({dataGroup,language,backup=null}={}){
  const searchRepair=mountSearchRepair(dataGroup,language);
  const retired=document.createElement('div');retired.hidden=true;retired.append(removed);document.body.append(retired);pending.removeAttribute('data-settings-zh');pending.removeAttribute('data-settings-en');document.getElementById('history-dialog').append(pending);removedWrapper.replaceWith(removedDetail.row);
  subscribeStorageEstimate(state=>{storageState=state;storageDetail.sync();});
- owner={sync:()=>{for(const detail of [storageDetail,siteDetail,importDetail,sourceDetail,restoreDetail,removedDetail,searchRepair])detail.sync();},storage:storageDetail,sites:siteDetail,restore:restoreDetail,removed:removedDetail,searchRepair};return owner;
+ owner={sync:()=>{for(const detail of [syncDetail,storageDetail,siteDetail,importDetail,sourceDetail,restoreDetail,removedDetail,searchRepair])detail.sync();},syncRecovery:syncDetail,storage:storageDetail,sites:siteDetail,restore:restoreDetail,removed:removedDetail,searchRepair};return owner;
 }

@@ -1,0 +1,1 @@
+Initial static linker read sparse filesystem and stopped ENOENT extension/ui/input-search.js; no runtime evaluated. Corrected inspection to read exact tracked HEAD git objects, not expand/change runtime. Final 433 modules / 2200 edges linked, no evaluate. Node v24.19.0.

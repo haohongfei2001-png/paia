@@ -1,0 +1,189 @@
+{
+  "base": "397d9797ddb28d0a3f54857d4df4d835c7819c2d",
+  "baseTree": "8c2c00e356082cc6b52b01d8bfab1f0e0d73f4cb",
+  "version": "0.55.19",
+  "publication": false,
+  "testExecution": "NOT_RUN; original separate evidence retained",
+  "exactSourceBindings": [
+    {
+      "source": "2f8db291e353b1301f845be6f59f305f73162184",
+      "path": "extension/docs/consumer-product-v1/implementation/READING-COPY-BUTTON-LIFETIME-20261026.md",
+      "blob": "9b1b316ddd3a4f58b5ecc724b51df7153732256e"
+    },
+    {
+      "source": "2f8db291e353b1301f845be6f59f305f73162184",
+      "path": "extension/tests/reading-copy-button-lifetime.test.mjs",
+      "blob": "1e7a493ea9b9a7647af8ecb40d48a8f80a9004ec"
+    },
+    {
+      "source": "2f8db291e353b1301f845be6f59f305f73162184",
+      "path": "extension/ui/reading-actions.js",
+      "blob": "cfc316930e529318566fae101d9a94b5b86b36f1"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "extension/background/application-selection-commands.js",
+      "blob": "f89af5cbaa81005f19b2283242f1ad9686a1aafd"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "extension/background/service-worker.js",
+      "blob": "28b5abf1dea166103848e27fba8b003a5486f474"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "extension/core/browser-native-sync/application-generation-selection.js",
+      "blob": "3e53f9a1dcae5d58eb4ad6c19fadf109938a8190"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "extension/docs/consumer-product-v1/implementation/sync/SYNC-INTERRUPTION-OBSERVATION.md",
+      "blob": "fa052ea8408c3abd2f30f40285923f6dcc340765"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "extension/tests/settings-sync-interruption-readonly.test.mjs",
+      "blob": "0f0ed2868a9244786bfcb35e7c4d6234eb465c17"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "extension/tests/sync-interruption-readonly.test.mjs",
+      "blob": "e27dfafb51a8a415a20637a4cc9e168f627ea9d7"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "extension/ui/settings-details.js",
+      "blob": "04852a884e2dbf081a5ce4486a08601cace6f89b"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "extension/ui/settings-sync-recovery.js",
+      "blob": "e333c46b3a017b56bf2866a8f8edfd1bd79429c2"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/FROZEN-SOURCE.json",
+      "blob": "4918b7897274aed6d50c310e7e59fe5d7436630c"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/REPORT.md",
+      "blob": "92521ebc0ed1fef2422dbc67d3eb4ace4984198b"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/backend-first.tap",
+      "blob": "418822d3c604ce89b51bbdd8bf5e8564406b2e06"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/backend-materialized.tap",
+      "blob": "d7bc627bc3464fb3a951fadd50de8dadfa3500bb"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-attempt-2-identities.sha256",
+      "blob": "5a815c7f7680c207b43becd242a91a47f98d3d81"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-before-singleflight-identities.sha256",
+      "blob": "04fdf97a8064d1fe5c42152ba2985de038537a40"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-before-singleflight-source.js.txt",
+      "blob": "5d3bed5de721032673ad9bfecbcc0f2cd9c99030"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-before-singleflight-test.mjs.txt",
+      "blob": "9578f1fb64826c167b039abd78b3bad676e2b355"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-final-diff-check.log",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-final-git-blobs.txt",
+      "blob": "49e2e2af2b2418a9e69981a3de81cff7c8375d42"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-final-identities.sha256",
+      "blob": "172b0d0bf19e878b9afad380edbb1ce74b5bc845"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-focused-attempt-1.exit",
+      "blob": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-focused-attempt-1.tap",
+      "blob": "621741bf3334ad8a988ae381cb604b3c294fd9bb"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-focused-attempt-2.exit",
+      "blob": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-focused-attempt-2.tap",
+      "blob": "e9cf5c27a4cb08fb926ec198502aaa83d0cc2205"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-focused-attempt-3-prepared-copy.exit",
+      "blob": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-focused-attempt-3-prepared-copy.tap",
+      "blob": "93d0358386ae1a338b17a59e0a8363be56506ec2"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-focused-attempt-4-singleflight.exit",
+      "blob": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-focused-attempt-4-singleflight.tap",
+      "blob": "c76b1269644fa97fb236e07b6835bfaa9f57ce52"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-inspection-failures.log",
+      "blob": "0f401477c847551ab2efa8e79db262df8dfb54de"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-result.md",
+      "blob": "8a27fb384e040b9f1ffdb6da51a6f80b187380ef"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-singleflight-diff-check.log",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-singleflight-final-git-blobs.txt",
+      "blob": "eb2b24a72572583b2abf861b0d70e0b1d5556da0"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-singleflight-final-identities.sha256",
+      "blob": "53609a304932f4cd91a6643659a8c969ec0ace19"
+    },
+    {
+      "source": "694ba6cf10bd8941e59b51b1de4219e2100efa6d",
+      "path": "work/sync-interruption-readonly-20261026/ui-test-plan.md",
+      "blob": "143316a68b169132b092c1b31ae8af789429c99a"
+    }
+  ]
+}

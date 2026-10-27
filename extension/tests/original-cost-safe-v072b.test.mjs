@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {setup} from './harness/thought-m1.mjs';
 import {OrganizerStore} from '../core/organizer/store.js';
+import {originalOrganizerConstructor} from '../core/organizer/store-owner.js';
 import {DeepSeekOrganizerProvider,DeepSeekSessionCredentials} from './harness/historical-provider.mjs';
 import {SimpleOriginalOrganizerRunner} from '../core/organizer/original-simple.js';
 
@@ -41,4 +42,18 @@ test('clearing the session credential aborts active work and cannot schedule ano
 
 test('worker restart after sent becomes outcome_unknown and the late worker cannot commit',async()=>{let calls=0,finish;const f=await fixture(async(_url,init)=>{calls++;return new Promise(resolve=>{finish=()=>resolve(success(init));});},{timeoutMs:10000}),old=f.runner.wake({userActionId:'interrupted'});while(calls!==1)await new Promise(resolve=>setTimeout(resolve,0));const restarted=new SimpleOriginalOrganizerRunner(f.s,{provider:f.provider,credentials:f.credentials}),recovery=await restarted.reconcileInterrupted();assert.equal(recovery.error,'OUTCOME_UNKNOWN');assert.equal(calls,1);finish();const result=await old;assert.equal(result.error,'OUTCOME_UNKNOWN');assert.equal(calls,1);assert.equal((await f.s.originalOrganizerStatus()).bootstrap.processed,0);assert.equal((await f.s.entryPage()).items.length,0);assert.equal((await ledger(f.s))[0].state,'outcome_unknown');});
 
-test('production runtime has no smoke, auto-dispatch, retry timer, or recursive Original continuation',async()=>{const [worker,provider,store,ui,html]=await Promise.all([readFile(new URL('../background/service-worker.js',import.meta.url),'utf8'),readFile(new URL('../core/organizer/deepseek.js',import.meta.url),'utf8'),readFile(new URL('../core/organizer/store.js',import.meta.url),'utf8'),readFile(new URL('../ui/archive.js',import.meta.url),'utf8'),readFile(new URL('../ui/archive.html',import.meta.url),'utf8')]);assert.doesNotMatch(provider,/Synthetic organizer connectivity check|runInternalSmoke|internalSmokeRequest/);assert.doesNotMatch(worker,/scheduleOriginalIncremental/);assert.equal((worker.match(/originalOrganizer\.wake\(/g)||[]).length,0);assert.match(store,/async autoUpdateOriginalView\(\)\{return null;\}/);assert.doesNotMatch(worker,/new DeepSeekOrganizerProvider|new DeepSeekSessionCredentials|originalOrganizer\.wake/);assert.doesNotMatch(html,/重试将再次调用 DeepSeek API|id="original-run-next"/);});
+test('production runtime has no smoke, auto-dispatch, retry timer, or recursive Original continuation',async()=>{
+ const [worker,provider,facade,owner,ui,html]=await Promise.all([
+  '../background/service-worker.js','../core/organizer/deepseek.js',
+  '../core/organizer/store.js','../core/organizer/store-owner.js',
+  '../ui/archive.js','../ui/archive.html'
+ ].map(path=>readFile(new URL(path,import.meta.url),'utf8')));
+ assert.equal(OrganizerStore,originalOrganizerConstructor(),'the public facade exposes the original owner constructor');
+ const store=facade+'\n'+owner;
+ assert.doesNotMatch(provider,/Synthetic organizer connectivity check|runInternalSmoke|internalSmokeRequest/);
+ assert.doesNotMatch(worker,/scheduleOriginalIncremental/);
+ assert.equal((worker.match(/originalOrganizer\.wake\(/g)||[]).length,0);
+ assert.match(store,/async autoUpdateOriginalView\(\)\{return null;\}/);
+ assert.doesNotMatch(worker,/new DeepSeekOrganizerProvider|new DeepSeekSessionCredentials|originalOrganizer\.wake/);
+ assert.doesNotMatch(html,/重试将再次调用 DeepSeek API|id="original-run-next"/);
+});

@@ -45,9 +45,12 @@ test('fake trusted field and public factory constructor changes cannot mint nati
  const repository=new ArchiveRepository(local(),{indexedDB:new IDBFactory(),name:'synthetic-fake-native-fields'});let scope;
  const old=globalThis.IDBTransaction;
  try{
-  await repository.transaction(true,async t=>{scope=t;globalThis.IDBTransaction=t.tx.constructor;const event=new FakeEvent('complete');event.isTrusted=true;t.tx.dispatchEvent(event);});
+  // A forged non-native early complete cannot bypass the original final reads.
+  // The adjacent untampered case still proves ordinary writes can succeed.
+  await assert.rejects(repository.transaction(true,async t=>{scope=t;await t.put('meta',{id:'synthetic-early-complete',value:1});globalThis.IDBTransaction=t.tx.constructor;const event=new FakeEvent('complete');event.isTrusted=true;t.tx.dispatchEvent(event);}),{code:'BNS_HUMAN_RETENTION_REQUIRED'});
   await awaitRepositoryTransactionSettled(repository,scope);
   assert.throws(()=>requireRepositoryTransactionCommitted(repository,scope),{code:'BNS_HUMAN_RETENTION_REQUIRED'});
+  assert.equal(await repository.transaction(false,t=>t.get('meta','synthetic-early-complete')),undefined,'the real fake-IDB abort rolls back the write');
  }finally{if(old===undefined)delete globalThis.IDBTransaction;else globalThis.IDBTransaction=old;}
 });
 

@@ -1,14 +1,14 @@
 import {originalSelectionHoldBinding,chargeOriginalSelectionHold,trackOriginalSelectionHoldWork,invalidateOriginalSelectionHold,originalSelectionHoldPinned,originalSelectionHoldRemaining} from '../local-tool-selection-hold.js';
 import {createConfiguredMaintenanceSession} from './configured-maintenance-session.js';
-import {LocalMaintenanceSession} from './local-maintenance-session.js';
+import {readLocalMaintenanceSessionAvailability} from './local-maintenance-session.js';
 import {fail} from './contracts.js';
 import {consumeCommittedSemanticWrite} from '../idb-repository.js';
-const runners=new WeakMap(),available=LocalMaintenanceSession.prototype.available;
+const runners=new WeakMap();
 // Source assembly only. Reading this capability never wakes Maintenance, scans
 // a body, installs configuration or grants permission to a proposal.
 export function readMaintenanceRunnerSession(runner,store){
  const r=runners.get(runner);if(!r||r.store!==store||r.disposed)fail('UNAVAILABLE');
- if(!r.repository||available.call(r.session)!==true)return null;
+ if(!r.repository||readLocalMaintenanceSessionAvailability(r.session)!==true)return null;
  if(store.repository!==r.repository||r.repository.db!==r.database)fail('STALE_BASE');
  return r.session;
 }
@@ -20,7 +20,7 @@ export function createMaintenanceRunner(store,configuration){
  const session=createConfiguredMaintenanceSession(store,configuration);let active=null,disposed=false,cooldown=null,last=null,selectionHold=null,requested=false;
  // Default-null assembly remains entirely store-free. A qualified runner holds
  // its original repository identity; later replacement cannot refresh it.
- const repository=available.call(session)===true?store.repository:null,record={store,session,repository,database:repository?.db,disposed:false,hold:null,current:null,release:null};
+ const repository=readLocalMaintenanceSessionAvailability(session)===true?store.repository:null,record={store,session,repository,database:repository?.db,disposed:false,hold:null,current:null,release:null};
  const runner=Object.freeze({
   // Pure, body-free observation. Never wake a job or scan pending content just
   // to paint Context availability. An unobserved backlog remains unknown.

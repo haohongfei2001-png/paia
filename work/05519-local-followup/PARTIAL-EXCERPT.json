@@ -1,0 +1,33 @@
+{
+  "sourceCommit": "83200d0dca4ff9a0a1b97247538b2c8006ae092a",
+  "files": [
+    {
+      "path": "extension/core/ai-usage/local-maintenance-session.js",
+      "blob": "096040d750fab50126b7803a0d54d49e938380bd",
+      "sha256": "f49626a20bbf5304227ff6db70bfc60d9b7b24affa9f534b6e23bc605cf90a7d"
+    },
+    {
+      "path": "extension/core/ai-usage/maintenance-existing-context.js",
+      "blob": "e2175fe7f60776a5bfb6d155112859ccf659e04d",
+      "sha256": "dcf981a12bd72eb90399edad9d114df6f1db831a165704deb0f32d331179a03a"
+    },
+    {
+      "path": "services/ai-gateway/tests/maintenance-source-response-path.test.mjs",
+      "blob": "aeacb1213bfc724d0746b14eeaf247ddff8010ca",
+      "sha256": "668aca11a4d16ca8ac6744c493e0fff948dd12d032359cb175db67d3a0712313"
+    }
+  ],
+  "testRuns": {
+    "originalRollback": "2/2 PASS",
+    "newTargetBaseline": "0/2 FAIL",
+    "changedCases": "7/7 PASS once"
+  },
+  "scope": "Existing sent Context baseline and old Topic only; complete remaining Context facet DEFER, not per-group progress",
+  "mainPublishedBase": "b65db7d1eb849f934e7e6ce0b7be499b546e222f",
+  "notRun": [
+    "integration rerun",
+    "full suites",
+    "browser",
+    "provider"
+  ]
+}

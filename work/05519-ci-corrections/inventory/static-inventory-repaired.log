@@ -1,0 +1,34 @@
+✔ human-current-checkpoint-recovery-native.test.mjs: original before snapshot covers complete independently collected fixture closure (259.195652ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: every newly imported background/UI module is hashed and rechecked without admitting omitted dynamic imports (313.659616ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: unchanged original core and background served bytes are both re-read (128.519097ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: source background/ai-filter-consent.js change after serving is refused by original runtime recheck (1.690338ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: release background/ai-filter-consent.js change after serving is refused by original runtime recheck (1.263642ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: source background/maintenance-processing-commands.js change after serving is refused by original runtime recheck (1.588819ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: release background/maintenance-processing-commands.js change after serving is refused by original runtime recheck (1.873326ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: source background/maintenance-processing-consent.js change after serving is refused by original runtime recheck (1.272245ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: release background/maintenance-processing-consent.js change after serving is refused by original runtime recheck (1.341317ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: unlisted served path still refuses before a runtime read (134.460316ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/ai-filter-consent.js (296.281842ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-commands.js (289.057833ms)
+✔ human-current-checkpoint-recovery-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-consent.js (293.888874ms)
+✔ human-current-scope-checkpoint-native.test.mjs: original before snapshot covers complete independently collected fixture closure (234.364237ms)
+✔ human-current-scope-checkpoint-native.test.mjs: every newly imported background/UI module is hashed and rechecked without admitting omitted dynamic imports (320.461047ms)
+✔ human-current-scope-checkpoint-native.test.mjs: unchanged original core and background served bytes are both re-read (175.237527ms)
+✔ human-current-scope-checkpoint-native.test.mjs: source background/ai-filter-consent.js change after serving is refused by original runtime recheck (2.165034ms)
+✔ human-current-scope-checkpoint-native.test.mjs: release background/ai-filter-consent.js change after serving is refused by original runtime recheck (2.494346ms)
+✔ human-current-scope-checkpoint-native.test.mjs: source background/maintenance-processing-commands.js change after serving is refused by original runtime recheck (1.890386ms)
+✔ human-current-scope-checkpoint-native.test.mjs: release background/maintenance-processing-commands.js change after serving is refused by original runtime recheck (2.652558ms)
+✔ human-current-scope-checkpoint-native.test.mjs: source background/maintenance-processing-consent.js change after serving is refused by original runtime recheck (1.436245ms)
+✔ human-current-scope-checkpoint-native.test.mjs: release background/maintenance-processing-consent.js change after serving is refused by original runtime recheck (1.626584ms)
+✔ human-current-scope-checkpoint-native.test.mjs: unlisted served path still refuses before a runtime read (191.01101ms)
+✔ human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/ai-filter-consent.js (329.922977ms)
+✔ human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-commands.js (272.18312ms)
+✔ human-current-scope-checkpoint-native.test.mjs: original after snapshot observes a changed background/maintenance-processing-consent.js (280.998008ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3630.556573

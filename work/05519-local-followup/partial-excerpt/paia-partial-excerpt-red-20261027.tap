@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: same-child partial-excerpt commits Topic and defers ungranted existing Context UPDATE
+not ok 1 - same-child partial-excerpt commits Topic and defers ungranted existing Context UPDATE
+  ---
+  duration_ms: 2353.967896
+  type: 'test'
+  location: '/tmp/paia-partial-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-source-response-path.test.mjs:176:47'
+  failureType: 'testCodeFailure'
+  error: '{"state":"PARTIAL","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:ea6578837e7024911c6168f4abc58282739edf5be6c3da6e966143d50e26aa81","facets":[{"facet":"topic","units":1,"state":"FAILED","reason":"UNAVAILABLE"}],"nextEligibilityAt":1767254400000,"observedAt":1767225600000,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/paia-partial-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-source-response-path.test.mjs:189:98)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: same-child partial-excerpt commits Topic and defers ungranted existing Context NO_CHANGE
+not ok 2 - same-child partial-excerpt commits Topic and defers ungranted existing Context NO_CHANGE
+  ---
+  duration_ms: 1927.823317
+  type: 'test'
+  location: '/tmp/paia-partial-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-source-response-path.test.mjs:176:47'
+  failureType: 'testCodeFailure'
+  error: '{"state":"PARTIAL","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:039cd4c28ba431aa3764e07d772c0fcfbba1b118c64830fd74344af1e2bac236","facets":[{"facet":"topic","units":1,"state":"FAILED","reason":"UNAVAILABLE"}],"nextEligibilityAt":1767254400000,"observedAt":1767225600000,"deferredUnits":2,"blockedUnits":2,"remainingWork":true}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/paia-partial-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-source-response-path.test.mjs:189:98)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4796.049421

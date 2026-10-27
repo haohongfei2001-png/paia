@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: non-native repository keeps ordinary storage and cleanup but cannot prove native commit
+ok 1 - non-native repository keeps ordinary storage and cleanup but cannot prove native commit
+  ---
+  duration_ms: 16.479412
+  type: 'test'
+  ...
+# Subtest: fake trusted field and public factory constructor changes cannot mint native commit evidence
+ok 2 - fake trusted field and public factory constructor changes cannot mint native commit evidence
+  ---
+  duration_ms: 2.231483
+  type: 'test'
+  ...
+# Subtest: Q4 main original terminal get/count and successful commit consume the same ticket without refill
+ok 3 - Q4 main original terminal get/count and successful commit consume the same ticket without refill
+  ---
+  duration_ms: 15.506174
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 394.072722
