@@ -1,0 +1,36 @@
+TAP version 13
+# Subtest: CTX4-02 keep-as-new retry preserves independently edited replacement and both protected drafts
+not ok 1 - CTX4-02 keep-as-new retry preserves independently edited replacement and both protected drafts
+  ---
+  duration_ms: 105.904635
+  type: 'test'
+  location: '/tmp/paia-context-conflict-replacement-20261027/extension/tests/context-conflict-replacement.test.mjs:81:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    retrying the original conflict must not replace newer human text
+    + actual - expected
+    
+    + 'SYNTHETIC original human conflict'
+    - 'SYNTHETIC newer human replacement wording'
+                 ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'SYNTHETIC newer human replacement wording'
+  actual: 'SYNTHETIC original human conflict'
+  operator: 'strictEqual'
+  stack: |-
+    file:///tmp/paia-context-conflict-replacement-20261027/extension/tests/context-conflict-replacement.test.mjs:85:9
+    async fixture (file:///tmp/paia-context-conflict-replacement-20261027/extension/tests/context-conflict-replacement.test.mjs:67:6)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 509.746369

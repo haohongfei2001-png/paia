@@ -1,0 +1,28 @@
+TAP version 13
+# Subtest: CTX4-02 failed new-draft read is visible and explicit retry restores protected text without writing
+ok 1 - CTX4-02 failed new-draft read is visible and explicit retry restores protected text without writing
+  ---
+  duration_ms: 68.744889
+  type: 'test'
+  ...
+# Subtest: CTX4-02 explicit draft retry is single-flight and an old card completion or button cannot recover elsewhere
+ok 2 - CTX4-02 explicit draft retry is single-flight and an old card completion or button cannot recover elsewhere
+  ---
+  duration_ms: 31.062982
+  type: 'test'
+  ...
+# Subtest: CTX4-02 retried draft enumeration preserves current unsaved editors and restores only missing new items
+ok 3 - CTX4-02 retried draft enumeration preserves current unsaved editors and restores only missing new items
+  ---
+  duration_ms: 40.359163
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 477.368575

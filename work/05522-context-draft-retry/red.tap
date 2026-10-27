@@ -1,0 +1,29 @@
+TAP version 13
+# Subtest: CTX4-02 failed new-draft read is visible and explicit retry restores protected text without writing
+not ok 1 - CTX4-02 failed new-draft read is visible and explicit retry restores protected text without writing
+  ---
+  duration_ms: 68.44436
+  type: 'test'
+  location: '/tmp/paia-context-draft-recovery-retry-20261027/extension/tests/context-new-draft-recovery.test.mjs:77:1'
+  failureType: 'testCodeFailure'
+  error: 'draft read refusal needs a visible recovery status'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: ~
+  operator: '=='
+  stack: |-
+    fixture.seed (file:///tmp/paia-context-draft-recovery-retry-20261027/extension/tests/context-new-draft-recovery.test.mjs:79:89)
+    async fixture (file:///tmp/paia-context-draft-recovery-retry-20261027/extension/tests/context-new-draft-recovery.test.mjs:68:6)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 409.072772

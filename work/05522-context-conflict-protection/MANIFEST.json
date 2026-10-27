@@ -1,0 +1,29 @@
+{
+  "task": "CTX4-02 preserve independently edited conflict replacement on original keep-as-new retry",
+  "base": "7785f4aa4fd89693c46fead75f6d65b66aa3519d",
+  "base_tree": "7dd77cf9e803fdb578db480de5bb536f0c359851",
+  "commit": "736889523ddf518364d88af1c961d162a312be74",
+  "tree": "fd83d82b7e5b682283c07133e262b67fb55a573d",
+  "files": {
+    "extension/ui/context-cards.js": "efe7f2a84b4e50609070914ec363fa34d53da2302ae1d28c2b28e979ad658eb1",
+    "extension/tests/context-conflict-replacement.test.mjs": "1b0d6af5c42574e7bb80fca4992406cca3b8458e89823210602792acb46bff11"
+  },
+  "scope": "One existing keepConflict branch declines to rewrite a reused replacement with different local/visible text or active IME, retains both versions and requests explicit review. Unchanged replacement uses original pending/operation/ACK path. No auto-merge/new replacement on refusal, worker/recovery owner/schema/permission/service/grant/CSS change. Frozen .55.22 and prior recovery-read work untouched.",
+  "evidence": "Three necessary controls have passing observations in first candidate2/3 and corrected third1/1; not one whole-file3/3. Only the new file and one affected correction ran. Original failure and first candidate kept.",
+  "harness": "Original ContextCardsService revision conflict, ContextCommitSession pending/outcome, RecoveryDraftStore and PresentationNode UI handlers. Synthetic local transport/fake IndexedDB; no browser/native/real service claim.",
+  "node": "v24.19.0",
+  "logs": [
+    {
+      "sha256": "14b7414ef5709dd6fbd97ea219bb2fc6d7841584421263b2f2bf52782ee5bcb0",
+      "meaning": "Original7785 0/1: repeated keep-as-new overwrote newer human replacement text."
+    },
+    {
+      "sha256": "a1dcab97518bf3c947fe95b68dbcf249f6beace7e357d3f5b0cefb61d8c15531",
+      "meaning": "First candidate2/3: changed-text and IME controls PASS; new legal-retry test incorrectly expected saved original itemId to disappear."
+    },
+    {
+      "sha256": "e2ce11d81698dcec648d58fd9e6562d839c37efb75ac83d2c23da09d13abfe33",
+      "meaning": "Only corrected legal-retry case1/1 PASS: original conflicted editor retires, current saved original item remounts, original pending operation ACK clears draft."
+    }
+  ]
+}

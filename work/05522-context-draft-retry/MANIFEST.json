@@ -1,0 +1,28 @@
+{
+  "task": "CTX4-02 explicit recovery after failed new-Context-draft enumeration",
+  "base": "ade7fb36af8e0bb446df7c49d86e64c071fbc0d5",
+  "base_tree": "1c8e3b8d1d39b415e8fffc56205df7d1a97b1579",
+  "commit": "46ad6a44eeb23954f93650364bcfe5f27474af7b",
+  "tree": "120c0f73d04bae21bf08b16a857e233dffeb2ff9",
+  "files": {
+    "extension/ui/context-cards.js": "5fea27d5d2bd38a1793628bae61ab5f90d5361b736af8f2ed2fa55941b1e8751",
+    "extension/tests/context-new-draft-recovery.test.mjs": "7eca8110c79df5cef1df9c35b704cadbe8e3cc06469d72eb79f7f69dbfb575b9"
+  },
+  "cases": [
+    "Original list rejection becomes visible, no automatic retry, explicit successful retry mounts protected new draft without save/clear",
+    "Repeated explicit request is same-generation single-flight; old completion and old button cannot affect a switched card",
+    "Current dirty saved/fresh editor identities and text remain; only missing expectedRevision0 items mount; retry performs no writes"
+  ],
+  "scope": "Only original Context page status and explicit PAIA_CONTEXT_CARDS_DRAFTS re-read. Original card/openGeneration/expectedRevision0/dedup remain, with page identity and one-read ownership. No existing Item recovery-load change, worker/storage/permission/grant/schema changes, CSS, provider, old suite, browser/native/cloud, or publication. Separate from .55.21 immutable-result candidate.",
+  "harness": "Original ContextCardsService and RecoveryDraftStore plus shared PresentationNode. Transport is synthetic; not actual worker/native/UI appearance acceptance.",
+  "node": "v24.19.0",
+  "red": {
+    "sha256": "efc68498406b956c924b30aaf1f5fbed5bfb74cb3b0bf0186038e7006adec437",
+    "result": "Original ade7 UI: 0/1 affected first case, visible recovery-status assertion fails; not setup failure."
+  },
+  "candidate": {
+    "sha256": "43516781b49c3dd10ab64e56744d15947ec85463a8315550a95da5160b98cdfd",
+    "result": "First candidate invocation: 3/3 PASS, fail0 skip0 cancel0, duration477.368575ms. Only new focused file.",
+    "command": "node --test --test-reporter=tap extension/tests/context-new-draft-recovery.test.mjs"
+  }
+}
