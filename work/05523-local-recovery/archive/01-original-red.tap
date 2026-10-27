@@ -1,0 +1,129 @@
+✖ failed provider read waits for visible explicit Retry instead of a 40ms retry loop (10.115313ms)
+✖ failed source-group read is not indexing or empty and only explicit retry reloads its scope (11.806023ms)
+✖ failed continuation preserves confirmed rows and cursor; repeated Retry appends once (5.274906ms)
+✖ failed restore-depth continuation stops without dropping its original depth obligation (3.624737ms)
+✔ genuine index-building continuation still schedules and completes normally (1.752991ms)
+✖ old Retry and held result cannot affect current Reader after replaced-scope (5.739931ms)
+✖ old Retry and held result cannot affect current Reader after inactive (1.709277ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 1
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 151.629771
+
+✖ failing tests:
+
+test at extension/tests/archive-navigator-read-retry.test.mjs:35:1
+✖ failed provider read waits for visible explicit Retry instead of a 40ms retry loop (10.115313ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:37:40
+      at async fixture (file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:31:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/archive-navigator-read-retry.test.mjs:43:1
+✖ failed source-group read is not indexing or empty and only explicit retry reloads its scope (11.806023ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /unavailable/i. Input:
+  
+  'Loading source groups…'
+  
+      at file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:45:40
+      at async fixture (file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:31:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Loading source groups…',
+    expected: /unavailable/i,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at extension/tests/archive-navigator-read-retry.test.mjs:50:1
+✖ failed continuation preserves confirmed rows and cursor; repeated Retry appends once (5.274906ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   'one'
+  - ]
+  
+      at file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:52:9
+      at async fixture (file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:31:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'one' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/archive-navigator-read-retry.test.mjs:57:1
+✖ failed restore-depth continuation stops without dropping its original depth obligation (3.624737ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:60:13
+      at async fixture (file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:31:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/archive-navigator-read-retry.test.mjs:70:54
+✖ old Retry and held result cannot affect current Reader after replaced-scope (5.739931ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(retry)
+  
+      at file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:71:155
+      at async fixture (file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:31:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at extension/tests/archive-navigator-read-retry.test.mjs:70:54
+✖ old Retry and held result cannot affect current Reader after inactive (1.709277ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(retry)
+  
+      at file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:71:155
+      at async fixture (file:///tmp/paia-thought-archive-daily-flow-20261027/extension/tests/archive-navigator-read-retry.test.mjs:31:3)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

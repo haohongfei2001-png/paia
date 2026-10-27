@@ -1,0 +1,45 @@
+{
+  "task": "CTX4-02 acknowledged delete/newer editing preservation",
+  "base": "366188675da3fd7b440273ac41fc269bc8444bf4",
+  "base_tree": "c8373a48ba893ea84d7cbe2478c35e54a7f848f5",
+  "commit": "316cda25111c95d7a32e52d05e0abb9702dd8ac4",
+  "tree": "197c7311ea3668605180039952b2e50a990b24d4",
+  "clean": true,
+  "paths": {
+    "extension/ui/context-cards.js": "bbd60e7594c15e762d05be5c569dc40eb59e6552b733e03b0cf73f72dea15bfe",
+    "extension/tests/context-delete-edit-recovery.test.mjs": "4c55b95f05f93ace29ee8fcffb27712c0b5d797aa3d83b11ce2e96d2ca7aa20c"
+  },
+  "canonical": [
+    "extension/docs/consumer-product-v1/AI_CONTEXT_CARDS_V2_PLAN.md:34",
+    "extension/docs/consumer-product-v1/AI_CONTEXT_CARDS_V2_PLAN.md:45"
+  ],
+  "runtime_scope": "Only ContextCardsPage.remove; capture exact original text/token, retain later edits/composition on page after authentic delete ACK, retain original deletion Undo, clear captured token only, no implicit create/restore. Existing original Keep as new is explicit persistence route. No shared recovery owner change.",
+  "real_owner_boundary": "ContextCardsService.recoverySources at core/context-cards.js:190 rejects removed Item with CONTEXT_INVALIDATED. Focused fixture calls this actual owner for every draft save. Text after delete is not represented as durable under removed ID.",
+  "not_covered": [
+    "Cross-reopen retention under removed Item ID is intentionally unavailable, not newly granted",
+    "Native browser IME/layout/accessibility",
+    "Full worker entrypoint composition",
+    "Original existing suite",
+    "Cloud/service/provider/publication"
+  ],
+  "unknown": "Original ContextCommitSession unknown outcome semantics and original delete catch/reconcile untouched; no unknown result normalized to ACK.",
+  "checks": [
+    "node --check both changed paths PASS",
+    "git diff --check PASS"
+  ],
+  "notes": "No version bump in isolated slice; combined integration/version/publication belong to parent.",
+  "evidence": [
+    {
+      "sha256": "48276e75a04022b1a012978cb59ac1378a19a8059f425b790f67356087812b69",
+      "result": "SIGKILL before product assertion reported; not a runtime pass or established product RED; suspected giant object diagnostic formatting, unique process-kill cause unproven"
+    },
+    {
+      "sha256": "1998bc320b252a609910fab58e3f2b87830dcebcaf9d0b84b548ba16894d3b6f",
+      "result": "Baseline new case 1 alone: 0 pass / 1 fail, explicit late delete ACK retired newer-text editor; same identity expectation changed only to boolean to avoid giant object failure formatting"
+    },
+    {
+      "sha256": "ae714e3d4170a87be11f7bfd556aa0ee7b4a522e5363f2405d3feeb9b1139429",
+      "result": "First candidate new focused file: 3 pass / 0 fail / 0 skip / 0 cancelled; 599.458352 ms"
+    }
+  ]
+}

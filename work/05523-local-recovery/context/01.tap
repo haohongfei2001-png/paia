@@ -1,0 +1,33 @@
+TAP version 13
+# Subtest: CTX4-02 delete ACK retains newer local text until explicit keep-as-new without reviving the removed Item
+not ok 1 - CTX4-02 delete ACK retains newer local text until explicit keep-as-new without reviving the removed Item
+  ---
+  duration_ms: 115.923272
+  type: 'test'
+  location: '/tmp/paia-context-settings-edit-recovery-20261027/extension/tests/context-delete-edit-recovery.test.mjs:84:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    late delete ACK must not retire newer human text
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    file:///tmp/paia-context-settings-edit-recovery-20261027/extension/tests/context-delete-edit-recovery.test.mjs:87:40
+    async fixture (file:///tmp/paia-context-settings-edit-recovery-20261027/extension/tests/context-delete-edit-recovery.test.mjs:66:6)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 506.137704

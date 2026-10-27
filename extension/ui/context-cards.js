@@ -369,7 +369,22 @@ export class ContextCardsPage {
   if(editor.saving||editor.commit.pending)await editor.flush(true);
   if(editor.saving||editor.commit.pending||editor.conflicted)return;
   if(editor.local.trim()&&editor.dirty()&&!await editor.flush())return;
-  editor.menu.open=false;if(editor.fresh){if(!await editor.clearDraft())return;editor.dispose();editor.root.remove();this.editors.delete(editor.id);this.paintEmpty();return;}this.busy=true;try{const ack=await this.deleteCommit.save({kind:'delete',operationId:crypto.randomUUID(),epoch:this.snapshot.epoch,itemId:editor.id,expectedRevision:editor.saved.revision});if(!ack.result.ok){editor.conflicted=true;editor.feedbackFailure(true);return;}if(ack.change.kind!=='delete'||ack.change.itemId!==editor.id||ack.result.itemId!==editor.id||ack.result.lifecycle!=='removed')throw Error('SAVE_OUTCOME_UNKNOWN');await editor.recovery.clear().catch(()=>{});editor.dispose();editor.root.remove();this.editors.delete(editor.id);this.journal.record({itemId:ack.result.itemId,revision:ack.result.revision,deletedBy:ack.result.deletedBy});await this.refresh({force:true});this.notice(copy('已删除，不会自动加回。','Deleted. It will not be automatically restored.'),true);this.add.focus();}catch{this.unconfirmed(copy('删除尚未确认，请核对上次操作。','Deletion is unconfirmed. Check the previous operation.'));}finally{this.busy=false;}}
+  editor.menu.open=false;if(editor.fresh){if(!await editor.clearDraft())return;editor.dispose();editor.root.remove();this.editors.delete(editor.id);this.paintEmpty();return;}
+  const text=editor.local,visible=editor.field.innerText,token=editor.recovery.currentToken,newer=()=>editor.composing||editor.local!==text||editor.field.innerText!==visible;
+  this.busy=true;try{
+   const ack=await this.deleteCommit.save({kind:'delete',operationId:crypto.randomUUID(),epoch:this.snapshot.epoch,itemId:editor.id,expectedRevision:editor.saved.revision});
+   if(!ack.result.ok){editor.conflicted=true;editor.feedbackFailure(true);return;}
+   if(ack.change.kind!=='delete'||ack.change.itemId!==editor.id||ack.result.itemId!==editor.id||ack.result.lifecycle!=='removed')throw Error('SAVE_OUTCOME_UNKNOWN');
+   this.journal.record({itemId:ack.result.itemId,revision:ack.result.revision,deletedBy:ack.result.deletedBy});
+   // Deletion ACK does not acknowledge text typed while it was in flight.
+   // Clear only the captured draft; a later draft/IME remains on this page.
+   if(!newer()&&token)await editor.recovery.clear(token).catch(()=>{});
+   if(newer()){
+    editor.conflicted=true;editor.feedbackFailure(true);await this.refresh({force:true});
+    this.notice(copy('此条目已删除。新文字仅保留在当前页；请用“保留为新条目”保存，或撤销删除后核对。','This item was deleted. New text is retained only on the current page; use Keep as new item to save it, or Undo deletion and review.'),true);return;
+   }
+   editor.dispose();editor.root.remove();this.editors.delete(editor.id);await this.refresh({force:true});this.notice(copy('已删除，不会自动加回。','Deleted. It will not be automatically restored.'),true);this.add.focus();
+  }catch{this.unconfirmed(copy('删除尚未确认，请核对上次操作。','Deletion is unconfirmed. Check the previous operation.'));}finally{this.busy=false;}}
  async undoDelete(){if(this.busy)return;const prior=this.journal.undo.at(-1);if(!prior)return;this.busy=true;try{const ack=await this.deleteCommit.save({kind:'restore',operationId:crypto.randomUUID(),epoch:this.snapshot.epoch,itemId:prior.itemId,expectedRevision:prior.revision,deletedBy:prior.deletedBy});if(!ack.result.ok||ack.change.kind!=='restore'||ack.result.itemId!==prior.itemId||ack.result.lifecycle!=='active')throw Error('conflict');this.journal.undo.pop();await this.refresh({force:true});this.notice(copy('已撤销删除。','Deletion undone.'));this.editors.get(prior.itemId)?.field.focus();}catch{this.unconfirmed(copy('撤销尚未保存，请核对上次操作。','Undo has not been saved. Check the previous operation.'));}finally{this.busy=false;}}
  async keepConflict(editor){
   if(this.busy||editor.composing)return;const text=editor.local;if(!text.trim())return;

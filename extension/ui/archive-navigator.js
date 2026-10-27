@@ -130,33 +130,38 @@ export class ArchiveNavigator{
   if(!this.active)return;try{const status=await request('PAIA_ARCHIVE_NAV_STATUS',{page:{groupKind:'providers',mode:this.mode,selectedDocumentId:this.selectedDocumentId}}),root=this.state.scope({groupKind:'providers'}),before=JSON.stringify(this.state.selectedPath);if(status.selectedPath)this.selectPath(status.selectedPath);if(status.coverage.state!=='complete'||root.generation&&status.generation!==root.generation){this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;await this.refresh(false);}else if(before!==JSON.stringify(this.state.selectedPath))this.paint();}catch{}finally{this.schedule();}
  }
  async readScope(options,{append=false,force=false}={}){
-  const scope=this.state.scope(options);if(scope.loading)return scope;if(!append&&!force&&scope.coverage.state==='complete'&&scope.unavailableReason!=='SOURCE_ORDER_PREPARING')return scope;scope.loading=true;scope.error=null;this.paint();
+  // Keep failed reads parked at their original cursor until this scope is explicitly retried.
+  const scope=this.state.scope(options);if(scope.loading||(scope.error&&!force))return scope;if(!append&&!force&&scope.coverage.state==='complete'&&scope.unavailableReason!=='SOURCE_ORDER_PREPARING')return scope;scope.loading=true;scope.error=null;this.paint();
+  const current=()=>this.active&&this.state.scopes.get(scope.key)===scope,documentId=this.selectedDocumentId;
   try{
    const page=await request('PAIA_ARCHIVE_NAV_PAGE',{page:{...options,...(append&&scope.nextCursor?{cursor:scope.nextCursor}:{}),limit:40,mode:this.mode,selectedDocumentId:this.selectedDocumentId}});
-   if(page.selectedPath)this.selectPath(page.selectedPath);
+   if(!current())return scope;
+   if(page.selectedPath&&documentId===this.selectedDocumentId)this.selectPath(page.selectedPath);
    if(page.cursorInvalid){this.state.scopes.delete(scope.key);return this.readScope(options);}
    scope.coverage=page.coverage;scope.generation=page.generation;scope.nextCursor=page.nextCursor;scope.effectiveOrdering=page.effectiveOrdering||'paia';scope.unavailableReason=page.unavailableReason||null;
    if(page.coverage.state==='complete')scope.items=append?[...scope.items,...page.items]:page.items;
    else if(!append)scope.items=[];
    return scope;
-  }catch(error){scope.error=error?.code||'UNAVAILABLE';return scope;}
-  finally{scope.loading=false;this.paint();}
+  }catch(error){if(current()){scope.error=error?.code||'UNAVAILABLE';scope.retryAppend=append;}return scope;}
+  finally{scope.loading=false;if(current())this.paint();}
  }
  async refresh(hard=false){
   if(!this.active||this.host.hidden&&!this.reader)return;
   const token=++this.serial;if(hard){this.rememberLoadedDepth();this.state.resetScopes();this.lastPaintSignature=null;}
   let root=await this.readScope({groupKind:'providers'});if(token!==this.serial)return;
+  if(root.error){this.setStatus(copy('窗口导航暂时不可读，请重试。','Window navigation is unavailable. Retry to continue.'));this.paint();return;}
   if(root.coverage.state!=='complete'){this.setStatus(copy('正在整理窗口索引…','Building window index…'));this.paint();setTimeout(()=>{if(token===this.serial)void this.refresh(false);},40);return;}
   // A delayed provider read must consult the live route/query owner, not the
   // last painted query: Search may already hold a qualified snapshot.
   if(root.items.length){if(!this.browseSource)this.browseSource=this.sourceScope||root.items[0].providerKey;if(!this.sourceInitialized&&!this.reader&&!this.query.trim()&&this.canInitializeSource()){this.sourceInitialized=true;this.sourceScope=this.browseSource;this.onSourceInitialized();}}
   this.updateSourceOptions(root.items);
-  let building=false;
-  for(const provider of root.items){const groups=await this.readScope({providerKey:provider.providerKey,groupKind:'groups'});if(token!==this.serial)return;if(groups.coverage.state!=='complete'||groups.unavailableReason==='SOURCE_ORDER_PREPARING')building=true;}
+  let building=false,failed=false;
+  for(const provider of root.items){const groups=await this.readScope({providerKey:provider.providerKey,groupKind:'groups'});if(token!==this.serial)return;if(groups.error){failed=true;continue;}if(groups.coverage.state!=='complete'||groups.unavailableReason==='SOURCE_ORDER_PREPARING')building=true;}
   this.reconcileUnknownExpansion();
   const groupsToLoad=[];for(const provider of root.items){const groups=this.state.scope({providerKey:provider.providerKey,groupKind:'groups'});if(groups.coverage.state!=='complete')continue;for(const group of groups.items)if(this.state.expandedFor(group))groupsToLoad.push(group);}
-  for(const group of groupsToLoad){let scope=await this.readScope(this.groupOptions(group));if(token!==this.serial)return;if(scope.coverage.state!=='complete'||scope.unavailableReason==='SOURCE_ORDER_PREPARING'){building=true;continue;}const target=this.restoreDepth.get(scope.key)||0;while(scope.items.length<target&&scope.nextCursor){scope=await this.readScope(this.groupOptions(group),{append:true});if(token!==this.serial)return;}if(scope.items.length>=target||!scope.nextCursor)this.restoreDepth.delete(scope.key);}
+  for(const group of groupsToLoad){let scope=await this.readScope(this.groupOptions(group));if(token!==this.serial)return;if(scope.error){failed=true;continue;}if(scope.coverage.state!=='complete'||scope.unavailableReason==='SOURCE_ORDER_PREPARING'){building=true;continue;}const target=this.restoreDepth.get(scope.key)||0;while(!scope.loading&&!scope.error&&scope.items.length<target&&scope.nextCursor){scope=await this.readScope(this.groupOptions(group),{append:true});if(token!==this.serial)return;}if(scope.error)failed=true;else if(scope.items.length>=target||!scope.nextCursor)this.restoreDepth.delete(scope.key);}
   if(building){this.setStatus(copy('正在整理来源与窗口…','Preparing source groups and windows…'));this.paint();setTimeout(()=>{if(token===this.serial)void this.refresh(false);},40);return;}
+  if(failed){this.setStatus(copy('部分窗口未能读取，请重试。','Some windows could not be read. Retry to continue.'));this.paint();this.schedule();return;}
   if(this.mode==='source'){const scopes=[...this.state.scopes.values()],fallback=scopes.some(scope=>scope.unavailableReason&&scope.unavailableReason!=='SOURCE_ORDER_PREPARING'),effective=scopes.some(scope=>scope.effectiveOrdering==='source');this.setStatus(fallback?copy('部分来源顺序不可用 · 使用 PAIA 回退','Some source order unavailable · PAIA fallback'):copy('来源顺序已就绪','Source order ready'));document.dispatchEvent(new CustomEvent('paia:archive-order-status',{detail:{effective:effective?'source':'paia',fallback}}));}
   else this.setStatus(root.coverage.archiveComplete===false?copy('档案仍在整理，已显示可确认范围','Archive is still building; showing confirmed scope'):'');
   this.paint();this.schedule();
@@ -182,7 +187,16 @@ export class ArchiveNavigator{
   if(list)list.hidden=ready;if(count)count.hidden=ready;
  }
  async toggleGroup(item){
-  const open=this.state.toggle(item);this.paint();this.onRouteChange();if(open){const scope=await this.readScope(this.groupOptions(item));this.paint();if(scope.coverage.state!=='complete')setTimeout(()=>void this.refresh(false),40);}
+  const open=this.state.toggle(item);this.paint();this.onRouteChange();if(open){const scope=await this.readScope(this.groupOptions(item));this.paint();if(!scope.error&&scope.coverage.state!=='complete')setTimeout(()=>void this.refresh(false),40);}
+ }
+ async retryScope(scope){
+  if(!this.active||this.state.scopes.get(scope.key)!==scope||!scope.error||scope.loading)return;
+  const token=this.serial;await this.readScope(scope.options,{append:scope.retryAppend===true,force:true});
+  if(this.active&&token===this.serial&&this.state.scopes.get(scope.key)===scope&&!scope.error)await this.refresh(false);
+ }
+ appendReadError(host,scope,text){
+  host.append(element('p','archive-navigator-error',text));
+  const retry=element('button','archive-navigator-more archive-navigator-retry',copy('重试读取','Retry'));retry.type='button';retry.dataset.ansNavKey='retry:'+scope.key;retry.disabled=scope.loading;retry.addEventListener('click',()=>void this.retryScope(scope));host.append(retry);
  }
  async more(item){
   const options=this.groupOptions(item),scope=this.state.scope(options);if(!scope.nextCursor||scope.loading)return;await this.readScope(options,{append:true});this.paint();
@@ -207,7 +221,7 @@ export class ArchiveNavigator{
  paint(){
   if(!this.active)return;this.reconcileUnknownExpansion();const signature=this.paintSignature();if(signature===this.lastPaintSignature){this.syncSelection();this.syncLegacy();return;}this.lastPaintSignature=signature;const activeInside=this.host.contains(document.activeElement),activeKey=activeInside?document.activeElement?.dataset?.ansNavKey:null,scroll=this.state.scrollTop;this.tree.replaceChildren();
   const root=this.state.scope({groupKind:'providers'});
-  if(root.error){this.tree.append(element('p','archive-navigator-error',copy('窗口导航暂时不可读；当前 Reader 仍可使用。','Window navigation is unavailable; the current Reader still works.')));this.syncLegacy();return;}
+  if(root.error){this.appendReadError(this.tree,root,copy('窗口导航暂时不可读；当前 Reader 仍可使用。','Window navigation is unavailable; the current Reader still works.'));this.syncLegacy();return;}
   if(root.coverage.state!=='complete'){this.tree.append(element('p','archive-navigator-loading',copy('正在整理窗口…','Preparing windows…')));this.syncLegacy();return;}
 
   if(!root.items.length)this.tree.append(element('p','archive-navigator-empty',copy('还没有可导航的窗口。','No archive windows yet.')));
@@ -216,6 +230,7 @@ export class ArchiveNavigator{
    if(provider.providerKey!==this.browseSource)continue;
    const section=element('section','archive-navigator-provider'),heading=element('h3','archive-navigator-provider-title',providerName(provider.providerKey));section.dataset.providerKey=provider.providerKey;if(!this.sourceScope)section.append(heading);
    const groups=this.state.scope({providerKey:provider.providerKey,groupKind:'groups'});
+   if(groups.error){this.appendReadError(section,groups,copy('来源分组暂时不可读。','Source groups are temporarily unavailable.'));this.tree.append(section);continue;}
    if(groups.coverage.state!=='complete'){section.append(element('p','archive-navigator-loading',copy('正在读取来源分组…','Loading source groups…')));this.tree.append(section);continue;}
    for(const group of groups.items){
     const groupBox=element('div','archive-navigator-group'),row=element('div','archive-navigator-group-row'),open=this.state.expandedFor(group),key=navigatorGroupKey(group.providerKey,group.groupKind,group.projectRef);
@@ -224,9 +239,8 @@ export class ArchiveNavigator{
     if(group.parentSourceStatus==='confirmed_deleted')groupBox.append(element('p','archive-navigator-source-state',copy('来源 Project 已删除；PAIA 内容保留','Source Project deleted; PAIA content retained')));
     if(open){
      const list=element('div','archive-navigator-windows'),scope=this.state.scope(this.groupOptions(group));
-     if(scope.error)list.append(element('p','archive-navigator-error',copy('此分组暂时不可读。','This group is temporarily unavailable.')));
-     else if(scope.coverage.state!=='complete')list.append(element('p','archive-navigator-loading',copy('正在读取窗口…','Loading windows…')));
-     else{
+     if(!scope.error&&scope.coverage.state!=='complete')list.append(element('p','archive-navigator-loading',copy('正在读取窗口…','Loading windows…')));
+     if(scope.coverage.state==='complete'){
       if(!this.duplicateLabels.has(key))this.duplicateLabels.set(key,new Map());
       const labels=conversationDisambiguators(scope.items,this.duplicateLabels.get(key));
       for(const item of scope.items){
@@ -236,8 +250,9 @@ export class ArchiveNavigator{
        windowRow.append(button);
        list.append(windowRow);
       }
-      if(scope.nextCursor){const more=element('button','archive-navigator-more',scope.loading?copy('正在载入…','Loading…'):copy('继续载入窗口','Load more windows'));more.type='button';more.disabled=scope.loading;more.addEventListener('click',()=>void this.more(group));list.append(more);}
+      if(scope.nextCursor&&!scope.error){const more=element('button','archive-navigator-more',scope.loading?copy('正在载入…','Loading…'):copy('继续载入窗口','Load more windows'));more.type='button';more.disabled=scope.loading;more.addEventListener('click',()=>void this.more(group));list.append(more);}
      }
+     if(scope.error)this.appendReadError(list,scope,copy('此分组暂时不可读；已读取的窗口仍可使用。','This group is temporarily unavailable; loaded windows remain available.'));
      groupBox.append(list);
     }
     section.append(groupBox);

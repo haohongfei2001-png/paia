@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: failed provider read waits for visible explicit Retry instead of a 40ms retry loop
+ok 1 - failed provider read waits for visible explicit Retry instead of a 40ms retry loop
+  ---
+  duration_ms: 17.534653
+  type: 'test'
+  ...
+# Subtest: failed source-group read is not indexing or empty and only explicit retry reloads its scope
+ok 2 - failed source-group read is not indexing or empty and only explicit retry reloads its scope
+  ---
+  duration_ms: 2.88119
+  type: 'test'
+  ...
+# Subtest: failed continuation preserves confirmed rows and cursor; repeated Retry appends once
+ok 3 - failed continuation preserves confirmed rows and cursor; repeated Retry appends once
+  ---
+  duration_ms: 3.422516
+  type: 'test'
+  ...
+# Subtest: failed restore-depth continuation stops without dropping its original depth obligation
+ok 4 - failed restore-depth continuation stops without dropping its original depth obligation
+  ---
+  duration_ms: 1.771246
+  type: 'test'
+  ...
+# Subtest: genuine index-building continuation still schedules and completes normally
+ok 5 - genuine index-building continuation still schedules and completes normally
+  ---
+  duration_ms: 0.813296
+  type: 'test'
+  ...
+# Subtest: old Retry and held result cannot affect current Reader after replaced-scope
+ok 6 - old Retry and held result cannot affect current Reader after replaced-scope
+  ---
+  duration_ms: 1.19668
+  type: 'test'
+  ...
+# Subtest: old Retry and held result cannot affect current Reader after inactive
+ok 7 - old Retry and held result cannot affect current Reader after inactive
+  ---
+  duration_ms: 0.761129
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 129.115642
