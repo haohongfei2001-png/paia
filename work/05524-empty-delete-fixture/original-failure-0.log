@@ -1,0 +1,13 @@
+2026-10-27T09:09:14.2483149Z FAIL context-edit-lifecycle.test.mjs: CTX4 explicit Delete accepts an empty saved editor after pending resolution without retyping
+2026-10-27T09:09:14.2483952Z Error [ERR_TEST_FAILURE]: Cannot read properties of undefined (reading 'innerText')
+2026-10-27T09:09:14.2484528Z Caused by: TypeError: Cannot read properties of undefined (reading 'innerText')
+2026-10-27T09:09:14.2485109Z     at Object.remove (file:///home/runner/work/paia/paia/extension/ui/context-cards.js:373:48)
+2026-10-27T09:09:14.2485873Z     at TestContext.<anonymous> (file:///home/runner/work/paia/paia/extension/tests/context-edit-lifecycle.test.mjs:16:747)
+2026-10-27T09:09:14.2486462Z     at Test.runInAsyncScope (node:async_hooks:214:14)
+2026-10-27T09:09:14.2486812Z     at Test.run (node:internal/test_runner/test:1047:25)
+2026-10-27T09:09:14.2487252Z     at Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+2026-10-27T09:09:14.2487682Z     at Test.postRun (node:internal/test_runner/test:1173:19)
+2026-10-27T09:09:14.2488033Z     at Test.run (node:internal/test_runner/test:1101:12)
+2026-10-27T09:09:14.2488454Z     at async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+2026-10-27T09:09:14.2488892Z FAILURE_METADATA {"failureType":"testCodeFailure"}
+2026-10-27T09:09:14.2489595Z PASS context-edit-lifecycle.test.mjs: CTX4 conflict focusout retains mounted action nodes so the following native click can execute

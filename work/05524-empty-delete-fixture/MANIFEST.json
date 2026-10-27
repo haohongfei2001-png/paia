@@ -1,0 +1,32 @@
+{
+  "task": "Original Context empty-delete lifecycle fixture shape correction",
+  "base": "1c22bccf7cc829574265fb01f132f8821bd88ce1",
+  "base_tree": "34e6b9fde6caa423d101195164d363c3242c4286",
+  "commit": "33b928a5f3eee4de9d34c9ec67ec01efe6af2ba9",
+  "tree": "dbf609bc3c1b9b5ad1ecc3aac60952b4bae27fd0",
+  "changed_paths": {
+    "extension/tests/context-edit-lifecycle.test.mjs": "0bde8e6ad56f6d4cf866a4b1f1362c3b173ccbb700d863ce1351596ace8a5030"
+  },
+  "runtime_unchanged": {
+    "extension/ui/context-cards.js": "bbd60e7594c15e762d05be5c569dc40eb59e6552b733e03b0cf73f72dea15bfe"
+  },
+  "root_cause": "Original hand-built editor double omitted field and recovery.currentToken. Production constructor always creates field (:34), Delete menu passes this (:37), mountItem constructs actual editor (:242), dispose never deletes field. No legal mounted editor without field was found.",
+  "change": "Only original affected case: empty plaintext field; saved body and false composition/fresh shape; exact captured token and clear(token) return true without invented currentToken mutation. Original removed/journal assertions retained; empty text, resolved pending null, exactly one delete expectedRevision2, ACK->exact-token clear->dispose assertions added. No runtime bypass.",
+  "not_run": [
+    "Other cases in original file",
+    "Old suites",
+    "Browser/native",
+    "Cloud/real services"
+  ],
+  "test": {
+    "name": "CTX4 explicit Delete accepts an empty saved editor after pending resolution without retyping",
+    "command": "node --test --test-reporter=tap --test-name-pattern='^CTX4 explicit Delete accepts an empty saved editor after pending resolution without retyping$' extension/tests/context-edit-lifecycle.test.mjs",
+    "actual_executions": 1,
+    "result": "1 pass, 0 fail, 0 skip, 0 cancelled; 146.390519 ms",
+    "sha256": "294113bf7708376e60de65e1ebd6d3cbf7e6c0d1e9ce0c6ccd390cba684fe63d"
+  },
+  "originalFailureHashes": [
+    "ad28e4a6fa9ba3b922950d7e431e7f94146c989d5e45bb9ede785b0440668cb5",
+    "6076e735be19c7a580a2df0bdc515bb73bc4e48de5141172a9abf6a18cdc935f"
+  ]
+}

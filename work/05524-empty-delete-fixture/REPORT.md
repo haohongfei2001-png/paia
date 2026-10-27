@@ -1,0 +1,5 @@
+# 0.55.24 empty-delete original fixture shape correction
+
+0.55.23 original automatic CI: Pages and Maintenance succeeded; Certification and Prompt Unit 3 failed the same original empty-saved-editor Delete case because its hand-built editor lacked the real field property and recovery token. The actual ContextItemEditor constructor always creates field, its Delete menu passes that instance, and disposal does not delete field. Production runtime is unchanged in this candidate; no optional bypass or weaker guard was added.
+
+Only the original affected test is corrected to model the actual empty plaintext field and clear(capturedToken) API. Original empty/delete/journal assertions remain, with exact pending-null, one delete revision2 and ACK-before-token-clear-before-disposal assertions added. The original case was selected once: 1/1 PASS, 146.390519ms. No other original case, old suite, browser or cloud retry ran. Both original CI failures are retained separately. All version fields are 0.55.24. This candidate is not authorized for publication and changed-head automatic CI has not run.
