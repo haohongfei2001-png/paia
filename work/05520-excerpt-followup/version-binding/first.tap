@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: product version agrees across manifest, version name and package identity
+ok 1 - product version agrees across manifest, version name and package identity
+  ---
+  duration_ms: 0.748822
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 317.542246

@@ -1,0 +1,55 @@
+TAP version 13
+# Subtest: nonempty Topic excerpt defers unsent following Context with unchanged receipt and idempotent repeat
+not ok 1 - nonempty Topic excerpt defers unsent following Context with unchanged receipt and idempotent repeat
+  ---
+  duration_ms: 2464.676784
+  type: 'test'
+  location: '/tmp/paia-following-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-following-excerpt.test.mjs:24:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"UNAVAILABLE","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:56d91af020d987de38009eef824f59d8507e6168472f43f682a5b842c4cfa45f","facets":[{"facet":"topic","units":1,"state":"COMMITTED"},{"facet":"context","units":1,"state":"FAILED","reason":"UNAVAILABLE"},{"facet":"context","units":1,"state":"DEFERRED"}],"nextEligibilityAt":1767254400000,"observedAt":1767225600000,"deferredUnits":8,"blockedUnits":7,"remainingWork":true}
+    + actual - expected
+    
+    + 'UNAVAILABLE'
+    - 'PARTIAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'PARTIAL'
+  actual: 'UNAVAILABLE'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/paia-following-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-following-excerpt.test.mjs:27:36)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: nonempty excerpt Topic ACK Source failure never defers its unsent following child
+ok 2 - nonempty excerpt Topic ACK Source failure never defers its unsent following child
+  ---
+  duration_ms: 1705.067803
+  type: 'test'
+  ...
+# Subtest: nonempty excerpt graph drift during following DEFER rolls back that disposition and retains Topic ACK
+not ok 3 - nonempty excerpt graph drift during following DEFER rolls back that disposition and retains Topic ACK
+  ---
+  duration_ms: 78.408416
+  type: 'test'
+  location: '/tmp/paia-following-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-following-excerpt.test.mjs:39:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///tmp/paia-following-excerpt-facet-20261027/extension/core/idb-repository.js:32:40)
+    ArchiveRepository.transaction (file:///tmp/paia-following-excerpt-facet-20261027/extension/core/idb-repository.js:963:2197)
+    async file:///tmp/paia-following-excerpt-facet-20261027/extension/core/indexed-store.js:270:185
+    async execute (file:///tmp/paia-following-excerpt-facet-20261027/extension/core/indexed-store.js:182:11)
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 1
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4922.616222

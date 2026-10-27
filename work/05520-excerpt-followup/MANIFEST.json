@@ -1,0 +1,64 @@
+{
+  "sourceBase": "e948cc9208811eec7a50f5dc367fd7b4b5963360",
+  "sourceHead": "f04bf19bde9003ab2e5cbb9979a461aa1323b49b",
+  "runtimeChanges": [
+    "extension/core/ai-usage/foundation.js",
+    "extension/core/ai-usage/local-maintenance-session.js"
+  ],
+  "evidence": [
+    {
+      "path": "work/05520-excerpt-followup/no-baseline/paia-no-baseline-excerpt-red-20261027.tap",
+      "sha256": "268fb10f514df563cae0971f91845d269129c6c0ffb5a2ff5a1a7b89364c138f",
+      "meaning": "0/2; new Topic genuinely Topic COMMITTED + Context FAILED UNAVAILABLE; original existing-Topic fixture included a whole mirror and additional following child, aggregate UNAVAILABLE. That broader fixture remains unresolved and was narrowed to empty existing Topic before final run."
+    },
+    {
+      "path": "work/05520-excerpt-followup/no-baseline/paia-no-baseline-excerpt-candidate-20261027.tap",
+      "sha256": "80c87cbe6c380ab5f5c86efb53ae249ef5234b5d15dd832070d66ebff3299acc",
+      "meaning": "4/4 once; 4402.419766 ms; zero failed/skipped/cancelled/todo"
+    },
+    {
+      "path": "work/05520-excerpt-followup/following/paia-following-excerpt-red-20261027.tap",
+      "sha256": "c85e5449d2936ab9a70877d2807792998a091eb44e785d7fe9e014366dbc68bc",
+      "meaning": "original a0f: 1 PASS, 2 failures; positive actual following FAILED; late test injection too early, target NOT_REACHED"
+    },
+    {
+      "path": "work/05520-excerpt-followup/following/paia-following-excerpt-candidate-20261027.tap",
+      "sha256": "3ba5cd08d4d7488a829c79a406c427371c492fd844dabaafe216b60b0092b055",
+      "meaning": "first candidate: Source failure control PASS; positive newly added unrelated source-context precondition rejects; late injection still too early"
+    },
+    {
+      "path": "work/05520-excerpt-followup/following/paia-following-excerpt-diagnostic-20261027.tap",
+      "sha256": "78cd24f18e2dc0742b611f8e47af037826ccd17cc148e105aceda8c0c54b8911",
+      "meaning": "isolated positive diagnostic: points to newly added Foundation source-selector precondition"
+    },
+    {
+      "path": "work/05520-excerpt-followup/following/paia-following-excerpt-positive-20261027.tap",
+      "sha256": "a4c06265802d23c0ce497e6f7c7a466bfd327deb98df26fd998723eba5b68218",
+      "meaning": "runtime reaches PARTIAL and two Context DEFER; new test guessed dirty facets incorrectly"
+    },
+    {
+      "path": "work/05520-excerpt-followup/following/paia-following-excerpt-positive-corrected-20261027.tap",
+      "sha256": "7d6f1a035e6c5be511cd17e9e7f2de3ea65755a4f5f3306ef2154a7c96c78527",
+      "meaning": "isolated corrected positive PASS, exact unchanged receipt/dirty and idempotent repeat"
+    },
+    {
+      "path": "work/05520-excerpt-followup/following/paia-following-excerpt-setup-diagnostic-20261027.tap",
+      "sha256": "735cdbba7075bf73cdf621f64d507c5b75ea393b1f22059917804d508be5397d",
+      "meaning": "isolated late observer: no setup error; early injection during original Placement Topic DEFER caused STORAGE_FAILED, target NOT_REACHED"
+    },
+    {
+      "path": "work/05520-excerpt-followup/following/paia-following-excerpt-late-corrected-20261027.tap",
+      "sha256": "25ee6970e17f93a6a173afe747f59912909790684d36332fcfc1631492a2260e",
+      "meaning": "late predicate corrected: target reached and rejected with original owner INVALID_REQUEST; new test guessed STALE_BASE incorrectly"
+    },
+    {
+      "path": "work/05520-excerpt-followup/following/paia-following-excerpt-late-owner-code-20261027.tap",
+      "sha256": "62d842a15dbcf8fce1e1a4d0c5d13a32441a26a8a7c7a8f08fccaf02896f0b7d",
+      "meaning": "isolated corrected late PASS; rollback/no Context ACK/unchanged receipt/repeat observed"
+    }
+  ],
+  "sourceCommits": [
+    "a0f65892a0db3cc9befd8d03d41fd2b68fc2a424",
+    "f04bf19bde9003ab2e5cbb9979a461aa1323b49b"
+  ]
+}

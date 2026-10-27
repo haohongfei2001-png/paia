@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: no-baseline new Topic excerpt commits Topic and records Context mapping DEFER
+ok 1 - no-baseline new Topic excerpt commits Topic and records Context mapping DEFER
+  ---
+  duration_ms: 1110.839724
+  type: 'test'
+  ...
+# Subtest: no-baseline existing Topic excerpt commits Topic and records Context mapping DEFER
+ok 2 - no-baseline existing Topic excerpt commits Topic and records Context mapping DEFER
+  ---
+  duration_ms: 1045.937158
+  type: 'test'
+  ...
+# Subtest: no-baseline excerpt Topic ACK Source drift rolls back without any facet ACK
+ok 3 - no-baseline excerpt Topic ACK Source drift rolls back without any facet ACK
+  ---
+  duration_ms: 976.780409
+  type: 'test'
+  ...
+# Subtest: no-baseline excerpt late graph drift preserves Topic ACK and refuses stale deferral or replay
+ok 4 - no-baseline excerpt late graph drift preserves Topic ACK and refuses stale deferral or replay
+  ---
+  duration_ms: 839.304572
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4402.419766

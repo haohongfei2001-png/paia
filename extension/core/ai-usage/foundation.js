@@ -993,6 +993,29 @@ export class AIUsageFoundation {
    return safeJob(job);
   });
  }
+ // Original maintenance following child only: a committed sibling can expose
+ // missing Context qualification before this child has any financial request.
+ // This is not a received-response commit and never settles/ACKs the child.
+ async deferMaintenanceFollowingContext(id,childId,{sourceChildId,units}={}){
+  units=structuredClone(units);return this.write(async t=>{
+   const job=await this.job(t,id);await this.current(t,job);
+   const index=job.childIds.indexOf(childId),sourceIndex=job.childIds.indexOf(sourceChildId);
+   if(job.type!=='AI_MAINTENANCE'||job.state!=='VALIDATED'||job.cancelEpoch!==0||job.childIds.length!==2||index<0||sourceIndex<0||index===sourceIndex||!equal(validateCoverage(units,job.type),job.childCoverage[index])||units.some(u=>u.facet!=='context'||job.committedCoverage.includes(unitKey(u))))fail('STALE_BASE');
+   const receipt=await t.get('organizerUsage',receiptId(childId)),source=await t.get('organizerUsage',receiptId(sourceChildId)),flight=await t.get('meta',job.flightId);
+   const expected={id:receiptId(childId),kind:KIND,version:1,jobId:id,childId,parentReservationId:id,executionKind:'service-planned',sequence:index,state:'PLANNED',stateKey:0,windowIds:[],attemptCount:0,spendState:'NOT_RESERVED',effectiveResultCount:0};
+   if(!equal(receipt,expected)||await t.get('meta',dispatchFenceId(childId))||source?.kind!==KIND||source.version!==1||source.jobId!==id||source.childId!==sourceChildId||source.sequence!==sourceIndex||source.executionKind!=='server-backed'||source.attemptCount!==1||!['VALIDATED','COMMITTED'].includes(source.state)||!opaque(source.operationReceiptId)||source.financialSettlement?.state!=='SETTLED'||!equal(await t.get('meta',dispatchFenceId(sourceChildId)),{id:dispatchFenceId(sourceChildId),version:1,jobId:id,childId:sourceChildId})||flight?.jobId!==id||flight.dispatched!==true)fail('OUTCOME_UNKNOWN');
+   const topics=job.childCoverage[sourceIndex].filter(u=>u.facet==='topic');if(!topics.length||job.coverage.some(u=>u.facet==='topic'&&!job.committedCoverage.includes(unitKey(u))))fail('STALE_BASE');
+   const acks=[];for(const unit of topics){const ack=await t.get('organizerWorkItems',qualifiedCoverageId(unit,job));if(ack?.kind!==KIND||ack.jobId!==id||ack.state!=='ACKNOWLEDGED'||ack.sequence!==sourceIndex||!equal(ack.unit,unit)||ack.signature!==job.items.find(i=>i.key===unit.key)?.signature)fail('STALE_BASE');acks.push(ack);}
+   if(typeof this.committers.context!=='function')fail('UNAVAILABLE');
+   const result=await this.committers.context(t,Object.freeze({logicalJobId:id,childOperationId:childId,sourceChildOperationId:sourceChildId,units,outcome:'DEFER',retryCondition:'CONTEXT_MAPPING_UNAVAILABLE'}));
+   if(result?.committed!==true||!equal(result.coverage,units)||typeof result.isCurrent!=='function'||typeof result.fenceAfterSettlement!=='function'||result.isCurrent()!==true)fail('STALE_BASE');
+   const deferred=await this.applyFacet(t,job,index,{facet:'context',units,outcome:'DEFER',retryCondition:'CONTEXT_MAPPING_UNAVAILABLE'});
+   await this.current(t,job);
+   if(!equal(await t.get('organizerJobs',id),job)||!equal(await t.get('organizerUsage',receipt.id),receipt)||!equal(await t.get('organizerUsage',source.id),source)||!equal(await t.get('meta',job.flightId),flight)||await t.get('meta',dispatchFenceId(childId)))fail('STALE_BASE');
+   for(const ack of acks)if(!equal(await t.get('organizerWorkItems',ack.id),ack))fail('STALE_BASE');
+   if(await result.fenceAfterSettlement(t)!==true||result.isCurrent()!==true)fail('STALE_BASE');return deferred;
+  });
+ }
  async commitFacet(id,childId,{facet,units,outcome='COMMITTED',retryCondition=null}={}){
   units=structuredClone(units);
   if(!['COMMITTED','NO_CHANGE','DEFER'].includes(outcome)||retryCondition!==null&&!opaque(retryCondition))fail();

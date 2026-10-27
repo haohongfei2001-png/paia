@@ -1,0 +1,40 @@
+TAP version 13
+# DIAGNOSTIC Error: STALE_BASE
+#     at fail (file:///tmp/paia-following-excerpt-facet-20261027/extension/core/ai-usage/contracts.js:6:52)
+#     at file:///tmp/paia-following-excerpt-facet-20261027/extension/core/ai-usage/foundation.js:1003:337
+#     at async ArchiveRepository.transaction (file:///tmp/paia-following-excerpt-facet-20261027/extension/core/idb-repository.js:963:1126)
+#     at async file:///tmp/paia-following-excerpt-facet-20261027/extension/core/indexed-store.js:270:185
+#     at async execute (file:///tmp/paia-following-excerpt-facet-20261027/extension/core/indexed-store.js:182:11)
+# Subtest: nonempty Topic excerpt defers unsent following Context with unchanged receipt and idempotent repeat
+not ok 1 - nonempty Topic excerpt defers unsent following Context with unchanged receipt and idempotent repeat
+  ---
+  duration_ms: 1800.290149
+  type: 'test'
+  location: '/tmp/paia-following-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-following-excerpt.test.mjs:25:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"STALE_BASE","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:598182a7eac9fb867214922fe7a39e23c9cacf3a8544df86a339964b5da71e9d","facets":[{"facet":"topic","units":1,"state":"COMMITTED"}]}
+    + actual - expected
+    
+    + 'STALE_BASE'
+    - 'PARTIAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'PARTIAL'
+  actual: 'STALE_BASE'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/paia-following-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-following-excerpt.test.mjs:29:36)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2296.494855

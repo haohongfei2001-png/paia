@@ -1,0 +1,25 @@
+TAP version 13
+# Subtest: nonempty excerpt graph drift during following DEFER rolls back that disposition and retains Topic ACK
+not ok 1 - nonempty excerpt graph drift during following DEFER rolls back that disposition and retains Topic ACK
+  ---
+  duration_ms: 217.768128
+  type: 'test'
+  location: '/tmp/paia-following-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-following-excerpt.test.mjs:41:1'
+  failureType: 'testCodeFailure'
+  error: 'STORAGE_FAILED'
+  code: 'STORAGE_FAILED'
+  stack: |-
+    fail (file:///tmp/paia-following-excerpt-facet-20261027/extension/core/idb-repository.js:32:40)
+    ArchiveRepository.transaction (file:///tmp/paia-following-excerpt-facet-20261027/extension/core/idb-repository.js:963:2197)
+    async file:///tmp/paia-following-excerpt-facet-20261027/extension/core/indexed-store.js:270:185
+    async execute (file:///tmp/paia-following-excerpt-facet-20261027/extension/core/indexed-store.js:182:11)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 713.599277

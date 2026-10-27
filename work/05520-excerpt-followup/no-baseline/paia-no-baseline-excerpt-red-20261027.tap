@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: no-baseline new Topic excerpt commits Topic and records Context mapping DEFER
+not ok 1 - no-baseline new Topic excerpt commits Topic and records Context mapping DEFER
+  ---
+  duration_ms: 1048.939975
+  type: 'test'
+  location: '/tmp/paia-no-baseline-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-no-baseline-excerpt.test.mjs:22:36'
+  failureType: 'testCodeFailure'
+  error: '{"state":"PARTIAL","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:0bc359079afab83ed9bec99de648926cf236bb1479f4f09b0277ea2a15bd09f4","facets":[{"facet":"topic","units":1,"state":"COMMITTED"},{"facet":"context","units":1,"state":"FAILED","reason":"UNAVAILABLE"}],"nextEligibilityAt":1767254400000,"observedAt":1767225600000,"deferredUnits":0,"blockedUnits":0,"remainingWork":true}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/paia-no-baseline-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-no-baseline-excerpt.test.mjs:26:9)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: no-baseline existing Topic excerpt commits Topic and records Context mapping DEFER
+not ok 2 - no-baseline existing Topic excerpt commits Topic and records Context mapping DEFER
+  ---
+  duration_ms: 1591.955295
+  type: 'test'
+  location: '/tmp/paia-no-baseline-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-no-baseline-excerpt.test.mjs:22:36'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"state":"UNAVAILABLE","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:2e0a7a2e73676deeb674f0f88406204560af696508a1324832daeab2974afeea","facets":[{"facet":"topic","units":1,"state":"COMMITTED"},{"facet":"context","units":1,"state":"FAILED","reason":"UNAVAILABLE"},{"facet":"context","units":1,"state":"FAILED","reason":"UNAVAILABLE"}],"nextEligibilityAt":1767254400000,"observedAt":1767225600000,"deferredUnits":7,"blockedUnits":7,"remainingWork":true}
+    + actual - expected
+    
+    + 'UNAVAILABLE'
+    - 'PARTIAL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'PARTIAL'
+  actual: 'UNAVAILABLE'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///tmp/paia-no-baseline-excerpt-facet-20261027/services/ai-gateway/tests/maintenance-no-baseline-excerpt.test.mjs:24:9)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3090.423102
