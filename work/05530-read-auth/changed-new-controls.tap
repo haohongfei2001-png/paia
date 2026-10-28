@@ -1,0 +1,144 @@
+TAP version 13
+# Subtest: early same-document loading during initial tab check revalidates inside original three-check budget
+ok 1 - early same-document loading during initial tab check revalidates inside original three-check budget
+  ---
+  duration_ms: 46.269377
+  type: 'test'
+  ...
+# Subtest: early same-document loading during initial context check revalidates inside original three-check budget
+ok 2 - early same-document loading during initial context check revalidates inside original three-check budget
+  ---
+  duration_ms: 13.618645
+  type: 'test'
+  ...
+# Subtest: ordinary status keeps original call order and has no added authentication work
+ok 3 - ordinary status keeps original call order and has no added authentication work
+  ---
+  duration_ms: 9.808913
+  type: 'test'
+  ...
+# Subtest: revalidation requires an actual complete tab, not merely same URL: loading
+ok 4 - revalidation requires an actual complete tab, not merely same URL: loading
+  ---
+  duration_ms: 8.460611
+  type: 'test'
+  ...
+# Subtest: revalidation requires an actual complete tab, not merely same URL: undefined
+ok 5 - revalidation requires an actual complete tab, not merely same URL: undefined
+  ---
+  duration_ms: 10.152409
+  type: 'test'
+  ...
+# Subtest: revalidation rejects replaced document even when URL and last complete are identical
+ok 6 - revalidation rejects replaced document even when URL and last complete are identical
+  ---
+  duration_ms: 10.189974
+  type: 'test'
+  ...
+# Subtest: revalidation retains complete context identity and rejects absent or foreign context
+ok 7 - revalidation retains complete context identity and rejects absent or foreign context
+  ---
+  duration_ms: 29.534649
+  type: 'test'
+  ...
+# Subtest: pending navigation remains forbidden during revalidation
+ok 8 - pending navigation remains forbidden during revalidation
+  ---
+  duration_ms: 5.864924
+  type: 'test'
+  ...
+# Subtest: early url remains a hard cancellation even with later matching facts
+ok 9 - early url remains a hard cancellation even with later matching facts
+  ---
+  duration_ms: 8.680383
+  type: 'test'
+  ...
+# Subtest: early remove remains a hard cancellation even with later matching facts
+ok 10 - early remove remains a hard cancellation even with later matching facts
+  ---
+  duration_ms: 5.186957
+  type: 'test'
+  ...
+# Subtest: a new loading after initial authentication stays invalid: second-tab
+ok 11 - a new loading after initial authentication stays invalid: second-tab
+  ---
+  duration_ms: 6.533758
+  type: 'test'
+  ...
+# Subtest: a new loading after initial authentication stays invalid: second-context
+ok 12 - a new loading after initial authentication stays invalid: second-context
+  ---
+  duration_ms: 6.175922
+  type: 'test'
+  ...
+# Subtest: a new loading after initial authentication stays invalid: permission
+ok 13 - a new loading after initial authentication stays invalid: permission
+  ---
+  duration_ms: 7.187979
+  type: 'test'
+  ...
+# Subtest: a new loading after initial authentication stays invalid: final-tab
+ok 14 - a new loading after initial authentication stays invalid: final-tab
+  ---
+  duration_ms: 14.705464
+  type: 'test'
+  ...
+# Subtest: a new loading after initial authentication stays invalid: final-context
+ok 15 - a new loading after initial authentication stays invalid: final-context
+  ---
+  duration_ms: 6.716406
+  type: 'test'
+  ...
+# Subtest: permission is read afresh after complete revalidation and revocation remains denied
+not ok 16 - permission is read afresh after complete revalidation and revocation remains denied
+  ---
+  duration_ms: 6.822042
+  type: 'test'
+  location: '/tmp/paia-maintenance-read-auth-20261028T1622Z/extension/tests/maintenance-read-document-revalidation.test.mjs:90:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    Error: INVALID_REQUEST
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    async TestContext.<anonymous> (file:///tmp/paia-maintenance-read-auth-20261028T1622Z/extension/tests/maintenance-read-document-revalidation.test.mjs:92:3)
+    async Test.run (node:internal/test_runner/test:1389:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+  ...
+# Subtest: final document replacement rejects a completed purpose read before returning it
+ok 17 - final document replacement rejects a completed purpose read before returning it
+  ---
+  duration_ms: 9.20435
+  type: 'test'
+  ...
+# Subtest: revalidation native failure is preserved without another authentication attempt
+ok 18 - revalidation native failure is preserved without another authentication attempt
+  ---
+  duration_ms: 6.952233
+  type: 'test'
+  ...
+# Subtest: ON write remains cancelled by early loading and persists no consent
+ok 19 - ON write remains cancelled by early loading and persists no consent
+  ---
+  duration_ms: 8.356799
+  type: 'test'
+  ...
+# Subtest: known-document OFF retains immediate revocation and sticky denial after cancelled authentication
+ok 20 - known-document OFF retains immediate revocation and sticky denial after cancelled authentication
+  ---
+  duration_ms: 19.148647
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 19
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 610.050427

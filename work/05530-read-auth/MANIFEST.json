@@ -1,0 +1,92 @@
+{
+  "version": "0.55.30",
+  "source": "e7ed8677367841fcb1b868c067e61574785ca69c",
+  "baseEquivalent": "4d251f52d3abf5188088b1864bc3909c3bdef56f",
+  "actualRemoteBase": "d69c829ecf2937a04cc1d7e982f367b24e52b591",
+  "sourceFiles": [
+    {
+      "path": "extension/background/maintenance-processing-commands.js",
+      "bytes": 12266,
+      "sha256": "aa3fafcc537bfea3a2ab3385cf9c706260ed9293005b2a9774e839389251929f",
+      "blob": "4e58b0812c8e72ccfd5d851348a13eef8eacd50f"
+    },
+    {
+      "path": "extension/docs/consumer-product-v1/implementation/MAINTENANCE-STATUS-DOCUMENT-REVALIDATION-20261028.md",
+      "bytes": 3879,
+      "sha256": "beba0f6788fe5f19525001e8d7defca0890d316bfd80d1f5b9d92dad123e376b",
+      "blob": "88540d54b0d4a0ab961c387bc58022bcdf653d7f"
+    },
+    {
+      "path": "extension/tests/maintenance-read-document-revalidation.test.mjs",
+      "bytes": 9767,
+      "sha256": "5c00e7f20985dd74d289de671632a97feedbf8887050c9b8840542cbc8b7c5cb",
+      "blob": "7b0cb55bed5937e954342b664aae9f15deb73420"
+    }
+  ],
+  "logs": [
+    {
+      "path": "work/05530-read-auth/baseline-new-controls.tap",
+      "bytes": 10617,
+      "sha256": "cf043a1e638eae65537c9d4418173184a4ffab041093740fd722e57baead7d09"
+    },
+    {
+      "path": "work/05530-read-auth/changed-new-controls.tap",
+      "bytes": 5308,
+      "sha256": "6c5204391075f524e91bc94dc4d35cf65826138ff47cf350989899e795c0550c"
+    },
+    {
+      "path": "work/05530-read-auth/corrected-permission-control.tap",
+      "bytes": 357,
+      "sha256": "dd6113e8f56686cd6631fdc3e8fb02901c9f7ce774ddf68d0137430b89efdb2e"
+    },
+    {
+      "path": "work/05530-read-auth/setup-note.txt",
+      "bytes": 140,
+      "sha256": "c3fc4c174c5583e357ec4c881b2709a349f03b51e7c48a920efbd2a29d161931"
+    },
+    {
+      "path": "work/05530-read-auth/original-05529-maintenance-settings-122935511778.log",
+      "bytes": 224024,
+      "sha256": "158bdd2106a3673564eec259cb146394a9f6f9eed37261fcd74978e068829f5f"
+    },
+    {
+      "path": "work/05530-read-auth/original-05529-TERMINAL-FIRST-RESULT.json",
+      "bytes": 2056,
+      "sha256": "c12d545e48e488443b39ebc47277151f7bc4d401a4cb35a5f905786304ce8459"
+    }
+  ],
+  "validation": {
+    "baselineNewFile": {
+      "tests": 20,
+      "passed": 12,
+      "failed": 8,
+      "log": "work/05530-read-auth/baseline-new-controls.tap"
+    },
+    "changedRuntimeFirst": {
+      "tests": 20,
+      "passed": 19,
+      "failed": 1,
+      "failure": "new fixture incorrectly invoked consent(false); preserved",
+      "log": "work/05530-read-auth/changed-new-controls.tap"
+    },
+    "correctedFixtureOnly": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "log": "work/05530-read-auth/corrected-permission-control.tap"
+    },
+    "syntax": "PASS runtime + new test",
+    "diffCheck": "PASS",
+    "browser": "NOT_RUN",
+    "oldSuites": "NOT_RUN",
+    "cloud": "NOT_RUN"
+  },
+  "configsUnchangedNull": {
+    "extension/core/ai-usage/assist-service-configuration.js": "75c427fad618799fa52a6b4951d50869af2c41d1cfa0c52ca493571fd918c580",
+    "extension/core/ai-usage/historical-service-configuration.js": "c07bbf91a865ffc07c644b3127c160790816f93319555aadb6be1c7ebda50dd8",
+    "extension/core/ai-usage/maintenance-service-configuration.js": "d94bc0c0e8ab1393a011822c4114176efcf724c8020459f1f70fac8fdd4e17a5",
+    "extension/core/ai-usage/organize-service-configuration.js": "aa072890a1a7ee8488236ce9415db2da6f565f2aae6eb563875939bc81711030"
+  },
+  "staticReview": "Initial READ loading invalidates first observation only; exact second complete document check before permission; later loading/URL/remove and WRITE/OFF hard refusal unchanged; final complete document/result checks retained. Maximum original three tabs.get and three getContexts; no loop/new RPC. Source runtime unchanged after focused checks.",
+  "limits": "19/20 first changed run and corrected fixture-only 1/1 are separate, not a final whole-file 20/20. Original native 7PASS/1FAIL retained. Browser repair effect NOT_RUN; no old suites/cloud rerun. Four NULL; Section HELD excluded."
+}

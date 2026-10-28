@@ -1,0 +1,1 @@
+Initial update-index option ordering failed with exit129 before materialization/tests. Corrected argument order; no test executed by setup.

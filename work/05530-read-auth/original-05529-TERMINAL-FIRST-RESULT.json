@@ -1,0 +1,58 @@
+{
+  "head": "d69c829ecf2937a04cc1d7e982f367b24e52b591",
+  "tree": "3882146d3b4dd943a3d73fbf8ad66ab2f320578c",
+  "version": "0.55.29",
+  "allTerminal": true,
+  "allSuccess": false,
+  "manualDispatchOrRerun": false,
+  "workflows": [
+    {
+      "id": 40722114235,
+      "name": "pages build and deployment",
+      "head": "d69c829ecf2937a04cc1d7e982f367b24e52b591",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/haohongfei2001-png/paia/actions/runs/40722114235"
+    },
+    {
+      "id": 40722116249,
+      "name": "PAIA Certification",
+      "head": "d69c829ecf2937a04cc1d7e982f367b24e52b591",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/haohongfei2001-png/paia/actions/runs/40722116249"
+    },
+    {
+      "id": 40722115965,
+      "name": "PAIA Maintenance Promotion Evidence",
+      "head": "d69c829ecf2937a04cc1d7e982f367b24e52b591",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/haohongfei2001-png/paia/actions/runs/40722115965"
+    },
+    {
+      "id": 40722116551,
+      "name": "PAIA Prompt Reuse Foundation",
+      "head": "d69c829ecf2937a04cc1d7e982f367b24e52b591",
+      "attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/haohongfei2001-png/paia/actions/runs/40722116551"
+    }
+  ],
+  "failure": {
+    "job": 122935511778,
+    "scenario": "release/trusted-confirmation-and-peers",
+    "assertion": "real purpose status loaded",
+    "passedScenarios": 7,
+    "failedScenarios": 1,
+    "probe": "STATUS FORBIDDEN after reload",
+    "rootCauseReview": "Original UI owner performing authorized narrow local repair; no cloud replay",
+    "artifact": 12830378731,
+    "artifactSha256": "d6e6ae9454b9c43cb29ad38f7bc61f5d8e19e297d318164cec8b3c83b02c9cf6"
+  },
+  "limits": "Original automatic baseline only; old failures retained; four configs NULL, Section HELD, no real-provider qualification."
+}

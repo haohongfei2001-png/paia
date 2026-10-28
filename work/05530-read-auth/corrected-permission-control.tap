@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: permission is read afresh after complete revalidation and revocation remains denied
+ok 1 - permission is read afresh after complete revalidation and revocation remains denied
+  ---
+  duration_ms: 45.047824
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 419.997155
