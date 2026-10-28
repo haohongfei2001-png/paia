@@ -1,0 +1,29 @@
+✔ v3 is separately closed and bounded; v1/v2 remain exact original Section-only grammars (2.179563ms)
+✔ task-null v3 retains a private response contract and exact NONE permits only independent facet DEFER (4.329102ms)
+✔ no-task v3 rejects PROPOSE before any domain or Section read (1.357676ms)
+✔ no-task v3 rejects DEFER before any domain or Section read (1.203228ms)
+✔ no-task v3 rejects invented proposal ID before any domain or Section read (1.431894ms)
+✔ no-task v3 rejects invented Section reference before any domain or Section read (1.157321ms)
+✔ no-task v3 rejects copied job ID before any domain or Section read (1.535337ms)
+✔ no-task v3 rejects reason text before any domain or Section read (1.663495ms)
+✔ no-task v3 rejects evidence claim before any domain or Section read (1.723833ms)
+✔ no-task v3 rejects selection claim before any domain or Section read (1.467757ms)
+✔ no-task v3 rejects unknown field before any domain or Section read (1.805853ms)
+✔ no-task v3 rejects missing required sentinel before any domain or Section read (1.306691ms)
+✔ no-task v3 rejects v2 downgrade before any domain or Section read (1.309024ms)
+✔ no selected profile cannot select v3 with a caller response value (0.909316ms)
+✔ legacy combined v2 cannot select v3 with a caller response value (1.29287ms)
+✔ only exact optional profile derives v3; ordinary contract and missing comparison remain unchanged (3.229626ms)
+✔ v3 actual whole-Section task still requires exact original permission and binding rather than NONE authority (317.040076ms)
+✔ exact optional-profile metadata hint v3 does not widen old promotion hints or send requests (43.902779ms)
+✔ exact optional-profile metadata hint v2 does not widen old promotion hints or send requests (30.562634ms)
+✔ exact optional-profile metadata hint wrong instructions does not widen old promotion hints or send requests (32.546981ms)
+✔ exact optional-profile metadata hint expired does not widen old promotion hints or send requests (29.52845ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 936.397963

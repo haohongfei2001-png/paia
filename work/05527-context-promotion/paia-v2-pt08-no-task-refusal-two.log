@@ -1,0 +1,11 @@
+08285bf14d229327b0c7001362cd893a3d84eb5c
+✔ a real Section candidate refused by its complete identity budget cannot become v3 NONE (1107.795882ms)
+✔ an unsent Section storage failure retries its real task under the same child instead of cached-null NONE (5658.843674ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7197.336542

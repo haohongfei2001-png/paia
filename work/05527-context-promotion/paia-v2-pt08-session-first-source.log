@@ -1,0 +1,28 @@
+✖ one real signed child reaches both exact duplicate ACK and original whole-Section promotion offer (6887.979252ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7529.972746
+
+✖ failing tests:
+
+test at services/ai-gateway/tests/maintenance-current-context-promotion-source.test.mjs:20:1
+✖ one real signed child reaches both exact duplicate ACK and original whole-Section promotion offer (6887.979252ms)
+  AssertionError [ERR_ASSERTION]: {"state":"OUTCOME_UNKNOWN","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:ab37135708ce152e0e6a318e44a86cbea0f47e8c240333e7abdd9d7a3cca135d","facets":[]}
+  
+  0 !== 2
+  
+      at TestContext.<anonymous> (file:///tmp/paia-v2-pt08-session-20261028/services/ai-gateway/tests/maintenance-current-context-promotion-source.test.mjs:22:228)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

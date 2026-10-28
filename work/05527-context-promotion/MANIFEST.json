@@ -1,0 +1,250 @@
+{
+  "baseFrozen": "f460e7c340ddb321913cbac14b5d9381c8fd7227",
+  "originalFrozen": "85ee22dc78a45d928b6b20f15a1dc9256cabb0fe",
+  "head": "08285bf14d229327b0c7001362cd893a3d84eb5c",
+  "tree": "0eb3f7c89a557698cca4c0053ea1978ee84ca0e4",
+  "branch": "codex/v2-pt08-session-no-task-20261028",
+  "runtimeVersionUnchanged": "0.55.26",
+  "node": "v24.19.0",
+  "commits": [
+    "1b192491cb0b7ff03b68937eca9988978bb4bfdc Separate absent Section candidates from denied composed preparation",
+    "186fb174cb016b7ccde5c3c17e6940dbf2fe7759 Apply composed promotion capacity only after real candidate selection",
+    "d728ce8ad771707c07339305adb20b5b36ba1daa Allow exact optional-promotion v3 comparison without a Section task",
+    "971be266cfe20862e1cf3bd1df0872dafcdaeb56 Cover exact optional v3 task and no-task source branches",
+    "08285bf14d229327b0c7001362cd893a3d84eb5c Keep refused and recoverable Section tasks distinct from absent candidates"
+  ],
+  "changedSinceF460": [
+    "extension/core/ai-usage/local-maintenance-session.js",
+    "extension/core/ai-usage/maintenance-service-client.js",
+    "extension/core/ai-usage/maintenance-service-response.js",
+    "extension/tests/maintenance-current-context-optional-promotion-protocol.test.mjs",
+    "services/ai-gateway/tests/maintenance-current-context-promotion-no-task.test.mjs",
+    "services/ai-gateway/tests/maintenance-current-context-promotion-refusal.test.mjs",
+    "services/ai-gateway/tests/maintenance-current-context-promotion-source-fixture.mjs"
+  ],
+  "filesAllChangedSince85ee": [
+    {
+      "path": "extension/core/ai-usage/local-maintenance-session.js",
+      "gitBlob": "5beb43713635cd5c6d45894bcdd3b73a25be1b59",
+      "sha256": "7eb69aa482887390af28252ed700423a00841cf22e83732c701295822c2c029b"
+    },
+    {
+      "path": "extension/core/ai-usage/maintenance-payload.js",
+      "gitBlob": "bbabac121d7cf1f347b4ad224a2d087c411cc18a",
+      "sha256": "d4440bc7f248b4dd58a76300ab7108385debb5a8b6a45480f2b165b927abfecc"
+    },
+    {
+      "path": "extension/core/ai-usage/maintenance-service-client.js",
+      "gitBlob": "b6f09251f886afe472126fe46c82dd1aac314f50",
+      "sha256": "fc444d74583c97e240135d0a7baef704b1e43cd5876285a98b9885c6d3c7cd16"
+    },
+    {
+      "path": "extension/core/ai-usage/maintenance-service-response.js",
+      "gitBlob": "33639e9dfddeecc2f35960433857e49f32ac6c52",
+      "sha256": "2155f3f4756091aa8e7a3897e48e98cd25240d9fdde9bbe675cc68e416fa451f"
+    },
+    {
+      "path": "extension/tests/ai-maintenance-current-context-promotion-payload.test.mjs",
+      "gitBlob": "d5c2017be08e6aab29828daf7f142328d85f90eb",
+      "sha256": "d64f7ad0c8de632a793413aba80ddb826aa16d764af52bf1cb0af81408b32feb"
+    },
+    {
+      "path": "extension/tests/maintenance-current-context-optional-promotion-protocol.test.mjs",
+      "gitBlob": "10e4c4c710903561ec4b2bca5e5edaaf25b2f996",
+      "sha256": "316e1ba50143198281a90d5ded5038149d555677949d5cde906984e2f77b0d62"
+    },
+    {
+      "path": "extension/tests/maintenance-current-context-promotion-protocol.test.mjs",
+      "gitBlob": "81592ec52a8af2f1312444512372791615831c1d",
+      "sha256": "7ce296efb1c11390749ba3f68542126d46854d4cc1f424a79888b6d6928705a8"
+    },
+    {
+      "path": "services/ai-gateway/tests/maintenance-current-context-promotion-no-task.test.mjs",
+      "gitBlob": "3e29334b1aa2b4de78816b7df99880530d067e25",
+      "sha256": "3ea5f0a372f3886aac2f6d5b06f1b848d1de02093991b15605ebb3bc8cd68ea0"
+    },
+    {
+      "path": "services/ai-gateway/tests/maintenance-current-context-promotion-refusal.test.mjs",
+      "gitBlob": "3770ffba4cae4688d573485499c94e71b7162e1e",
+      "sha256": "07646ef80ff5e05b8cd76c229e4f111a2cc2283b625ff06b3308fc0f5358c331"
+    },
+    {
+      "path": "services/ai-gateway/tests/maintenance-current-context-promotion-source-fixture.mjs",
+      "gitBlob": "1947454102621e8d10318a7f803fc2a23283e275",
+      "sha256": "ecd0c0420964bb22d56a8a73f143a25fdfa609574e855887bc45f269b8e932c6"
+    },
+    {
+      "path": "services/ai-gateway/tests/maintenance-current-context-promotion-source.test.mjs",
+      "gitBlob": "36bec8e500c99fee8694f03689b4b01e3a65fe91",
+      "sha256": "597e6b289d3461300aa914e57979e99db77669b5769cfc24ea9d81e5c31f7160"
+    }
+  ],
+  "logs": [
+    {
+      "path": "work/05527-context-promotion/paia-v2-pt08-no-task-first-red.log",
+      "sha256": "ba81dcab52f3275e1e0d79ab494a77611d3838e821d7abb1159ceb8dd559e046"
+    },
+    {
+      "path": "work/05527-context-promotion/paia-v2-pt08-no-task-source-four.log",
+      "sha256": "d0a404c9d76a8b37f66bdb0459a0c2a37bfe1d05368417502157731586532220"
+    },
+    {
+      "path": "work/05527-context-promotion/paia-v2-pt08-no-task-refusal-two.log",
+      "sha256": "577339b6ad10f42108e21c24c81a39198f8b7d0c87326f5a19d3296d0bfe379f"
+    },
+    {
+      "path": "work/05527-context-promotion/optional-protocol-first.tap",
+      "sha256": "cc6d61992831d2ca185180755c7d3d49ca948e11bb2f760b66edba727136a563"
+    }
+  ],
+  "verification": {
+    "baselineNoTaskRED": {
+      "source": "f460e7c340ddb321913cbac14b5d9381c8fd7227",
+      "contract": "existing strict combined v2 profile; unchanged v2 still fails closed without a genuine task",
+      "pass": 0,
+      "fail": 1,
+      "physicalRequests": 0,
+      "result": "UNAVAILABLE",
+      "rawLog": "work/05527-context-promotion/paia-v2-pt08-no-task-first-red.log"
+    },
+    "v3SourceFirstFour": {
+      "source": "971be266cfe20862e1cf3bd1df0872dafcdaeb56",
+      "pass": 4,
+      "fail": 0,
+      "skip": 0,
+      "durationMs": 13572.54719,
+      "rawLog": "work/05527-context-promotion/paia-v2-pt08-no-task-source-four.log",
+      "cases": [
+        "no Section candidate -> exact comparison ACK, no Section grant/material",
+        "genuine Section payload grant refused -> no fallback, zero provider",
+        "genuine v3 task -> original PROPOSE offer and duplicate ACK",
+        "genuine task receives NONE -> no ACK/offer, no replay"
+      ]
+    },
+    "v3FinalTargetedTwo": {
+      "source": "08285bf14d229327b0c7001362cd893a3d84eb5c",
+      "pass": 2,
+      "fail": 0,
+      "skip": 0,
+      "durationMs": 7197.336542,
+      "rawLog": "work/05527-context-promotion/paia-v2-pt08-no-task-refusal-two.log",
+      "cases": [
+        "identity-universe budget refusal -> zero tokenizer/provider/ACK/offer",
+        "recoverable unsent STORAGE_FAILED -> same job and actual requalified task, one physical request, PROPOSE offer"
+      ]
+    },
+    "v3ProtocolFirst21": {
+      "source": "af63dfaf2ca10dc5b4bfdee8d9f22763923f9cf7",
+      "integratedEquivalentCommit": "d728ce8ad771707c07339305adb20b5b36ba1daa",
+      "pass": 21,
+      "fail": 0,
+      "rawLog": "work/05527-context-promotion/optional-protocol-first.tap",
+      "owner": "advance_v2_pt08_composition",
+      "notRerunHere": true
+    },
+    "finalRuntimeSyntax": "3 changed runtime files pass",
+    "gitDiffCheck": "pass",
+    "trackedWorktreeClean": true,
+    "aggregateClaim": "No final all-six rerun was performed; first-four and final-two have distinct source identities."
+  },
+  "finalRepairStaticScope": {
+    "ordinaryNoSection": "The no-entry ordinary Input early return is unchanged by final repair; no repeated positive run needed.",
+    "realTaskPositiveAndNONE": "Successful non-null qualification and response grammar unchanged by final repair.",
+    "refusal": "Final repair classifies existing planner summary before null fallback; identity/budget/evidence refusals fail closed.",
+    "storage": "Final composed error cleanup deletes preset null to preserve original unsent same-job retry. Legacy v1 catch behavior unchanged."
+  },
+  "readOnlyReview": {
+    "reviewer": "advance_v2_pt08_composition",
+    "source": "08285bf14d229327b0c7001362cd893a3d84eb5c",
+    "result": "Both identified null-classification and recoverable cached-null findings closed; no further blocking finding in those repairs. No reviewer tests/edits."
+  },
+  "priorEvidenceManifest": {
+    "path": "local-only evidence reference: manifest.json",
+    "sha256": "7c4bd72d19379025002e0265a579a7147a2808f19b37620ab7462acea80c5194"
+  },
+  "limits": [
+    "New exact qualified v3 profile is required for no-task NONE; old exact v1/v2 constants/qualification not silently reinterpreted.",
+    "NONE is required empty wire data only, never Section permission, task, material, proposal IDs or fake DEFER/ACK.",
+    "Genuine task retains original independent permission, scope, budget, deadline and settlement; denied or oversized candidate cannot downgrade.",
+    "Original structural comparison exclusion, <=20 Item aggregate, cumulative work/bytes and <=2 physical children retained; no pagination or durable cursor added.",
+    "Local synthetic IndexedDB and signed-owner services with simulated SQL/mocked HTTPS; no real provider/PostgreSQL/browser/network activation.",
+    "No old suite/Full/native/release rerun, no version bump/push/publication/deployment/installation."
+  ],
+  "historicalRawLogsNotFinal082Evidence": [
+    {
+      "path": "work/05527-context-promotion/paia-v2-pt08-session-first-source.log",
+      "sha256": "e1a0fafce9cd9c490d423f0df3929374dcf1d31dfdaf04a7dd26158fde03c6dc"
+    },
+    {
+      "path": "work/05527-context-promotion/paia-v2-pt08-session-source-fixture-fixed.log",
+      "sha256": "79b517b5ca2c8f24e3aac1ac31ca32ed432f689a7f907926b0b1cd99ff0a39cf"
+    },
+    {
+      "path": "work/05527-context-promotion/paia-v2-pt08-session-source-seven.log",
+      "sha256": "a82cfcf2b27703823919eec16eccd96f67b95c9d349d4e154cd173729a5c2366"
+    },
+    {
+      "path": "work/05527-context-promotion/protocol-first.tap",
+      "sha256": "2a148ce1d285d5d5501f356f12bedd923fc80fb0b1935b876ae090f71466cb3c"
+    }
+  ],
+  "historicalPayloadRunsNotFinal082Evidence": {
+    "kind": "recorded tool-output summary, not a raw test log",
+    "runs": [
+      {
+        "stage": "payload initial baseline RED",
+        "source": "85ee22dc78a45d928b6b20f15a1dc9256cabb0fe",
+        "testFile": "extension/tests/ai-maintenance-current-context-promotion-payload.test.mjs",
+        "passed": 1,
+        "failed": 3,
+        "cause": "original payload builder rejects Section promotion + current comparison at maintenance-payload.js:104",
+        "durationMs": 1919.190651,
+        "originalOutput": {
+          "storage": "notfile",
+          "path": null,
+          "sha256": null,
+          "toolOutputChunkId": "86e732",
+          "note": "Original Node output was returned only by exec tool; no raw TAP/log file was saved. This summary is not raw evidence and no test was rerun to manufacture it."
+        }
+      },
+      {
+        "stage": "payload first code fix, fixture assertion mismatch",
+        "passed": 2,
+        "failed": 2,
+        "cause": "deepStrictEqual distinguishes null-prototype genuine task snapshot and structuredClone DTO; corrected expected value to structuredClone without changing runtime",
+        "durationMs": 1335.28231,
+        "originalOutput": {
+          "storage": "notfile",
+          "path": null,
+          "sha256": null,
+          "toolOutputChunkId": "5693b6",
+          "note": "Original Node output was returned only by exec tool; no raw TAP/log file was saved. This summary is not raw evidence and no test was rerun to manufacture it."
+        }
+      },
+      {
+        "stage": "payload final local",
+        "source": "984281aa (runtime/test bytes match final manifest except integrated protocol/client files)",
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 1279.369227,
+        "originalOutput": {
+          "storage": "notfile",
+          "path": null,
+          "sha256": null,
+          "toolOutputChunkId": "55b871",
+          "note": "Original Node output was returned only by exec tool; no raw TAP/log file was saved. This summary is not raw evidence and no test was rerun to manufacture it."
+        }
+      }
+    ]
+  },
+  "unchangedNullConfigurations": {
+    "extension/core/ai-usage/assist-service-configuration.js": "75c427fad618799fa52a6b4951d50869af2c41d1cfa0c52ca493571fd918c580",
+    "extension/core/ai-usage/historical-service-configuration.js": "c07bbf91a865ffc07c644b3127c160790816f93319555aadb6be1c7ebda50dd8",
+    "extension/core/ai-usage/maintenance-service-configuration.js": "d94bc0c0e8ab1393a011822c4114176efcf724c8020459f1f70fac8fdd4e17a5",
+    "extension/core/ai-usage/organize-service-configuration.js": "aa072890a1a7ee8488236ce9415db2da6f565f2aae6eb563875939bc81711030"
+  },
+  "actualRemoteBase": "cc138e94ccec5e18234e9eb017403bee23fe37e7",
+  "baseTree": "261ab61eac106902da02bc5e02bc4dd2f3f19020",
+  "packaging": "Version-only and documentation/evidence packaging; no new tests. Original runtime/test hashes retained."
+}

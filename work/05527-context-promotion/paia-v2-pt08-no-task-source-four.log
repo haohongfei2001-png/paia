@@ -1,0 +1,13 @@
+971be266cfe20862e1cf3bd1df0872dafcdaeb56
+✔ an exact combined profile with no Section candidate settles ordinary Input comparison without a Section grant (1382.109102ms)
+✔ a v3 child with a genuine Section candidate cannot downgrade a denied Section payload grant into NONE (1069.322553ms)
+✔ an exact v3 child with a real Section task still reaches its original proposal offer and duplicate ACK (5514.634789ms)
+✔ a genuine v3 Section task cannot settle a NONE sentinel or borrow ordinary comparison settlement (5122.37509ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13572.54719

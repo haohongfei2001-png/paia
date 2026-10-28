@@ -1,0 +1,16 @@
+f460e7c340ddb321913cbac14b5d9381c8fd7227
+✔ one real signed child reaches both exact duplicate ACK and original whole-Section promotion offer (6793.222487ms)
+✔ a composed child with zero enabled Items retains its real empty grant and reaches the proposal offer (5669.432922ms)
+✔ the combined original child refuses a missing current comparison grant before tokenization or provider (557.504072ms)
+✔ the combined original child refuses a missing Section payload grant before tokenization or provider (1219.946743ms)
+✔ card closure during the original tokenizer wait prevents both combined purposes from dispatching (1846.591391ms)
+✔ comparison byte omissions preserve the real promotion within the unchanged aggregate request bounds (5855.678759ms)
+✔ an exact legacy v1 promotion profile keeps its original no-comparison behavior (5337.784366ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 27787.842211

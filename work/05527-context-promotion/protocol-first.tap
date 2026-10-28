@@ -1,0 +1,33 @@
+✔ composed schema is the closed v2 grammar plus the unchanged required original Section proposal (5.700479ms)
+✔ genuine original task composes manual current Item comparison without writes or another budget (634.744579ms)
+✔ genuine original task composes explicitly granted empty comparison without writes or another budget (649.057527ms)
+✔ combined contract rejects missing task without owner writes (373.956306ms)
+✔ combined contract rejects copied task without owner writes (333.678844ms)
+✔ combined contract rejects foreign store without owner writes (264.993951ms)
+✔ combined contract rejects wrong job without owner writes (296.226041ms)
+✔ combined contract rejects wrong child without owner writes (227.701505ms)
+✔ combined contract rejects changed Section payload without owner writes (524.972894ms)
+✔ combined contract rejects ungranted Item without owner writes (228.593307ms)
+✔ combined contract rejects changed selected fields without owner writes (227.466759ms)
+✔ combined contract rejects revoked original receipt without owner writes (277.820252ms)
+✔ combined contract rejects authored Topic grammar without owner writes (257.904941ms)
+✔ PT08 permission without original comparison scope refuses Item text rather than acquiring another grant (271.184594ms)
+✔ PT08 permission without original comparison scope refuses empty shape rather than acquiring another grant (246.266694ms)
+✔ bounded omission remains an exact subset of the original comparison field grant (296.439285ms)
+✔ source composed-profile hint ordinary is exact metadata only and preserves legacy hint (39.749452ms)
+✔ source composed-profile hint legacy promotion is exact metadata only and preserves legacy hint (26.568719ms)
+✔ source composed-profile hint composed is exact metadata only and preserves legacy hint (28.210214ms)
+✔ source composed-profile hint wrong instructions is exact metadata only and preserves legacy hint (26.864474ms)
+✔ source composed-profile hint expired is exact metadata only and preserves legacy hint (33.67245ms)
+✔ source composed-profile hint revoked is exact metadata only and preserves legacy hint (20.225767ms)
+✔ source composed-profile hint wrong route is exact metadata only and preserves legacy hint (27.075396ms)
+✔ source composed-profile hint foreign schema is exact metadata only and preserves legacy hint (22.632ms)
+✔ source composed-profile hint unknown callback is exact metadata only and preserves legacy hint (24.336805ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6264.125337

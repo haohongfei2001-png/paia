@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {maintenanceCurrentContextPromotionSourceFixture} from './maintenance-current-context-promotion-source-fixture.mjs';
+import {MAINTENANCE_CURRENT_CONTEXT_OPTIONAL_SECTION_PROMOTION_RESPONSE_SCHEMA as schema,MAINTENANCE_CURRENT_CONTEXT_OPTIONAL_SECTION_PROMOTION_RESPONSE_INSTRUCTIONS as instructions} from '../../../extension/core/ai-usage/maintenance-service-response.js';
+import {getMaintenanceSectionPromotion} from '../../../extension/core/ai-usage/local-maintenance-session.js';
+import {hashText} from '../../../extension/core/dedupe.js';
+import {canonical} from '../../../extension/core/ai-usage/contracts.js';
+const read=(s,table)=>s.repository.transaction(false,t=>t.all(table));
+async function optionalManifest({server}){const m=server.manifest;m.wire.instructions=instructions;m.wire.responseFormat.json_schema.schema=structuredClone(schema);m.profile.responseSchemaDigest=m.known.responseSchemaDigest=await hashText(canonical(schema));}
+test('a real Section candidate refused by its complete identity budget cannot become v3 NONE',async t=>{
+ let tokenized=0,sectionGrants=0;const f=await maintenanceCurrentContextPromotionSourceFixture(t,{configureManifest:optionalManifest,configure:async({local,configuration})=>{for(let i=0;i<8;i++)await local.s.createTopic({name:'SYNTHETIC additional identity '+i,operationId:crypto.randomUUID()});const resolve=configuration.processing.resolve;configuration.processing.resolve=async(tx,scope)=>{if(scope.purpose==='ai-maintenance-section-promotion-payload')sectionGrants++;return resolve(tx,scope);};const tokenize=configuration.tokenize;configuration.tokenize=async q=>{tokenized++;return tokenize(q);};},transform:()=>assert.fail('An identity-budget refusal must never become a no-task response')});
+ const before=(await read(f.s,'organizerWorkItems')).filter(r=>r.state==='ACKNOWLEDGED').length,result=await f.run();assert.equal(result.state,'BUDGET_EXCEEDED');assert.equal(tokenized,0);assert.equal(sectionGrants,0);assert.equal(f.physical(),0);assert.equal(f.calls.length,0);assert.equal((await read(f.s,'organizerWorkItems')).filter(r=>r.state==='ACKNOWLEDGED').length,before);assert.equal(getMaintenanceSectionPromotion(f.session,f.s,{topicId:f.topic.id,sectionId:f.section.sectionId}),null);
+});
+test('an unsent Section storage failure retries its real task under the same child instead of cached-null NONE',async t=>{
+ let sectionGrants=0;const f=await maintenanceCurrentContextPromotionSourceFixture(t,{configureManifest:optionalManifest,configure:({configuration})=>{const resolve=configuration.processing.resolve;configuration.processing.resolve=async(tx,scope)=>{if(scope.purpose==='ai-maintenance-section-promotion-payload'&&++sectionGrants===1)throw Object.assign(Error('SYNTHETIC original Section storage failure'),{code:'STORAGE_FAILED'});return resolve(tx,scope);};},transform:({value,payload})=>{value.version=3;assert.ok(payload.material.sectionPromotion);assert.equal(value.sectionProposal.status,'PROPOSE');}});
+ const first=await f.run();assert.equal(first.state,'STORAGE_FAILED');assert.equal(sectionGrants,1);assert.equal(f.physical(),0);assert.equal(f.calls.length,0);assert.equal(getMaintenanceSectionPromotion(f.session,f.s,{topicId:f.topic.id,sectionId:f.section.sectionId}),null);
+ const second=await f.run();assert.equal(second.jobId,first.jobId);assert.equal(sectionGrants,2);assert.equal(f.physical(),1,JSON.stringify(second));assert.equal(f.calls.filter(c=>c.path==='/api/provider').length,1);assert.ok(f.captured().material.sectionPromotion);assert.ok(getMaintenanceSectionPromotion(f.session,f.s,{topicId:f.topic.id,sectionId:f.section.sectionId}));
+});
