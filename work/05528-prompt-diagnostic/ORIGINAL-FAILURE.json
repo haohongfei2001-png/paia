@@ -1,0 +1,81 @@
+{
+  "main": "82323daaeab4877a5f77956c28959b5b06bce7d5",
+  "localEquivalent": "f4c494643b99b5783614851d50b2b5a12b5b9851",
+  "tree": "9f272fe5837ab85db94bf10dc3d77a51006557e3",
+  "run": 40641707107,
+  "job": 122663987262,
+  "artifact": 12796805501,
+  "zipSHA256": "770501929a89ae93ca9cd42a72debc48d0f549306489d45df85a9c39725f5ac2",
+  "files": 52,
+  "source": {
+    "pass": 12,
+    "fail": 1,
+    "failedScene": "revoked Stage 3 preserves exact first-click multiline reuse with one ordinary insertion",
+    "failure": "exact-role-button locator timeout at line147, 30000ms",
+    "durationMS": 30634.216305
+  },
+  "release": {
+    "pass": 13,
+    "fail": 0,
+    "sameSceneDurationMS": 1039.484661,
+    "nativeInputEvents": 3,
+    "insertionCommands": 1
+  },
+  "sourceFailureDOM": "NOT_RECORDED",
+  "sourceFailureScreenshot": "NOT_RECORDED",
+  "sourceOrdinarySaveAndQueryRPC": "NOT_RECORDED",
+  "runtimeAndFixtureComparison": [
+    {
+      "path": "extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs",
+      "identical05526To05527": true,
+      "sha256": "89b0acd01f38754f8c5417ad5e74f2775d31170739dba240187381c5001e2751"
+    },
+    {
+      "path": "extension/tests/harness/fake-chatgpt.mjs",
+      "identical05526To05527": true,
+      "sha256": "cac14aed256e89609e25fb146978e142071fd9b528446439a61414b73a8bbc8f"
+    },
+    {
+      "path": "extension/ui/prompt-surface.js",
+      "identical05526To05527": true,
+      "sha256": "71b03342a20df8d8e8317388307c830c9bff4a6f15d09719b20a3cb72c9dd932"
+    },
+    {
+      "path": "extension/content/prompt-surface.js",
+      "identical05526To05527": true,
+      "sha256": "fb45dbfaa844ac3e8244ba8d1c30b685f9766b7c2e55d2f9ce1d3cd267823160"
+    },
+    {
+      "path": "extension/core/prompt-family.js",
+      "identical05526To05527": true,
+      "sha256": "d3ff6aec0f06ae6502efdaacab9604822b58cde3f556b3944f93e01e8bf91a4c"
+    },
+    {
+      "path": "extension/core/prompt-reuse-service.js",
+      "identical05526To05527": true,
+      "sha256": "9cef03c01ae8eb67b2c21f427106c05775364d23ce9ddebe2926c4f419889562"
+    },
+    {
+      "path": "extension/background/prompt-surface.js",
+      "identical05526To05527": true,
+      "sha256": "56e00876bb06db3a7c849500375592ecec8403794fcdc5a7150a0cfe20d40890"
+    },
+    {
+      "path": "extension/background/prompt-reuse-commands.js",
+      "identical05526To05527": true,
+      "sha256": "99fae6da110d164e6728e72771d2c620474ac4e8b786ea80932ec19560999462"
+    },
+    {
+      "path": "extension/core/prompt-reuse-preferences.js",
+      "identical05526To05527": true,
+      "sha256": "cc068313114d2a2e70071c52e68d46506c8f4b79cc703e81f34b41b6dd8776af"
+    }
+  ],
+  "classification": "UNRESOLVED_CAUSE; source-specific timeout, not proven new code regression or environmental flake",
+  "newExecutions": {
+    "browser": 0,
+    "test": 0,
+    "CI": 0
+  },
+  "sourceChanges": 0
+}

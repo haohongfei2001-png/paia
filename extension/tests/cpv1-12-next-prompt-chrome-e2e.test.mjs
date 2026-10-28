@@ -13,11 +13,57 @@ const settledOrdinarySurface=async frame=>{
  const element=await frame.frameElement();
  try{await eventually(()=>element.evaluate(async n=>{const rect=()=>{const r=n.getBoundingClientRect();return [r.x,r.y,r.width,r.height];};const first=rect();await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);const last=rect();const root=n.getRootNode(),skin=root.querySelector('.surface-skin')?.getBoundingClientRect(),mode=root.host?.dataset.surfaceForm;return n.isConnected&&last[2]>0&&last[3]>0&&first.every((x,i)=>x===last[i])&&!!skin&&Math.abs(skin.width-(mode==='capsule'?272:last[2]))<=1/64&&Math.abs(skin.height-(mode==='capsule'?48:last[3]))<=1/64;}),'ordinary Prompt parent geometry is stable before its single native action');}finally{await element.dispose();}
 };
+// BEGIN CASE13_DIAGNOSTIC_HELPERS
+// Synthetic-fixture observation only. Return the original Promise unchanged;
+// settlement observers add small microtask overhead, not another RPC or retry.
+function installCompleteReviewObservation(expectedText){
+ globalThis.__completeReviewWrites=0;
+ globalThis.__completeReviewRPC={items:[],dropped:0};
+ const original=chrome.runtime.sendMessage;globalThis.__completeReviewSend=original;
+ chrome.runtime.sendMessage=function(request,...args){
+  const command=request?.type==='PAIA_PROMPT_SURFACE_RPC'?request.command:null;
+  const watched=['PAIA_PROMPT_CHANGE','PAIA_PROMPT_QUERY','PAIA_PROMPT_INSERT','PAIA_PROMPT_SELECTION_INSERT'].includes(command?.type);
+  if(['PAIA_PROMPT_INSERT','PAIA_PROMPT_SELECTION_INSERT'].includes(command?.type))__completeReviewWrites++;
+  const promise=original.call(this,request,...args);
+  if(watched){
+   if(__completeReviewRPC.items.length>=32){__completeReviewRPC.dropped++;return promise;}
+   const row={type:command.type,state:'pending'};
+   if(command.type==='PAIA_PROMPT_CHANGE')row.create=command.change?.action==='create';
+   __completeReviewRPC.items.push(row);
+   const observed=(response,rejected=false)=>{try{
+    row.state=rejected?'rejected':'settled';
+    if(rejected)return;
+    row.ok=response?.ok===true;
+    if(response?.ok===false)row.error=typeof response.error==='string'&&/^[A-Z][A-Z0-9_]{0,63}$/.test(response.error)?response.error:'NON_CODE_ERROR';
+    const data=response?.data;
+    if(Number.isSafeInteger(data?.revision))row.revision=data.revision;
+    if(Array.isArray(data?.items)){row.itemCount=data.items.length;row.expectedPresent=data.items.some(item=>item?.text===expectedText);}
+   }catch{/* Diagnostics must not change the returned result or reject a side chain. */}};
+   try{promise?.then(response=>observed(response),()=>observed(null,true));}catch{/* A non-Promise return stays the original return. */}
+  }
+  return promise;
+ };
+}
+async function preserveCompleteReviewFailure(error,capture,unavailable){
+ try{await capture();}catch(diagnosticError){try{unavailable(diagnosticError);}catch{/* The original test error always wins. */}}
+ throw error;
+}
+// END CASE13_DIAGNOSTIC_HELPERS
 for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' production direct loop',{timeout:180000},async t=>{
  const releasePath=variant==='release'?process.env.NIB_RELEASE_PATH||await mkdtemp(join(tmpdir(),'paia-next-settings-')):null;
  if(releasePath&&!process.env.NIB_RELEASE_PATH)execFileSync('python3',['scripts/build_current_release.py',releasePath],{cwd:root,stdio:'pipe'});
- const h=await FakeChatGPT.start({extensionPath:releasePath||root,headless:process.env.PAIA_HEADLESS!=='0',launchThroughPort:true,nativeTabVisibility:true});await mkdir(out,{recursive:true});let page,popup,world,failures=0;const cases=[],screens=[],diagnostics=[];
- const check=async(name,fn)=>{await t.test(name,async()=>{try{await fn();cases.push({name,status:'PASS'});}catch(e){failures++;cases.push({name,status:'FAIL'});throw e;}});if(failures)throw Error('Stage3 fixture stopped after failing '+name);};
+ const h=await FakeChatGPT.start({extensionPath:releasePath||root,headless:process.env.PAIA_HEADLESS!=='0',launchThroughPort:true,nativeTabVisibility:true});await mkdir(out,{recursive:true});let page,popup,world,completeReviewFrame=null,failures=0;const cases=[],screens=[],diagnostics=[];
+ const captureCompleteReviewFailure=async()=>{
+  const snapshot={evidence:'SYNTHETIC_CASE13_FAILURE_ONLY',dom:'NOT_CAPTURED',screenshot:'NOT_CAPTURED',pageErrors:h.errors.slice(-8).map(value=>String(value).slice(0,500))};
+  try{if(completeReviewFrame&&!completeReviewFrame.isDetached())snapshot.dom=await completeReviewFrame.locator('html').evaluate(()=>{
+   const expected='ordinary Stage 1/2\nExplicit complete-text review.',visible=node=>!!node&&!node.hidden&&!!node.getClientRects().length,trim=value=>String(value??'').slice(0,256);
+   const area=document.querySelector('#editor textarea');
+   return {editorHidden:document.querySelector('#editor')?.hidden,listHidden:document.querySelector('#list')?.hidden,layoutPending:document.documentElement.hasAttribute('data-layout-pending'),status:document.querySelector('#status')?.textContent.slice(0,512),focus:{tag:document.activeElement?.tagName,id:trim(document.activeElement?.id)},editor:{length:area?.value.length,expectedText:area?.value===expected},buttons:[...document.querySelectorAll('button')].slice(0,24).map(node=>({id:trim(node.id),ariaLabel:trim(node.getAttribute('aria-label')),text:trim(node.textContent),disabled:node.disabled,visible:visible(node)})),rpc:globalThis.__completeReviewRPC??null,writes:globalThis.__completeReviewWrites??null};
+  },null,{timeout:1000});}catch(error){snapshot.domError=error.name;}
+  try{if(page&&!page.isClosed()){const name=variant+'-case13-failure.png';await page.screenshot({path:join(out,name),timeout:1000});snapshot.screenshot=name;}}catch(error){snapshot.screenshotError=error.name;}
+  await writeFile(join(out,variant+'-case13-failure.json'),JSON.stringify(snapshot,null,2));
+ };
+ const check=async(name,fn)=>{await t.test(name,async()=>{try{await fn();cases.push({name,status:'PASS'});}catch(e){failures++;cases.push({name,status:'FAIL'});if(name==='revoked Stage 3 preserves exact first-click multiline reuse with one ordinary insertion')return preserveCompleteReviewFailure(e,captureCompleteReviewFailure,error=>diagnostics.push({event:'case13-diagnostic-unavailable',errorName:error.name}));throw e;}});if(failures)throw Error('Stage3 fixture stopped after failing '+name);};
  try{
   await h.archive.locator('#enable-consent').waitFor({state:'visible'});await h.archive.locator('#enable-consent').click();await rpc(h.archive,'UPDATE_PREFERENCES',{changes:{language:'zh-CN'}});
   popup=await h.context.newPage();await popup.goto('chrome-extension://'+h.extensionId+'/ui/popup.html');await popup.locator('#next-enabled').waitFor();
@@ -142,9 +188,9 @@ for(const variant of ['source','release'])test('Stage 3A-1 '+variant+' productio
    let ordinaryFailure=null;await f.evaluate(()=>{globalThis.__ordinaryWrites=0;const original=chrome.runtime.sendMessage;globalThis.__ordinaryRestore=()=>chrome.runtime.sendMessage=original;chrome.runtime.sendMessage=async function(request,...args){if(request?.type==='PAIA_PROMPT_SURFACE_RPC'&&['PAIA_PROMPT_INSERT','PAIA_PROMPT_SELECTION_INSERT'].includes(request.command?.type))__ordinaryWrites++;return original.call(this,request,...args);};});try{await f.getByRole('button',{name:'ordinary Stage 1/2',exact:true}).click();assert.equal(await f.locator('#check-text').isVisible(),false);await eventually(()=>f.locator('#status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await f.evaluate(()=>__ordinaryWrites),1);assert.equal(await page.evaluate(()=>fixture.send),0);}catch(error){ordinaryFailure=error;throw error;}finally{try{diagnostics.push({event:'ordinary-restart-final',value:await f.locator('html').evaluate(()=>({writes:__ordinaryWrites,status:document.querySelector('#status').textContent}),null,{timeout:1000})});}catch(error){diagnostics.push({event:'ordinary-restart-diagnostic-unavailable',errorName:error.name});}try{await f.locator('html').evaluate(()=>__ordinaryRestore(),null,{timeout:1000});}catch(error){if(!ordinaryFailure)throw error;diagnostics.push({event:'ordinary-restart-cleanup-unavailable',errorName:error.name});}}
   });
   await check('revoked Stage 3 preserves exact first-click multiline reuse with one ordinary insertion',async()=>{
-   await closeBoard();const frame=await openBoard(),text='ordinary Stage 1/2\nExplicit complete-text review.',draft='SYNTHETIC_DRAFT:';await page.evaluate(text=>fixture.set(text,text.length,text.length),draft);const beforeHost=await page.evaluate(()=>({enter:fixture.enter,inputs:fixture.inputs}));await surfaceClick(frame,'#new');await frame.getByRole('textbox',{name:'复用文本'}).fill(text);await frame.getByRole('button',{name:'保存',exact:true}).click();await settledOrdinarySurface(frame);
-   await frame.evaluate(()=>{globalThis.__completeReviewWrites=0;globalThis.__completeReviewSend=chrome.runtime.sendMessage;chrome.runtime.sendMessage=async function(request,...args){if(request?.type==='PAIA_PROMPT_SURFACE_RPC'&&['PAIA_PROMPT_INSERT','PAIA_PROMPT_SELECTION_INSERT'].includes(request.command?.type))__completeReviewWrites++;return __completeReviewSend.call(this,request,...args);};});
-   let completeReviewFailure=null;try{await frame.getByRole('button',{name:'ordinary Stage 1/2 Explicit complete-text review.',exact:true}).click();await eventually(()=>frame.locator('#status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await frame.locator('#check-text').isVisible(),false);assert.equal(await frame.evaluate(()=>__completeReviewWrites),1);assert.equal(await page.evaluate(()=>fixture.text()),draft+text);assert.equal(await page.evaluate(()=>document.activeElement.id),'prompt-textarea');const nativeInputEvents=(await page.evaluate(()=>fixture.inputs))-beforeHost.inputs;assert.ok(nativeInputEvents>0);diagnostics.push({event:'first-click-multiline-native-input',nativeInputEvents,insertionCommands:1});assert.equal(await page.evaluate(()=>fixture.enter),beforeHost.enter);assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal((await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);}catch(error){completeReviewFailure=error;throw error;}finally{try{await frame.locator('html').evaluate(()=>{chrome.runtime.sendMessage=__completeReviewSend;},null,{timeout:1000});}catch(error){if(!completeReviewFailure)throw error;diagnostics.push({event:'complete-review-cleanup-unavailable',errorName:error.name});}}
+   await closeBoard();const frame=await openBoard(),text='ordinary Stage 1/2\nExplicit complete-text review.',draft='SYNTHETIC_DRAFT:';completeReviewFrame=frame;await page.evaluate(text=>fixture.set(text,text.length,text.length),draft);const beforeHost=await page.evaluate(()=>({enter:fixture.enter,inputs:fixture.inputs}));
+   await frame.evaluate(installCompleteReviewObservation,text);
+   let completeReviewFailure=null;try{await surfaceClick(frame,'#new');await frame.getByRole('textbox',{name:'复用文本'}).fill(text);await frame.getByRole('button',{name:'保存',exact:true}).click();await settledOrdinarySurface(frame);await frame.getByRole('button',{name:'ordinary Stage 1/2 Explicit complete-text review.',exact:true}).click();await eventually(()=>frame.locator('#status').textContent().then(x=>x==='已插入，未发送。'));assert.equal(await frame.locator('#check-text').isVisible(),false);assert.equal(await frame.evaluate(()=>__completeReviewWrites),1);assert.equal(await page.evaluate(()=>fixture.text()),draft+text);assert.equal(await page.evaluate(()=>document.activeElement.id),'prompt-textarea');const nativeInputEvents=(await page.evaluate(()=>fixture.inputs))-beforeHost.inputs;assert.ok(nativeInputEvents>0);diagnostics.push({event:'first-click-multiline-native-input',nativeInputEvents,insertionCommands:1});assert.equal(await page.evaluate(()=>fixture.enter),beforeHost.enter);assert.equal(await page.evaluate(()=>fixture.send),0);assert.equal((await rpc(popup,'PAIA_PROMPT_NEXT_STATUS')).enabled,false);}catch(error){completeReviewFailure=error;throw error;}finally{try{await frame.locator('html').evaluate(()=>{chrome.runtime.sendMessage=__completeReviewSend;},null,{timeout:1000});}catch(error){if(!completeReviewFailure)throw error;diagnostics.push({event:'complete-review-cleanup-unavailable',errorName:error.name});}}
   });
   assert.equal(failures,0);assert.deepEqual(h.errors,[]);
  }finally{if(world)try{diagnostics.push({event:'final-world',value:await world.run('({observed:nextObserve,trace:nextTrace})')});}catch(error){diagnostics.push({event:'final-world-unavailable',error:error.message});}await writeFile(join(out,variant+'-insert-diagnostic.json'),JSON.stringify(diagnostics,null,2));await writeFile(join(out,variant+'.json'),JSON.stringify({variant,evidence:'SYNTHETIC_PRODUCTION_EXTENSION',head:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),cases,screens,failures,currentLive:'PENDING'},null,2));await world?.cdp.detach();await h.close();if(releasePath&&!process.env.NIB_RELEASE_PATH)await rm(releasePath,{recursive:true,force:true});}

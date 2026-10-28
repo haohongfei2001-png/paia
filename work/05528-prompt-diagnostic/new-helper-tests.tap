@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: diagnostic returns the identical original Promise/request/result without another RPC
+ok 1 - diagnostic returns the identical original Promise/request/result without another RPC
+  ---
+  duration_ms: 3.543963
+  type: 'test'
+  ...
+# Subtest: rejected original RPC remains the same rejection; observer creates no unhandled rejection
+ok 2 - rejected original RPC remains the same rejection; observer creates no unhandled rejection
+  ---
+  duration_ms: 4.191077
+  type: 'test'
+  ...
+# Subtest: a throwing diagnostic response getter cannot change the successful response or reject a side chain
+ok 3 - a throwing diagnostic response getter cannot change the successful response or reject a side chain
+  ---
+  duration_ms: 1.449216
+  type: 'test'
+  ...
+# Subtest: RPC observation is bounded and retains the original single insertion counter
+ok 4 - RPC observation is bounded and retains the original single insertion counter
+  ---
+  duration_ms: 1.233017
+  type: 'test'
+  ...
+# Subtest: synchronous original transport error stays the exact original error
+ok 5 - synchronous original transport error stays the exact original error
+  ---
+  duration_ms: 0.753681
+  type: 'test'
+  ...
+# Subtest: capture or diagnostic-report failure never replaces the original test failure
+ok 6 - capture or diagnostic-report failure never replaces the original test failure
+  ---
+  duration_ms: 0.969148
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 106.464579

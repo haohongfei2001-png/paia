@@ -1,0 +1,65 @@
+{
+  "base": "f4c494643b99b5783614851d50b2b5a12b5b9851",
+  "publishedEquivalentBase": "82323daaeab4877a5f77956c28959b5b06bce7d5",
+  "baseTree": "9f272fe5837ab85db94bf10dc3d77a51006557e3",
+  "head": "f8f9c3b01951cf6791a2e4e7a22005c4efdfc9cb",
+  "tree": "62ab1f483dd79d2ce0b6e11e795c8fc6d7c1e828",
+  "branch": "codex/prompt-case13-diagnostic-20261028",
+  "files": [
+    {
+      "path": "extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs",
+      "bytes": 42758,
+      "sha256": "4213e1cb6946178387959ac406c375813abc619feb32754bba6695be9008dbee",
+      "blob": "266aa1f2bea7ff37e1904aeacdcb1434704c1bdf",
+      "mode": "100644"
+    },
+    {
+      "path": "extension/tests/next-prompt-failure-diagnostic.test.mjs",
+      "bytes": 5132,
+      "sha256": "f8359973d0c288fda30f40c22f564e4795489ec6110ffeea59c8702560712894",
+      "blob": "273f2aaccccb5c2019358423322e0c6b55825931",
+      "mode": "100644"
+    }
+  ],
+  "runtimeDiff": "ZERO",
+  "workflowChanges": false,
+  "assertionsAndTimeouts": "Original exact role/name, 30s inherited locator timeout, 180s parent, exact text/one insertion/no Send assertions retained",
+  "capture": "case13 original failure only, after wrapper cleanup and before browser close: DOM <=1s and screenshot <=1s; JSON under original prompt-next artifact",
+  "dataBound": "32 ordinary RPC metadata records, 24 buttons <=256 char each, status<=512 char,8 pageerrors<=500 char; no raw RPC bodies/IDs/nonces/credentials; isolated synthetic test only",
+  "asyncBoundary": "Original send result/Promise and error identity retained. Additional observer microtask and earlier observation installation have small timing overhead; no RPC retry or additional native action",
+  "checks": {
+    "syntax": "node --check PASS",
+    "diff": "git diff --check PASS",
+    "newPureHelperCases": "6/6 PASS,106.464579ms,zero skips",
+    "browser": "NOT_RUN",
+    "oldSuite": "NOT_RUN",
+    "CI": "NOT_RUN"
+  },
+  "sectionHeldChanges": "EXCLUDED",
+  "publication": "NOT_RUN; next integration/remote execution awaits parent approval",
+  "originalFailure": "work/05528-prompt-diagnostic/ORIGINAL-FAILURE.json",
+  "logs": [
+    {
+      "path": "work/05528-prompt-diagnostic/new-helper-tests.tap",
+      "sha256": "d4859669de99d2887369c8620dfe2fbd6a88e5b8b16ddf47377e922cc3b60f73",
+      "bytes": 1527
+    },
+    {
+      "path": "work/05528-prompt-diagnostic/original-foundation-failure.log",
+      "sha256": "0a107e67a14869fcffd5c7f755b28ca03c7915ff12ae3a5f5467bdc1b661bc16",
+      "bytes": 86132
+    },
+    {
+      "path": "work/05528-prompt-diagnostic/ORIGINAL-FAILURE.json",
+      "sha256": "8abce9c2af26ff16881086fee3ed22575b18f69ec15307de24f3115fd995477d",
+      "bytes": 2854
+    }
+  ],
+  "unchangedNullConfigurations": {
+    "extension/core/ai-usage/assist-service-configuration.js": "75c427fad618799fa52a6b4951d50869af2c41d1cfa0c52ca493571fd918c580",
+    "extension/core/ai-usage/historical-service-configuration.js": "c07bbf91a865ffc07c644b3127c160790816f93319555aadb6be1c7ebda50dd8",
+    "extension/core/ai-usage/maintenance-service-configuration.js": "d94bc0c0e8ab1393a011822c4114176efcf724c8020459f1f70fac8fdd4e17a5",
+    "extension/core/ai-usage/organize-service-configuration.js": "aa072890a1a7ee8488236ce9415db2da6f565f2aae6eb563875939bc81711030"
+  },
+  "packaging": "Version-only plus original evidence/record; no new tests"
+}

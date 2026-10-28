@@ -1,0 +1,1187 @@
+﻿2026-10-28T06:14:04.1860965Z Current runner version: '2.338.0'
+2026-10-28T06:14:04.1897887Z ##[group]Runner Image Provisioner
+2026-10-28T06:14:04.1899373Z Hosted Compute Agent
+2026-10-28T06:14:04.1900309Z Version: 20261021.618
+2026-10-28T06:14:04.1901455Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-10-28T06:14:04.1902701Z Build Date: 2026-10-21T00:45:21Z
+2026-10-28T06:14:04.1903964Z Worker ID: {7190da3f-3ea2-48fd-9994-33ba9b2db36b}
+2026-10-28T06:14:04.1905170Z Region: eastus
+2026-10-28T06:14:04.1906058Z Cloud: Azure
+2026-10-28T06:14:04.1907282Z ##[endgroup]
+2026-10-28T06:14:04.1909851Z ##[group]Operating System
+2026-10-28T06:14:04.1911041Z Ubuntu
+2026-10-28T06:14:04.1911986Z 24.04.5
+2026-10-28T06:14:04.1912930Z LTS
+2026-10-28T06:14:04.1913777Z ##[endgroup]
+2026-10-28T06:14:04.1914629Z ##[group]Runner Image
+2026-10-28T06:14:04.1915809Z Image: ubuntu-24.04
+2026-10-28T06:14:04.1916768Z Version: 20261025.353.1
+2026-10-28T06:14:04.1919211Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261025.353/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-28T06:14:04.1921904Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261025.353
+2026-10-28T06:14:04.1923843Z ##[endgroup]
+2026-10-28T06:14:04.1925694Z ##[group]GITHUB_TOKEN Permissions
+2026-10-28T06:14:04.1929233Z Contents: read
+2026-10-28T06:14:04.1930264Z Metadata: read
+2026-10-28T06:14:04.1931372Z ##[endgroup]
+2026-10-28T06:14:04.1934454Z Secret source: Actions
+2026-10-28T06:14:04.1935973Z Cache mode: write
+2026-10-28T06:14:04.1937383Z Prepare workflow directory
+2026-10-28T06:14:04.2501986Z Prepare all required actions
+2026-10-28T06:14:04.2551902Z Getting action download info
+2026-10-28T06:14:04.4238639Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-10-28T06:14:04.5091122Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-10-28T06:14:04.5953035Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-10-28T06:14:04.6733217Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-28T06:14:04.9047989Z Complete job name: foundation
+2026-10-28T06:14:05.0022186Z ##[group]Run actions/checkout@v4
+2026-10-28T06:14:05.0023073Z with:
+2026-10-28T06:14:05.0023544Z   repository: haohongfei2001-png/paia
+2026-10-28T06:14:05.0027945Z   token: ***
+2026-10-28T06:14:05.0028380Z   ssh-strict: true
+2026-10-28T06:14:05.0028808Z   ssh-user: git
+2026-10-28T06:14:05.0029262Z   persist-credentials: true
+2026-10-28T06:14:05.0029742Z   clean: true
+2026-10-28T06:14:05.0030183Z   sparse-checkout-cone-mode: true
+2026-10-28T06:14:05.0030703Z   fetch-depth: 1
+2026-10-28T06:14:05.0031121Z   fetch-tags: false
+2026-10-28T06:14:05.0031562Z   show-progress: true
+2026-10-28T06:14:05.0032013Z   lfs: false
+2026-10-28T06:14:05.0032418Z   submodules: false
+2026-10-28T06:14:05.0032868Z   set-safe-directory: true
+2026-10-28T06:14:05.0033372Z   allow-unsafe-pr-checkout: false
+2026-10-28T06:14:05.0034153Z env:
+2026-10-28T06:14:05.0034549Z   CI: 1
+2026-10-28T06:14:05.0034938Z   PAIA_HEADLESS: 1
+2026-10-28T06:14:05.0035392Z   PLAYWRIGHT_MODULE: playwright
+2026-10-28T06:14:05.0035952Z   PAIA_TEST_CONCURRENCY: 4
+2026-10-28T06:14:05.0036416Z ##[endgroup]
+2026-10-28T06:14:05.2567253Z Syncing repository: haohongfei2001-png/paia
+2026-10-28T06:14:05.2569894Z ##[group]Getting Git version info
+2026-10-28T06:14:05.2570913Z Working directory is '/home/runner/work/paia/paia'
+2026-10-28T06:14:05.2572179Z [command]/usr/bin/git version
+2026-10-28T06:14:05.2672651Z git version 2.56.0
+2026-10-28T06:14:05.2702694Z ##[endgroup]
+2026-10-28T06:14:05.2710379Z Temporarily overriding HOME='/home/runner/work/_temp/30f9808c-80b2-4bad-91ec-059512eca8c9' before making global git config changes
+2026-10-28T06:14:05.2712961Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-28T06:14:05.2718852Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/paia/paia
+2026-10-28T06:14:05.2788729Z Deleting the contents of '/home/runner/work/paia/paia'
+2026-10-28T06:14:05.2797541Z ##[group]Initializing the repository
+2026-10-28T06:14:05.2798826Z [command]/usr/bin/git init /home/runner/work/paia/paia
+2026-10-28T06:14:05.2913313Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-28T06:14:05.2915587Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-28T06:14:05.2917626Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-28T06:14:05.2919303Z hint: call:
+2026-10-28T06:14:05.2920388Z hint:
+2026-10-28T06:14:05.2921642Z hint: 	git config --global init.defaultBranch <name>
+2026-10-28T06:14:05.2922794Z hint:
+2026-10-28T06:14:05.2923826Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-28T06:14:05.2925375Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-28T06:14:05.2926579Z hint:
+2026-10-28T06:14:05.2927775Z hint: 	git branch -m <name>
+2026-10-28T06:14:05.2928653Z hint:
+2026-10-28T06:14:05.2929833Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-28T06:14:05.2931637Z Initialized empty Git repository in /home/runner/work/paia/paia/.git/
+2026-10-28T06:14:05.2949623Z [command]/usr/bin/git remote add origin https://github.com/haohongfei2001-png/paia
+2026-10-28T06:14:05.3005550Z ##[endgroup]
+2026-10-28T06:14:05.3007064Z ##[group]Disabling automatic garbage collection
+2026-10-28T06:14:05.3010261Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-28T06:14:05.3052097Z ##[endgroup]
+2026-10-28T06:14:05.3053376Z ##[group]Setting up auth
+2026-10-28T06:14:05.3060789Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-28T06:14:05.3102212Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-28T06:14:05.3504584Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-28T06:14:05.3559139Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-28T06:14:05.3818620Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-28T06:14:05.3867978Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-28T06:14:05.4125830Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-28T06:14:05.4180452Z ##[endgroup]
+2026-10-28T06:14:05.4181474Z ##[group]Fetching the repository
+2026-10-28T06:14:05.4195214Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +82323daaeab4877a5f77956c28959b5b06bce7d5:refs/remotes/origin/main
+2026-10-28T06:14:08.0579622Z From https://github.com/haohongfei2001-png/paia
+2026-10-28T06:14:08.0582169Z  * [new ref]         82323daaeab4877a5f77956c28959b5b06bce7d5 -> origin/main
+2026-10-28T06:14:08.0586140Z ##[endgroup]
+2026-10-28T06:14:08.0588068Z ##[group]Determining the checkout info
+2026-10-28T06:14:08.0589758Z ##[endgroup]
+2026-10-28T06:14:08.0592924Z [command]/usr/bin/git sparse-checkout disable
+2026-10-28T06:14:08.0665799Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-28T06:14:08.0713567Z ##[group]Checking out the ref
+2026-10-28T06:14:08.0717647Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-28T06:14:08.7367839Z Switched to a new branch 'main'
+2026-10-28T06:14:08.7371933Z branch 'main' set up to track 'origin/main'.
+2026-10-28T06:14:08.7406210Z ##[endgroup]
+2026-10-28T06:14:08.7467421Z [command]/usr/bin/git log -1 --format=%H
+2026-10-28T06:14:08.7505664Z 82323daaeab4877a5f77956c28959b5b06bce7d5
+2026-10-28T06:14:08.7803770Z ##[group]Run actions/setup-node@v4
+2026-10-28T06:14:08.7804228Z with:
+2026-10-28T06:14:08.7804514Z   node-version: 22
+2026-10-28T06:14:08.7804821Z   always-auth: false
+2026-10-28T06:14:08.7805132Z   check-latest: false
+2026-10-28T06:14:08.7808476Z   token: ***
+2026-10-28T06:14:08.7808771Z env:
+2026-10-28T06:14:08.7809039Z   CI: 1
+2026-10-28T06:14:08.7809305Z   PAIA_HEADLESS: 1
+2026-10-28T06:14:08.7809617Z   PLAYWRIGHT_MODULE: playwright
+2026-10-28T06:14:08.7809965Z   PAIA_TEST_CONCURRENCY: 4
+2026-10-28T06:14:08.7810284Z ##[endgroup]
+2026-10-28T06:14:08.9417795Z (node:2347) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-28T06:14:08.9419771Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-28T06:14:08.9432140Z Found in cache @ /opt/hostedtoolcache/node/22.23.4/x64
+2026-10-28T06:14:08.9433895Z ##[group]Environment details
+2026-10-28T06:14:09.3382454Z node: v22.23.4
+2026-10-28T06:14:09.3383209Z npm: 10.9.9
+2026-10-28T06:14:09.3383529Z yarn: 1.22.22
+2026-10-28T06:14:09.3384647Z ##[endgroup]
+2026-10-28T06:14:09.3592984Z ##[group]Run actions/setup-python@v5
+2026-10-28T06:14:09.3593308Z with:
+2026-10-28T06:14:09.3593514Z   python-version: 3.12
+2026-10-28T06:14:09.3593753Z   check-latest: false
+2026-10-28T06:14:09.3596631Z   token: ***
+2026-10-28T06:14:09.3597197Z   update-environment: true
+2026-10-28T06:14:09.3597475Z   allow-prereleases: false
+2026-10-28T06:14:09.3597727Z   freethreaded: false
+2026-10-28T06:14:09.3597939Z env:
+2026-10-28T06:14:09.3598129Z   CI: 1
+2026-10-28T06:14:09.3598322Z   PAIA_HEADLESS: 1
+2026-10-28T06:14:09.3598559Z   PLAYWRIGHT_MODULE: playwright
+2026-10-28T06:14:09.3598818Z   PAIA_TEST_CONCURRENCY: 4
+2026-10-28T06:14:09.3599049Z ##[endgroup]
+2026-10-28T06:14:09.5055107Z ##[group]Installed versions
+2026-10-28T06:14:09.5167413Z (node:2378) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-28T06:14:09.5169158Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-28T06:14:09.5170174Z Successfully set up CPython (3.12.15)
+2026-10-28T06:14:09.5171171Z ##[endgroup]
+2026-10-28T06:14:09.5280081Z ##[group]Run npm install --no-audit --no-fund
+2026-10-28T06:14:09.5280792Z [36;1mnpm install --no-audit --no-fund[0m
+2026-10-28T06:14:09.5319877Z shell: /usr/bin/bash -e {0}
+2026-10-28T06:14:09.5320206Z env:
+2026-10-28T06:14:09.5320435Z   CI: 1
+2026-10-28T06:14:09.5320658Z   PAIA_HEADLESS: 1
+2026-10-28T06:14:09.5320928Z   PLAYWRIGHT_MODULE: playwright
+2026-10-28T06:14:09.5321242Z   PAIA_TEST_CONCURRENCY: 4
+2026-10-28T06:14:09.5321607Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:09.5322165Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-28T06:14:09.5322700Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:09.5323180Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:09.5323678Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:09.5324156Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-28T06:14:09.5324609Z ##[endgroup]
+2026-10-28T06:14:11.4428982Z 
+2026-10-28T06:14:11.4964390Z added 7 packages in 2s
+2026-10-28T06:14:11.5007193Z ##[group]Run CHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"
+2026-10-28T06:14:11.5007962Z [36;1mCHROME_BIN="$(command -v google-chrome || command -v google-chrome-stable || true)"[0m
+2026-10-28T06:14:11.5008446Z [36;1mtest -n "$CHROME_BIN"[0m
+2026-10-28T06:14:11.5008760Z [36;1mecho "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"[0m
+2026-10-28T06:14:11.5030922Z shell: /usr/bin/bash -e {0}
+2026-10-28T06:14:11.5031186Z env:
+2026-10-28T06:14:11.5031374Z   CI: 1
+2026-10-28T06:14:11.5031562Z   PAIA_HEADLESS: 1
+2026-10-28T06:14:11.5031791Z   PLAYWRIGHT_MODULE: playwright
+2026-10-28T06:14:11.5032061Z   PAIA_TEST_CONCURRENCY: 4
+2026-10-28T06:14:11.5032599Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5033050Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-28T06:14:11.5033494Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5033915Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5034304Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5034689Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-28T06:14:11.5035019Z ##[endgroup]
+2026-10-28T06:14:11.5123293Z ##[group]Run # Run37687078617 stalled in font setup; prior37685485859 exhausted its adapter budget on this mirror.
+2026-10-28T06:14:11.5124127Z [36;1m# Run37687078617 stalled in font setup; prior37685485859 exhausted its adapter budget on this mirror.[0m
+2026-10-28T06:14:11.5124772Z [36;1m# Change only that mirror URI; preserve suites, packages and signing keys.[0m
+2026-10-28T06:14:11.5125231Z [36;1msudo python3 - <<'PYAPT'[0m
+2026-10-28T06:14:11.5125528Z [36;1mfrom pathlib import Path[0m
+2026-10-28T06:14:11.5126246Z [36;1mpaths = [Path('/etc/apt/sources.list'), *Path('/etc/apt').glob('*mirrors*.txt'), *Path('/etc/apt/sources.list.d').glob('*.list'), *Path('/etc/apt/sources.list.d').glob('*.sources')][0m
+2026-10-28T06:14:11.5127322Z [36;1mfor path in paths:[0m
+2026-10-28T06:14:11.5127613Z [36;1m    if path.is_file():[0m
+2026-10-28T06:14:11.5152127Z [36;1m        text = path.read_text()[0m
+2026-10-28T06:14:11.5153089Z [36;1m        updated = text.replace('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu').replace('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu')[0m
+2026-10-28T06:14:11.5153983Z [36;1m        if updated != text:[0m
+2026-10-28T06:14:11.5154294Z [36;1m            path.write_text(updated)[0m
+2026-10-28T06:14:11.5154644Z [36;1mPYAPT[0m
+2026-10-28T06:14:11.5176009Z shell: /usr/bin/bash -e {0}
+2026-10-28T06:14:11.5176274Z env:
+2026-10-28T06:14:11.5176482Z   CI: 1
+2026-10-28T06:14:11.5176682Z   PAIA_HEADLESS: 1
+2026-10-28T06:14:11.5177228Z   PLAYWRIGHT_MODULE: playwright
+2026-10-28T06:14:11.5177507Z   PAIA_TEST_CONCURRENCY: 4
+2026-10-28T06:14:11.5177824Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5178275Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-28T06:14:11.5178714Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5179106Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5179516Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5179916Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-28T06:14:11.5180277Z   CHROME_PATH: /usr/bin/google-chrome
+2026-10-28T06:14:11.5180557Z ##[endgroup]
+2026-10-28T06:14:11.5618483Z ##[group]Run sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-color-emoji
+2026-10-28T06:14:11.5619481Z [36;1msudo apt-get update -qq && sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-color-emoji[0m
+2026-10-28T06:14:11.5641105Z shell: /usr/bin/bash -e {0}
+2026-10-28T06:14:11.5641368Z env:
+2026-10-28T06:14:11.5641556Z   CI: 1
+2026-10-28T06:14:11.5641741Z   PAIA_HEADLESS: 1
+2026-10-28T06:14:11.5641973Z   PLAYWRIGHT_MODULE: playwright
+2026-10-28T06:14:11.5642235Z   PAIA_TEST_CONCURRENCY: 4
+2026-10-28T06:14:11.5642538Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5642975Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-28T06:14:11.5643405Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5643789Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5644219Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:11.5644631Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-28T06:14:11.5644987Z   CHROME_PATH: /usr/bin/google-chrome
+2026-10-28T06:14:11.5645428Z ##[endgroup]
+2026-10-28T06:14:17.7991828Z Reading package lists...
+2026-10-28T06:14:18.0613890Z Building dependency tree...
+2026-10-28T06:14:18.0622664Z Reading state information...
+2026-10-28T06:14:18.2328275Z fonts-noto-color-emoji is already the newest version (2.047-0ubuntu0.24.04.1).
+2026-10-28T06:14:18.2328853Z Suggested packages:
+2026-10-28T06:14:18.2329119Z   fonts-noto-cjk-extra
+2026-10-28T06:14:18.2515778Z The following NEW packages will be installed:
+2026-10-28T06:14:18.2523507Z   fonts-noto-cjk
+2026-10-28T06:14:18.2731523Z 0 upgraded, 1 newly installed, 0 to remove and 5 not upgraded.
+2026-10-28T06:14:18.2732279Z Need to get 61.2 MB of archives.
+2026-10-28T06:14:18.2733068Z After this operation, 93.2 MB of additional disk space will be used.
+2026-10-28T06:14:18.2734064Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [139 B]
+2026-10-28T06:14:18.7520526Z Get:2 https://archive.ubuntu.com/ubuntu noble/main amd64 fonts-noto-cjk all 1:20230817+repack1-3 [61.2 MB]
+2026-10-28T06:14:20.2574452Z Fetched 61.2 MB in 2s (35.9 MB/s)
+2026-10-28T06:14:20.2814652Z Selecting previously unselected package fonts-noto-cjk.
+2026-10-28T06:14:20.3079116Z (Reading database ... 
+2026-10-28T06:14:20.3083476Z (Reading database ... 5%
+2026-10-28T06:14:20.3084175Z (Reading database ... 10%
+2026-10-28T06:14:20.3084926Z (Reading database ... 15%
+2026-10-28T06:14:20.3085405Z (Reading database ... 20%
+2026-10-28T06:14:20.3085805Z (Reading database ... 25%
+2026-10-28T06:14:20.3086192Z (Reading database ... 30%
+2026-10-28T06:14:20.3086581Z (Reading database ... 35%
+2026-10-28T06:14:20.3087330Z (Reading database ... 40%
+2026-10-28T06:14:20.3087852Z (Reading database ... 45%
+2026-10-28T06:14:20.3088242Z (Reading database ... 50%
+2026-10-28T06:14:20.3120998Z (Reading database ... 55%
+2026-10-28T06:14:20.4413924Z (Reading database ... 60%
+2026-10-28T06:14:20.6419032Z (Reading database ... 65%
+2026-10-28T06:14:20.8457750Z (Reading database ... 70%
+2026-10-28T06:14:21.0541758Z (Reading database ... 75%
+2026-10-28T06:14:21.2383910Z (Reading database ... 80%
+2026-10-28T06:14:21.3516308Z (Reading database ... 85%
+2026-10-28T06:14:21.4574313Z (Reading database ... 90%
+2026-10-28T06:14:21.6148640Z (Reading database ... 95%
+2026-10-28T06:14:21.6149458Z (Reading database ... 100%
+2026-10-28T06:14:21.6150258Z (Reading database ... 215504 files and directories currently installed.)
+2026-10-28T06:14:21.6209406Z Preparing to unpack .../fonts-noto-cjk_1%3a20230817+repack1-3_all.deb ...
+2026-10-28T06:14:21.6316289Z Unpacking fonts-noto-cjk (1:20230817+repack1-3) ...
+2026-10-28T06:14:22.1557374Z Setting up fonts-noto-cjk (1:20230817+repack1-3) ...
+2026-10-28T06:14:22.1638868Z Processing triggers for fontconfig (2.15.0-1.1ubuntu2) ...
+2026-10-28T06:14:22.9204942Z 
+2026-10-28T06:14:22.9205676Z Running kernel seems to be up-to-date.
+2026-10-28T06:14:22.9206581Z 
+2026-10-28T06:14:22.9207184Z No services need to be restarted.
+2026-10-28T06:14:22.9207530Z 
+2026-10-28T06:14:22.9207811Z No containers need to be restarted.
+2026-10-28T06:14:22.9208183Z 
+2026-10-28T06:14:22.9208498Z No user sessions are running outdated binaries.
+2026-10-28T06:14:22.9208874Z 
+2026-10-28T06:14:22.9209388Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+2026-10-28T06:14:24.0062200Z ##[group]Run node --test --test-concurrency=1 tests/cpv1-09-prompt-compatibility-chrome-e2e.test.mjs
+2026-10-28T06:14:24.0063182Z [36;1mnode --test --test-concurrency=1 tests/cpv1-09-prompt-compatibility-chrome-e2e.test.mjs[0m
+2026-10-28T06:14:24.0064061Z [36;1mnode --test --test-concurrency=1 tests/cpv1-09-prompt-insertion-chrome-e2e.test.mjs[0m
+2026-10-28T06:14:24.0065043Z [36;1mxvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-09-prompt-surface-chrome-e2e.test.mjs[0m
+2026-10-28T06:14:24.0087513Z shell: /usr/bin/bash -e {0}
+2026-10-28T06:14:24.0087820Z env:
+2026-10-28T06:14:24.0088040Z   CI: 1
+2026-10-28T06:14:24.0088262Z   PAIA_HEADLESS: 1
+2026-10-28T06:14:24.0088526Z   PLAYWRIGHT_MODULE: playwright
+2026-10-28T06:14:24.0089029Z   PAIA_TEST_CONCURRENCY: 4
+2026-10-28T06:14:24.0089391Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:24.0089913Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-28T06:14:24.0090496Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:24.0091001Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:24.0091549Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:14:24.0092123Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-28T06:14:24.0092576Z   CHROME_PATH: /usr/bin/google-chrome
+2026-10-28T06:14:24.0092918Z ##[endgroup]
+2026-10-28T06:14:24.0598267Z TAP version 13
+2026-10-28T06:14:28.9120419Z # Subtest: bounded current composer compatibility source
+2026-10-28T06:14:28.9121904Z     # Subtest: id-less current form displays orb and inserts with capture paused
+2026-10-28T06:14:28.9128588Z     ok 1 - id-less current form displays orb and inserts with capture paused
+2026-10-28T06:14:28.9130217Z       ---
+2026-10-28T06:14:28.9130663Z       duration_ms: 822.570685
+2026-10-28T06:14:28.9131164Z       type: 'test'
+2026-10-28T06:14:28.9131568Z       ...
+2026-10-28T06:14:28.9518864Z     # Subtest: unrelated and message-body editors excluded; ambiguous trusted candidates fail closed
+2026-10-28T06:14:28.9521541Z     ok 2 - unrelated and message-body editors excluded; ambiguous trusted candidates fail closed
+2026-10-28T06:14:28.9523540Z       ---
+2026-10-28T06:14:28.9523883Z       duration_ms: 40.041492
+2026-10-28T06:14:28.9524525Z       type: 'test'
+2026-10-28T06:14:28.9525031Z       ...
+2026-10-28T06:14:29.3152117Z     # Subtest: disabled, inert, hidden and noneditable ancestors suppress discovery and recover dynamically
+2026-10-28T06:14:29.3153928Z     ok 3 - disabled, inert, hidden and noneditable ancestors suppress discovery and recover dynamically
+2026-10-28T06:14:29.3154763Z       ---
+2026-10-28T06:14:29.3155107Z       duration_ms: 363.46583
+2026-10-28T06:14:29.3155542Z       type: 'test'
+2026-10-28T06:14:29.3155882Z       ...
+2026-10-28T06:14:30.0779472Z     # Subtest: independent markdown textbox without ProseMirror class shares the same finder and exact insertion
+2026-10-28T06:14:30.0782587Z     ok 4 - independent markdown textbox without ProseMirror class shares the same finder and exact insertion
+2026-10-28T06:14:30.0783994Z       ---
+2026-10-28T06:14:30.0784638Z       duration_ms: 761.528012
+2026-10-28T06:14:30.0785409Z       type: 'test'
+2026-10-28T06:14:30.0786040Z       ...
+2026-10-28T06:14:30.4788229Z     # Subtest: popup has no permanent diagnostic surface or background diagnostic request
+2026-10-28T06:14:30.4790463Z     ok 5 - popup has no permanent diagnostic surface or background diagnostic request
+2026-10-28T06:14:30.4792061Z       ---
+2026-10-28T06:14:30.4793017Z       duration_ms: 401.016867
+2026-10-28T06:14:30.4793690Z       type: 'test'
+2026-10-28T06:14:30.4794235Z       ...
+2026-10-28T06:14:30.5150691Z     # Subtest: zero send, Provider requests, draft capture or extension network
+2026-10-28T06:14:30.5153047Z     ok 6 - zero send, Provider requests, draft capture or extension network
+2026-10-28T06:14:30.5154255Z       ---
+2026-10-28T06:14:30.5155287Z       duration_ms: 36.518182
+2026-10-28T06:14:30.5155801Z       type: 'test'
+2026-10-28T06:14:30.5156177Z       ...
+2026-10-28T06:14:35.9703834Z     1..6
+2026-10-28T06:14:35.9705147Z ok 1 - bounded current composer compatibility source
+2026-10-28T06:14:35.9706461Z   ---
+2026-10-28T06:14:35.9707094Z   duration_ms: 6209.222916
+2026-10-28T06:14:35.9707565Z   type: 'test'
+2026-10-28T06:14:35.9707829Z   ...
+2026-10-28T06:14:39.6220615Z # Subtest: bounded current composer compatibility release
+2026-10-28T06:14:39.6221575Z     # Subtest: id-less current form displays orb and inserts with capture paused
+2026-10-28T06:14:39.6226584Z     ok 1 - id-less current form displays orb and inserts with capture paused
+2026-10-28T06:14:39.6228378Z       ---
+2026-10-28T06:14:39.6229120Z       duration_ms: 827.293687
+2026-10-28T06:14:39.6230009Z       type: 'test'
+2026-10-28T06:14:39.6230256Z       ...
+2026-10-28T06:14:39.6614549Z     # Subtest: unrelated and message-body editors excluded; ambiguous trusted candidates fail closed
+2026-10-28T06:14:39.6618282Z     ok 2 - unrelated and message-body editors excluded; ambiguous trusted candidates fail closed
+2026-10-28T06:14:39.6619092Z       ---
+2026-10-28T06:14:39.6619452Z       duration_ms: 38.656619
+2026-10-28T06:14:39.6619749Z       type: 'test'
+2026-10-28T06:14:39.6619965Z       ...
+2026-10-28T06:14:39.9795254Z     # Subtest: disabled, inert, hidden and noneditable ancestors suppress discovery and recover dynamically
+2026-10-28T06:14:39.9796703Z     ok 3 - disabled, inert, hidden and noneditable ancestors suppress discovery and recover dynamically
+2026-10-28T06:14:39.9797833Z       ---
+2026-10-28T06:14:39.9798099Z       duration_ms: 318.04891
+2026-10-28T06:14:39.9798415Z       type: 'test'
+2026-10-28T06:14:39.9798772Z       ...
+2026-10-28T06:14:40.7184820Z     # Subtest: independent markdown textbox without ProseMirror class shares the same finder and exact insertion
+2026-10-28T06:14:40.7187316Z     ok 4 - independent markdown textbox without ProseMirror class shares the same finder and exact insertion
+2026-10-28T06:14:40.7188229Z       ---
+2026-10-28T06:14:40.7188474Z       duration_ms: 738.600635
+2026-10-28T06:14:40.7188732Z       type: 'test'
+2026-10-28T06:14:40.7188946Z       ...
+2026-10-28T06:14:41.0311765Z     # Subtest: popup has no permanent diagnostic surface or background diagnostic request
+2026-10-28T06:14:41.0314528Z     ok 5 - popup has no permanent diagnostic surface or background diagnostic request
+2026-10-28T06:14:41.0315481Z       ---
+2026-10-28T06:14:41.0315999Z       duration_ms: 311.685206
+2026-10-28T06:14:41.0316430Z       type: 'test'
+2026-10-28T06:14:41.0316773Z       ...
+2026-10-28T06:14:41.0667992Z     # Subtest: zero send, Provider requests, draft capture or extension network
+2026-10-28T06:14:41.0669628Z     ok 6 - zero send, Provider requests, draft capture or extension network
+2026-10-28T06:14:41.0670822Z       ---
+2026-10-28T06:14:41.0671678Z       duration_ms: 36.427085
+2026-10-28T06:14:41.0672444Z       type: 'test'
+2026-10-28T06:14:41.0673001Z       ...
+2026-10-28T06:14:41.1587399Z     1..6
+2026-10-28T06:14:41.1588406Z ok 2 - bounded current composer compatibility release
+2026-10-28T06:14:41.1589427Z   ---
+2026-10-28T06:14:41.1589823Z   duration_ms: 10535.42399
+2026-10-28T06:14:41.1590242Z   type: 'test'
+2026-10-28T06:14:41.1590582Z   ...
+2026-10-28T06:14:46.1037306Z 1..2
+2026-10-28T06:14:46.1037768Z # tests 14
+2026-10-28T06:14:46.1038199Z # suites 0
+2026-10-28T06:14:46.1038633Z # pass 14
+2026-10-28T06:14:46.1039087Z # fail 0
+2026-10-28T06:14:46.1040373Z # cancelled 0
+2026-10-28T06:14:46.1040951Z # skipped 0
+2026-10-28T06:14:46.1041626Z # todo 0
+2026-10-28T06:14:46.1042360Z # duration_ms 22057.516628
+2026-10-28T06:14:46.1516486Z TAP version 13
+2026-10-28T06:14:49.3103575Z # Subtest: CPV1-09 source legacy native Chromium + synthetic ProseMirror integration
+2026-10-28T06:14:49.3110506Z     # Subtest: empty exact Unicode/multiline/code, caret end, focus and actual framework state
+2026-10-28T06:14:49.3117281Z     ok 1 - empty exact Unicode/multiline/code, caret end, focus and actual framework state
+2026-10-28T06:14:49.3118315Z       ---
+2026-10-28T06:14:49.3118724Z       duration_ms: 169.535891
+2026-10-28T06:14:49.3120200Z       type: 'test'
+2026-10-28T06:14:49.3120586Z       ...
+2026-10-28T06:14:49.5908735Z     # Subtest: one actual click in trusted test entry inserts only selected text
+2026-10-28T06:14:49.5910832Z     ok 2 - one actual click in trusted test entry inserts only selected text
+2026-10-28T06:14:49.5912259Z       ---
+2026-10-28T06:14:49.5912902Z       duration_ms: 280.762217
+2026-10-28T06:14:49.5913787Z       type: 'test'
+2026-10-28T06:14:49.5914378Z       ...
+2026-10-28T06:14:50.1722419Z     # Subtest: existing draft, current caret and reversed active selection preserve all original characters
+2026-10-28T06:14:50.1723918Z     ok 3 - existing draft, current caret and reversed active selection preserve all original characters
+2026-10-28T06:14:50.1725274Z       ---
+2026-10-28T06:14:50.1725567Z       duration_ms: 581.068077
+2026-10-28T06:14:50.1725831Z       type: 'test'
+2026-10-28T06:14:50.1726050Z       ...
+2026-10-28T06:14:50.5528977Z     # Subtest: blur retains last reliable caret; unavailable selection appends non-destructively
+2026-10-28T06:14:50.5538531Z     ok 4 - blur retains last reliable caret; unavailable selection appends non-destructively
+2026-10-28T06:14:50.5547686Z       ---
+2026-10-28T06:14:50.5548213Z       duration_ms: 379.606045
+2026-10-28T06:14:50.5552110Z       type: 'test'
+2026-10-28T06:14:50.5552654Z       ...
+2026-10-28T06:14:50.8287265Z     # Subtest: native CDP Chinese composition blocks insertion and remains usable after commit
+2026-10-28T06:14:50.8290671Z     ok 5 - native CDP Chinese composition blocks insertion and remains usable after commit
+2026-10-28T06:14:50.8292169Z       ---
+2026-10-28T06:14:50.8292905Z       duration_ms: 276.096021
+2026-10-28T06:14:50.8293934Z       type: 'test'
+2026-10-28T06:14:50.8294446Z       ...
+2026-10-28T06:14:50.9842869Z     # Subtest: uncertain acknowledgement preserves result with exactly one attempt and no retry
+2026-10-28T06:14:50.9843856Z     ok 6 - uncertain acknowledgement preserves result with exactly one attempt and no retry
+2026-10-28T06:14:50.9844468Z       ---
+2026-10-28T06:14:50.9844702Z       duration_ms: 155.826797
+2026-10-28T06:14:50.9845106Z       type: 'test'
+2026-10-28T06:14:50.9845354Z       ...
+2026-10-28T06:14:51.6371745Z     # Subtest: insertion rejected leaves draft byte-for-byte intact; explicit browser clipboard fallback
+2026-10-28T06:14:51.6373540Z     ok 7 - insertion rejected leaves draft byte-for-byte intact; explicit browser clipboard fallback
+2026-10-28T06:14:51.6374443Z       ---
+2026-10-28T06:14:51.6375060Z       duration_ms: 652.411828
+2026-10-28T06:14:51.6375733Z       type: 'test'
+2026-10-28T06:14:51.6376143Z       ...
+2026-10-28T06:14:51.7720429Z     # Subtest: SPA mismatch and unsupported composer refuse without draft replacement
+2026-10-28T06:14:51.7721850Z     ok 8 - SPA mismatch and unsupported composer refuse without draft replacement
+2026-10-28T06:14:51.7722916Z       ---
+2026-10-28T06:14:51.7723430Z       duration_ms: 134.756055
+2026-10-28T06:14:51.7723806Z       type: 'test'
+2026-10-28T06:14:51.7724120Z       ...
+2026-10-28T06:14:51.7920484Z     # Subtest: zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure
+2026-10-28T06:14:51.7922108Z     ok 9 - zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure
+2026-10-28T06:14:51.7923343Z       ---
+2026-10-28T06:14:51.7923715Z       duration_ms: 19.588811
+2026-10-28T06:14:51.7924133Z       type: 'test'
+2026-10-28T06:14:51.7924480Z       ...
+2026-10-28T06:14:51.9443960Z     1..9
+2026-10-28T06:14:51.9446448Z ok 1 - CPV1-09 source legacy native Chromium + synthetic ProseMirror integration
+2026-10-28T06:14:51.9452394Z   ---
+2026-10-28T06:14:51.9453160Z   duration_ms: 5452.002377
+2026-10-28T06:14:51.9453541Z   type: 'test'
+2026-10-28T06:14:51.9453764Z   ...
+2026-10-28T06:14:54.6700649Z # Subtest: CPV1-09 source current native Chromium + synthetic ProseMirror integration
+2026-10-28T06:14:54.6702734Z     # Subtest: empty exact Unicode/multiline/code, caret end, focus and actual framework state
+2026-10-28T06:14:54.6705665Z     ok 1 - empty exact Unicode/multiline/code, caret end, focus and actual framework state
+2026-10-28T06:14:54.6706509Z       ---
+2026-10-28T06:14:54.6707365Z       duration_ms: 168.780227
+2026-10-28T06:14:54.6707857Z       type: 'test'
+2026-10-28T06:14:54.6708096Z       ...
+2026-10-28T06:14:54.9382253Z     # Subtest: one actual click in trusted test entry inserts only selected text
+2026-10-28T06:14:54.9383475Z     ok 2 - one actual click in trusted test entry inserts only selected text
+2026-10-28T06:14:54.9384400Z       ---
+2026-10-28T06:14:54.9384910Z       duration_ms: 268.284781
+2026-10-28T06:14:54.9385344Z       type: 'test'
+2026-10-28T06:14:54.9386027Z       ...
+2026-10-28T06:14:55.4943545Z     # Subtest: existing draft, current caret and reversed active selection preserve all original characters
+2026-10-28T06:14:55.4945525Z     ok 3 - existing draft, current caret and reversed active selection preserve all original characters
+2026-10-28T06:14:55.4946665Z       ---
+2026-10-28T06:14:55.4965233Z       duration_ms: 555.858971
+2026-10-28T06:14:55.4966089Z       type: 'test'
+2026-10-28T06:14:55.4966472Z       ...
+2026-10-28T06:14:55.8558258Z     # Subtest: blur retains last reliable caret; unavailable selection appends non-destructively
+2026-10-28T06:14:55.8563538Z     ok 4 - blur retains last reliable caret; unavailable selection appends non-destructively
+2026-10-28T06:14:55.8564026Z       ---
+2026-10-28T06:14:55.8564246Z       duration_ms: 359.893792
+2026-10-28T06:14:55.8564501Z       type: 'test'
+2026-10-28T06:14:55.8564712Z       ...
+2026-10-28T06:14:56.1387127Z     # Subtest: native CDP Chinese composition blocks insertion and remains usable after commit
+2026-10-28T06:14:56.1389559Z     ok 5 - native CDP Chinese composition blocks insertion and remains usable after commit
+2026-10-28T06:14:56.1390395Z       ---
+2026-10-28T06:14:56.1390789Z       duration_ms: 283.725295
+2026-10-28T06:14:56.1391264Z       type: 'test'
+2026-10-28T06:14:56.1391643Z       ...
+2026-10-28T06:14:56.3167537Z     # Subtest: uncertain acknowledgement preserves result with exactly one attempt and no retry
+2026-10-28T06:14:56.3170794Z     ok 6 - uncertain acknowledgement preserves result with exactly one attempt and no retry
+2026-10-28T06:14:56.3171823Z       ---
+2026-10-28T06:14:56.3172227Z       duration_ms: 178.494975
+2026-10-28T06:14:56.3172677Z       type: 'test'
+2026-10-28T06:14:56.3173044Z       ...
+2026-10-28T06:14:56.9691177Z     # Subtest: insertion rejected leaves draft byte-for-byte intact; explicit browser clipboard fallback
+2026-10-28T06:14:56.9693709Z     ok 7 - insertion rejected leaves draft byte-for-byte intact; explicit browser clipboard fallback
+2026-10-28T06:14:56.9694327Z       ---
+2026-10-28T06:14:56.9694624Z       duration_ms: 652.252064
+2026-10-28T06:14:56.9695052Z       type: 'test'
+2026-10-28T06:14:56.9695345Z       ...
+2026-10-28T06:14:57.1020825Z     # Subtest: SPA mismatch and unsupported composer refuse without draft replacement
+2026-10-28T06:14:57.1021938Z     ok 8 - SPA mismatch and unsupported composer refuse without draft replacement
+2026-10-28T06:14:57.1022638Z       ---
+2026-10-28T06:14:57.1022982Z       duration_ms: 132.594353
+2026-10-28T06:14:57.1023395Z       type: 'test'
+2026-10-28T06:14:57.1023737Z       ...
+2026-10-28T06:14:57.1249585Z     # Subtest: zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure
+2026-10-28T06:14:57.1252853Z     ok 9 - zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure
+2026-10-28T06:14:57.1253716Z       ---
+2026-10-28T06:14:57.1254124Z       duration_ms: 22.962948
+2026-10-28T06:14:57.1254595Z       type: 'test'
+2026-10-28T06:14:57.1254980Z       ...
+2026-10-28T06:15:02.2657813Z     1..9
+2026-10-28T06:15:02.2658675Z ok 2 - CPV1-09 source current native Chromium + synthetic ProseMirror integration
+2026-10-28T06:15:02.2659376Z   ---
+2026-10-28T06:15:02.2660141Z   duration_ms: 5310.001576
+2026-10-28T06:15:02.2660556Z   type: 'test'
+2026-10-28T06:15:02.2660875Z   ...
+2026-10-28T06:15:04.9998120Z # Subtest: CPV1-09 release legacy native Chromium + synthetic ProseMirror integration
+2026-10-28T06:15:04.9999245Z     # Subtest: empty exact Unicode/multiline/code, caret end, focus and actual framework state
+2026-10-28T06:15:05.0000438Z     ok 1 - empty exact Unicode/multiline/code, caret end, focus and actual framework state
+2026-10-28T06:15:05.0001212Z       ---
+2026-10-28T06:15:05.0001568Z       duration_ms: 168.637263
+2026-10-28T06:15:05.0001985Z       type: 'test'
+2026-10-28T06:15:05.0002325Z       ...
+2026-10-28T06:15:05.2730508Z     # Subtest: one actual click in trusted test entry inserts only selected text
+2026-10-28T06:15:05.2731518Z     ok 2 - one actual click in trusted test entry inserts only selected text
+2026-10-28T06:15:05.2732593Z       ---
+2026-10-28T06:15:05.2732858Z       duration_ms: 273.308896
+2026-10-28T06:15:05.2733158Z       type: 'test'
+2026-10-28T06:15:05.2733414Z       ...
+2026-10-28T06:15:05.8597118Z     # Subtest: existing draft, current caret and reversed active selection preserve all original characters
+2026-10-28T06:15:05.8598574Z     ok 3 - existing draft, current caret and reversed active selection preserve all original characters
+2026-10-28T06:15:05.8599407Z       ---
+2026-10-28T06:15:05.8599758Z       duration_ms: 585.367052
+2026-10-28T06:15:05.8600183Z       type: 'test'
+2026-10-28T06:15:05.8600525Z       ...
+2026-10-28T06:15:06.2434380Z     # Subtest: blur retains last reliable caret; unavailable selection appends non-destructively
+2026-10-28T06:15:06.2436142Z     ok 4 - blur retains last reliable caret; unavailable selection appends non-destructively
+2026-10-28T06:15:06.2437592Z       ---
+2026-10-28T06:15:06.2438269Z       duration_ms: 383.614517
+2026-10-28T06:15:06.2438732Z       type: 'test'
+2026-10-28T06:15:06.2439043Z       ...
+2026-10-28T06:15:06.5461837Z     # Subtest: native CDP Chinese composition blocks insertion and remains usable after commit
+2026-10-28T06:15:06.5464246Z     ok 5 - native CDP Chinese composition blocks insertion and remains usable after commit
+2026-10-28T06:15:06.5465868Z       ---
+2026-10-28T06:15:06.5466645Z       duration_ms: 303.391836
+2026-10-28T06:15:06.5468406Z       type: 'test'
+2026-10-28T06:15:06.5468941Z       ...
+2026-10-28T06:15:06.7078274Z     # Subtest: uncertain acknowledgement preserves result with exactly one attempt and no retry
+2026-10-28T06:15:06.7079429Z     ok 6 - uncertain acknowledgement preserves result with exactly one attempt and no retry
+2026-10-28T06:15:06.7080258Z       ---
+2026-10-28T06:15:06.7080638Z       duration_ms: 161.665231
+2026-10-28T06:15:06.7081075Z       type: 'test'
+2026-10-28T06:15:06.7081415Z       ...
+2026-10-28T06:15:07.4359160Z     # Subtest: insertion rejected leaves draft byte-for-byte intact; explicit browser clipboard fallback
+2026-10-28T06:15:07.4361573Z     ok 7 - insertion rejected leaves draft byte-for-byte intact; explicit browser clipboard fallback
+2026-10-28T06:15:07.4377798Z       ---
+2026-10-28T06:15:07.4378426Z       duration_ms: 727.961397
+2026-10-28T06:15:07.4378834Z       type: 'test'
+2026-10-28T06:15:07.4379130Z       ...
+2026-10-28T06:15:07.6077810Z     # Subtest: SPA mismatch and unsupported composer refuse without draft replacement
+2026-10-28T06:15:07.6083185Z     ok 8 - SPA mismatch and unsupported composer refuse without draft replacement
+2026-10-28T06:15:07.6084224Z       ---
+2026-10-28T06:15:07.6084872Z       duration_ms: 171.44857
+2026-10-28T06:15:07.6085605Z       type: 'test'
+2026-10-28T06:15:07.6086197Z       ...
+2026-10-28T06:15:07.6297557Z     # Subtest: zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure
+2026-10-28T06:15:07.6298646Z     ok 9 - zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure
+2026-10-28T06:15:07.6299173Z       ---
+2026-10-28T06:15:07.6299396Z       duration_ms: 21.866762
+2026-10-28T06:15:07.6299650Z       type: 'test'
+2026-10-28T06:15:07.6299850Z       ...
+2026-10-28T06:15:12.8339444Z     1..9
+2026-10-28T06:15:12.8340693Z ok 3 - CPV1-09 release legacy native Chromium + synthetic ProseMirror integration
+2026-10-28T06:15:12.8341806Z   ---
+2026-10-28T06:15:12.8342411Z   duration_ms: 10519.877244
+2026-10-28T06:15:12.8343229Z   type: 'test'
+2026-10-28T06:15:12.8343750Z   ...
+2026-10-28T06:15:15.5564990Z # Subtest: CPV1-09 release current native Chromium + synthetic ProseMirror integration
+2026-10-28T06:15:15.5567288Z     # Subtest: empty exact Unicode/multiline/code, caret end, focus and actual framework state
+2026-10-28T06:15:15.5569982Z     ok 1 - empty exact Unicode/multiline/code, caret end, focus and actual framework state
+2026-10-28T06:15:15.5571303Z       ---
+2026-10-28T06:15:15.5572218Z       duration_ms: 171.714931
+2026-10-28T06:15:15.5573624Z       type: 'test'
+2026-10-28T06:15:15.5574194Z       ...
+2026-10-28T06:15:15.8382642Z     # Subtest: one actual click in trusted test entry inserts only selected text
+2026-10-28T06:15:15.8384553Z     ok 2 - one actual click in trusted test entry inserts only selected text
+2026-10-28T06:15:15.8385668Z       ---
+2026-10-28T06:15:15.8386456Z       duration_ms: 283.848854
+2026-10-28T06:15:15.8387330Z       type: 'test'
+2026-10-28T06:15:15.8387864Z       ...
+2026-10-28T06:15:16.4299247Z     # Subtest: existing draft, current caret and reversed active selection preserve all original characters
+2026-10-28T06:15:16.4306507Z     ok 3 - existing draft, current caret and reversed active selection preserve all original characters
+2026-10-28T06:15:16.4308055Z       ---
+2026-10-28T06:15:16.4308653Z       duration_ms: 591.21108
+2026-10-28T06:15:16.4309083Z       type: 'test'
+2026-10-28T06:15:16.4309497Z       ...
+2026-10-28T06:15:16.8334751Z     # Subtest: blur retains last reliable caret; unavailable selection appends non-destructively
+2026-10-28T06:15:16.8338851Z     ok 4 - blur retains last reliable caret; unavailable selection appends non-destructively
+2026-10-28T06:15:16.8339582Z       ---
+2026-10-28T06:15:16.8339863Z       duration_ms: 403.472293
+2026-10-28T06:15:16.8340165Z       type: 'test'
+2026-10-28T06:15:16.8340413Z       ...
+2026-10-28T06:15:17.1453050Z     # Subtest: native CDP Chinese composition blocks insertion and remains usable after commit
+2026-10-28T06:15:17.1455441Z     ok 5 - native CDP Chinese composition blocks insertion and remains usable after commit
+2026-10-28T06:15:17.1457054Z       ---
+2026-10-28T06:15:17.1457647Z       duration_ms: 311.018154
+2026-10-28T06:15:17.1458311Z       type: 'test'
+2026-10-28T06:15:17.1458712Z       ...
+2026-10-28T06:15:17.3096386Z     # Subtest: uncertain acknowledgement preserves result with exactly one attempt and no retry
+2026-10-28T06:15:17.3099890Z     ok 6 - uncertain acknowledgement preserves result with exactly one attempt and no retry
+2026-10-28T06:15:17.3101195Z       ---
+2026-10-28T06:15:17.3101826Z       duration_ms: 165.022212
+2026-10-28T06:15:17.3102269Z       type: 'test'
+2026-10-28T06:15:17.3102616Z       ...
+2026-10-28T06:15:18.0171214Z     # Subtest: insertion rejected leaves draft byte-for-byte intact; explicit browser clipboard fallback
+2026-10-28T06:15:18.0172589Z     ok 7 - insertion rejected leaves draft byte-for-byte intact; explicit browser clipboard fallback
+2026-10-28T06:15:18.0173108Z       ---
+2026-10-28T06:15:18.0173429Z       duration_ms: 707.413378
+2026-10-28T06:15:18.0173840Z       type: 'test'
+2026-10-28T06:15:18.0174199Z       ...
+2026-10-28T06:15:18.1569570Z     # Subtest: SPA mismatch and unsupported composer refuse without draft replacement
+2026-10-28T06:15:18.1572731Z     ok 8 - SPA mismatch and unsupported composer refuse without draft replacement
+2026-10-28T06:15:18.1573593Z       ---
+2026-10-28T06:15:18.1573963Z       duration_ms: 139.832543
+2026-10-28T06:15:18.1574335Z       type: 'test'
+2026-10-28T06:15:18.1574659Z       ...
+2026-10-28T06:15:18.1788082Z     # Subtest: zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure
+2026-10-28T06:15:18.1790963Z     ok 9 - zero send/Enter, zero Provider/network, no draft capture, no full-library host exposure
+2026-10-28T06:15:18.1791865Z       ---
+2026-10-28T06:15:18.1792994Z       duration_ms: 21.585834
+2026-10-28T06:15:18.1793455Z       type: 'test'
+2026-10-28T06:15:18.1793840Z       ...
+2026-10-28T06:15:18.3118236Z     1..9
+2026-10-28T06:15:18.3119128Z ok 4 - CPV1-09 release current native Chromium + synthetic ProseMirror integration
+2026-10-28T06:15:18.3129911Z   ---
+2026-10-28T06:15:18.3145925Z   duration_ms: 10537.487272
+2026-10-28T06:15:18.3146366Z   type: 'test'
+2026-10-28T06:15:18.3146704Z   ...
+2026-10-28T06:15:18.3428258Z 1..4
+2026-10-28T06:15:18.3428700Z # tests 40
+2026-10-28T06:15:18.3429152Z # suites 0
+2026-10-28T06:15:18.3429509Z # pass 40
+2026-10-28T06:15:18.3429853Z # fail 0
+2026-10-28T06:15:18.3430199Z # cancelled 0
+2026-10-28T06:15:18.3431170Z # skipped 0
+2026-10-28T06:15:18.3431536Z # todo 0
+2026-10-28T06:15:18.3431948Z # duration_ms 32202.8622
+2026-10-28T06:15:18.8553733Z TAP version 13
+2026-10-28T06:15:25.8301621Z # Subtest: CPV1-09 surface source isolated native Chrome
+2026-10-28T06:15:25.8303075Z     # Subtest: orb toggle collapses idle card, preserves anchor and uses native Enter and Space
+2026-10-28T06:15:25.8311223Z     ok 1 - orb toggle collapses idle card, preserves anchor and uses native Enter and Space
+2026-10-28T06:15:25.8312397Z       ---
+2026-10-28T06:15:25.8312871Z       duration_ms: 2245.248507
+2026-10-28T06:15:25.8313361Z       type: 'test'
+2026-10-28T06:15:25.8313747Z       ...
+2026-10-28T06:15:28.3457868Z     # Subtest: original host pointer/Enter and both Escape owners preserve editing, composition and pending work
+2026-10-28T06:15:28.3467105Z     ok 2 - original host pointer/Enter and both Escape owners preserve editing, composition and pending work
+2026-10-28T06:15:28.3468020Z       ---
+2026-10-28T06:15:28.3468411Z       duration_ms: 2516.046924
+2026-10-28T06:15:28.3468871Z       type: 'test'
+2026-10-28T06:15:28.3469216Z       ...
+2026-10-28T06:15:29.1751720Z     # Subtest: private card stays isolated and first multiline use inserts exactly into the retained draft
+2026-10-28T06:15:29.1754296Z     ok 3 - private card stays isolated and first multiline use inserts exactly into the retained draft
+2026-10-28T06:15:29.1755447Z       ---
+2026-10-28T06:15:29.1756126Z       duration_ms: 829.514459
+2026-10-28T06:15:29.1757292Z       type: 'test'
+2026-10-28T06:15:29.1758022Z       ...
+2026-10-28T06:15:32.1990371Z     # Subtest: success feedback timer cannot erase a newer unsaved-edit warning
+2026-10-28T06:15:32.1991738Z     ok 4 - success feedback timer cannot erase a newer unsaved-edit warning
+2026-10-28T06:15:32.1992704Z       ---
+2026-10-28T06:15:32.1993133Z       duration_ms: 3023.665341
+2026-10-28T06:15:32.1993655Z       type: 'test'
+2026-10-28T06:15:32.1994035Z       ...
+2026-10-28T06:15:33.0150483Z     # Subtest: a delayed original host close request preserves the draft until its private guard receives it
+2026-10-28T06:15:33.0156298Z     ok 5 - a delayed original host close request preserves the draft until its private guard receives it
+2026-10-28T06:15:33.0157552Z       ---
+2026-10-28T06:15:33.0158003Z       duration_ms: 815.47232
+2026-10-28T06:15:33.0158490Z       type: 'test'
+2026-10-28T06:15:33.0158779Z       ...
+2026-10-28T06:15:33.9177978Z     # Subtest: approved NIB text axis and action rail retain geometry, reorder and inline editing
+2026-10-28T06:15:33.9179702Z     ok 6 - approved NIB text axis and action rail retain geometry, reorder and inline editing
+2026-10-28T06:15:33.9180840Z       ---
+2026-10-28T06:15:33.9181437Z       duration_ms: 902.679353
+2026-10-28T06:15:33.9182052Z       type: 'test'
+2026-10-28T06:15:33.9182580Z       ...
+2026-10-28T06:15:37.6839268Z     # Subtest: edit, pin/unpin, hidden recovery, explicit independent delete and no management insertion
+2026-10-28T06:15:37.6841680Z     ok 7 - edit, pin/unpin, hidden recovery, explicit independent delete and no management insertion
+2026-10-28T06:15:37.6842687Z       ---
+2026-10-28T06:15:37.6843187Z       duration_ms: 3765.464657
+2026-10-28T06:15:37.6843707Z       type: 'test'
+2026-10-28T06:15:37.6844868Z       ...
+2026-10-28T06:15:38.9614932Z     # Subtest: new template, keyboard move controls and drag pin retain manual order without inserting
+2026-10-28T06:15:38.9617281Z     ok 8 - new template, keyboard move controls and drag pin retain manual order without inserting
+2026-10-28T06:15:38.9618497Z       ---
+2026-10-28T06:15:38.9618924Z       duration_ms: 1277.717611
+2026-10-28T06:15:38.9619348Z       type: 'test'
+2026-10-28T06:15:38.9619724Z       ...
+2026-10-28T06:15:39.5072370Z     # Subtest: older failed background query cannot erase a newer explicit refresh
+2026-10-28T06:15:39.5074149Z     ok 9 - older failed background query cannot erase a newer explicit refresh
+2026-10-28T06:15:39.5077549Z       ---
+2026-10-28T06:15:39.5080102Z       duration_ms: 544.592484
+2026-10-28T06:15:39.5081611Z       type: 'test'
+2026-10-28T06:15:39.5082033Z       ...
+2026-10-28T06:15:41.6642348Z     # Subtest: split correction uses selected historical expressions without changing archive bodies
+2026-10-28T06:15:41.6643895Z     ok 10 - split correction uses selected historical expressions without changing archive bodies
+2026-10-28T06:15:41.6644794Z       ---
+2026-10-28T06:15:41.6645183Z       duration_ms: 2157.010381
+2026-10-28T06:15:41.6645578Z       type: 'test'
+2026-10-28T06:15:41.6645924Z       ...
+2026-10-28T06:15:43.2057720Z     # Subtest: worker restart, SPA and page reload preserve durable templates without duplicate surface
+2026-10-28T06:15:43.2059633Z     ok 11 - worker restart, SPA and page reload preserve durable templates without duplicate surface
+2026-10-28T06:15:43.2077624Z       ---
+2026-10-28T06:15:43.2078205Z       duration_ms: 1541.447723
+2026-10-28T06:15:43.2078676Z       type: 'test'
+2026-10-28T06:15:43.2079062Z       ...
+2026-10-28T06:15:45.0743731Z     # Subtest: second tab and actual tab discard restore their own surface and draft target
+2026-10-28T06:15:45.0745257Z     ok 12 - second tab and actual tab discard restore their own surface and draft target
+2026-10-28T06:15:45.0746386Z       ---
+2026-10-28T06:15:45.0747366Z       duration_ms: 1867.453131
+2026-10-28T06:15:45.0747860Z       type: 'test'
+2026-10-28T06:15:45.0748193Z       ...
+2026-10-28T06:15:51.4288523Z     # Subtest: current/last selection, native IME and uncertain outcome keep one-shot safety through the real card
+2026-10-28T06:15:51.4291116Z     ok 13 - current/last selection, native IME and uncertain outcome keep one-shot safety through the real card
+2026-10-28T06:15:51.4292447Z       ---
+2026-10-28T06:15:51.4293038Z       duration_ms: 6355.470219
+2026-10-28T06:15:51.4293784Z       type: 'test'
+2026-10-28T06:15:51.4294390Z       ...
+2026-10-28T06:15:55.2998263Z     # Subtest: light/dark, long scroll, 320px, 200% text, coarse input, keyboard and reduced motion remain bounded
+2026-10-28T06:15:55.3001216Z     ok 14 - light/dark, long scroll, 320px, 200% text, coarse input, keyboard and reduced motion remain bounded
+2026-10-28T06:15:55.3002349Z       ---
+2026-10-28T06:15:55.3002920Z       duration_ms: 3870.912896
+2026-10-28T06:15:55.3003522Z       type: 'test'
+2026-10-28T06:15:55.3003912Z       ...
+2026-10-28T06:15:56.0538544Z     # Subtest: native 200% browser zoom keeps the card and management clear of the composer
+2026-10-28T06:15:56.0541612Z     ok 15 - native 200% browser zoom keeps the card and management clear of the composer
+2026-10-28T06:15:56.0542778Z       ---
+2026-10-28T06:15:56.0543432Z       duration_ms: 754.16884
+2026-10-28T06:15:56.0543922Z       type: 'test'
+2026-10-28T06:15:56.0544313Z       ...
+2026-10-28T06:15:57.5208175Z     # Subtest: system and explicit PAIA theme transitions keep frame contrast without reordering or losing an edit
+2026-10-28T06:15:57.5218451Z     ok 16 - system and explicit PAIA theme transitions keep frame contrast without reordering or losing an edit
+2026-10-28T06:15:57.5219432Z       ---
+2026-10-28T06:15:57.5219845Z       duration_ms: 1465.479803
+2026-10-28T06:15:57.5220254Z       type: 'test'
+2026-10-28T06:15:57.5220576Z       ...
+2026-10-28T06:16:01.6994121Z     # Subtest: fixed entry retains pointer/keyboard ownership, legacy metadata and whole-surface lifecycle
+2026-10-28T06:16:01.6995707Z     ok 17 - fixed entry retains pointer/keyboard ownership, legacy metadata and whole-surface lifecycle
+2026-10-28T06:16:01.6996578Z       ---
+2026-10-28T06:16:01.6997329Z       duration_ms: 4179.739533
+2026-10-28T06:16:01.6997928Z       type: 'test'
+2026-10-28T06:16:01.6998282Z       ...
+2026-10-28T06:16:22.4804183Z     # Subtest: Settings style, details and actual position-reset clicks preserve the concurrent Prompt draft and failure focus
+2026-10-28T06:16:22.4806296Z     ok 18 - Settings style, details and actual position-reset clicks preserve the concurrent Prompt draft and failure focus
+2026-10-28T06:16:22.4807801Z       ---
+2026-10-28T06:16:22.4808319Z       duration_ms: 20780.705989
+2026-10-28T06:16:22.4809401Z       type: 'test'
+2026-10-28T06:16:22.4809836Z       ...
+2026-10-28T06:16:23.2685476Z     # Subtest: Settings reset retains a composing frame while a tall composer makes geometry unavailable
+2026-10-28T06:16:23.2687299Z     ok 19 - Settings reset retains a composing frame while a tall composer makes geometry unavailable
+2026-10-28T06:16:23.2688231Z       ---
+2026-10-28T06:16:23.2689455Z       duration_ms: 788.092903
+2026-10-28T06:16:23.2689851Z       type: 'test'
+2026-10-28T06:16:23.2690157Z       ...
+2026-10-28T06:16:25.4449700Z     # Subtest: legacy gesture metadata persists without moving the entry; idle CPU is bounded; no send, Provider, reply capture or site storage
+2026-10-28T06:16:25.4451259Z     ok 20 - legacy gesture metadata persists without moving the entry; idle CPU is bounded; no send, Provider, reply capture or site storage
+2026-10-28T06:16:25.4452277Z       ---
+2026-10-28T06:16:25.4452670Z       duration_ms: 2176.670642
+2026-10-28T06:16:25.4453079Z       type: 'test'
+2026-10-28T06:16:25.4453453Z       ...
+2026-10-28T06:16:25.5693369Z     1..20
+2026-10-28T06:16:25.5694176Z ok 1 - CPV1-09 surface source isolated native Chrome
+2026-10-28T06:16:25.5694742Z   ---
+2026-10-28T06:16:25.5695031Z   duration_ms: 66317.445928
+2026-10-28T06:16:25.5695326Z   type: 'test'
+2026-10-28T06:16:25.5695562Z   ...
+2026-10-28T06:16:37.1923475Z # Subtest: CPV1-09 surface release isolated native Chrome
+2026-10-28T06:16:37.1925106Z     # Subtest: orb toggle collapses idle card, preserves anchor and uses native Enter and Space
+2026-10-28T06:16:37.1926528Z     ok 1 - orb toggle collapses idle card, preserves anchor and uses native Enter and Space
+2026-10-28T06:16:37.1927804Z       ---
+2026-10-28T06:16:37.1928385Z       duration_ms: 2314.010683
+2026-10-28T06:16:37.1928950Z       type: 'test'
+2026-10-28T06:16:37.1929306Z       ...
+2026-10-28T06:16:39.7083389Z     # Subtest: original host pointer/Enter and both Escape owners preserve editing, composition and pending work
+2026-10-28T06:16:39.7087015Z     ok 2 - original host pointer/Enter and both Escape owners preserve editing, composition and pending work
+2026-10-28T06:16:39.7087940Z       ---
+2026-10-28T06:16:39.7088286Z       duration_ms: 2516.13131
+2026-10-28T06:16:39.7088753Z       type: 'test'
+2026-10-28T06:16:39.7089123Z       ...
+2026-10-28T06:16:40.4415763Z     # Subtest: private card stays isolated and first multiline use inserts exactly into the retained draft
+2026-10-28T06:16:40.4417295Z     ok 3 - private card stays isolated and first multiline use inserts exactly into the retained draft
+2026-10-28T06:16:40.4418104Z       ---
+2026-10-28T06:16:40.4418460Z       duration_ms: 732.391631
+2026-10-28T06:16:40.4418884Z       type: 'test'
+2026-10-28T06:16:40.4419229Z       ...
+2026-10-28T06:16:43.3933088Z     # Subtest: success feedback timer cannot erase a newer unsaved-edit warning
+2026-10-28T06:16:43.3934993Z     ok 4 - success feedback timer cannot erase a newer unsaved-edit warning
+2026-10-28T06:16:43.3935748Z       ---
+2026-10-28T06:16:43.3936221Z       duration_ms: 2952.293911
+2026-10-28T06:16:43.3936670Z       type: 'test'
+2026-10-28T06:16:43.3937315Z       ...
+2026-10-28T06:16:44.1929879Z     # Subtest: a delayed original host close request preserves the draft until its private guard receives it
+2026-10-28T06:16:44.1931907Z     ok 5 - a delayed original host close request preserves the draft until its private guard receives it
+2026-10-28T06:16:44.1932710Z       ---
+2026-10-28T06:16:44.1933008Z       duration_ms: 799.423462
+2026-10-28T06:16:44.1933359Z       type: 'test'
+2026-10-28T06:16:44.1933844Z       ...
+2026-10-28T06:16:45.0440873Z     # Subtest: approved NIB text axis and action rail retain geometry, reorder and inline editing
+2026-10-28T06:16:45.0443521Z     ok 6 - approved NIB text axis and action rail retain geometry, reorder and inline editing
+2026-10-28T06:16:45.0444437Z       ---
+2026-10-28T06:16:45.0444919Z       duration_ms: 851.121856
+2026-10-28T06:16:45.0445481Z       type: 'test'
+2026-10-28T06:16:45.0445864Z       ...
+2026-10-28T06:16:48.8960607Z     # Subtest: edit, pin/unpin, hidden recovery, explicit independent delete and no management insertion
+2026-10-28T06:16:48.8962613Z     ok 7 - edit, pin/unpin, hidden recovery, explicit independent delete and no management insertion
+2026-10-28T06:16:48.8963787Z       ---
+2026-10-28T06:16:48.8964403Z       duration_ms: 3850.51199
+2026-10-28T06:16:48.8967971Z       type: 'test'
+2026-10-28T06:16:48.8969411Z       ...
+2026-10-28T06:16:50.2056199Z     # Subtest: new template, keyboard move controls and drag pin retain manual order without inserting
+2026-10-28T06:16:50.2058134Z     ok 8 - new template, keyboard move controls and drag pin retain manual order without inserting
+2026-10-28T06:16:50.2058946Z       ---
+2026-10-28T06:16:50.2059552Z       duration_ms: 1310.627671
+2026-10-28T06:16:50.2059961Z       type: 'test'
+2026-10-28T06:16:50.2060318Z       ...
+2026-10-28T06:16:50.7681563Z     # Subtest: older failed background query cannot erase a newer explicit refresh
+2026-10-28T06:16:50.7683523Z     ok 9 - older failed background query cannot erase a newer explicit refresh
+2026-10-28T06:16:50.7685018Z       ---
+2026-10-28T06:16:50.7685719Z       duration_ms: 562.492978
+2026-10-28T06:16:50.7686357Z       type: 'test'
+2026-10-28T06:16:50.7687191Z       ...
+2026-10-28T06:16:53.0812368Z     # Subtest: split correction uses selected historical expressions without changing archive bodies
+2026-10-28T06:16:53.0814565Z     ok 10 - split correction uses selected historical expressions without changing archive bodies
+2026-10-28T06:16:53.0816004Z       ---
+2026-10-28T06:16:53.0817317Z       duration_ms: 2312.29708
+2026-10-28T06:16:53.0818286Z       type: 'test'
+2026-10-28T06:16:53.0818688Z       ...
+2026-10-28T06:16:54.6747599Z     # Subtest: worker restart, SPA and page reload preserve durable templates without duplicate surface
+2026-10-28T06:16:54.6750230Z     ok 11 - worker restart, SPA and page reload preserve durable templates without duplicate surface
+2026-10-28T06:16:54.6750900Z       ---
+2026-10-28T06:16:54.6751197Z       duration_ms: 1593.901092
+2026-10-28T06:16:54.6751500Z       type: 'test'
+2026-10-28T06:16:54.6751849Z       ...
+2026-10-28T06:16:56.5494534Z     # Subtest: second tab and actual tab discard restore their own surface and draft target
+2026-10-28T06:16:56.5496192Z     ok 12 - second tab and actual tab discard restore their own surface and draft target
+2026-10-28T06:16:56.5497750Z       ---
+2026-10-28T06:16:56.5498241Z       duration_ms: 1873.993026
+2026-10-28T06:16:56.5498678Z       type: 'test'
+2026-10-28T06:16:56.5499033Z       ...
+2026-10-28T06:17:02.8788601Z     # Subtest: current/last selection, native IME and uncertain outcome keep one-shot safety through the real card
+2026-10-28T06:17:02.8790294Z     ok 13 - current/last selection, native IME and uncertain outcome keep one-shot safety through the real card
+2026-10-28T06:17:02.8791094Z       ---
+2026-10-28T06:17:02.8791357Z       duration_ms: 6329.60357
+2026-10-28T06:17:02.8791666Z       type: 'test'
+2026-10-28T06:17:02.8791952Z       ...
+2026-10-28T06:17:06.8396330Z     # Subtest: light/dark, long scroll, 320px, 200% text, coarse input, keyboard and reduced motion remain bounded
+2026-10-28T06:17:06.8398793Z     ok 14 - light/dark, long scroll, 320px, 200% text, coarse input, keyboard and reduced motion remain bounded
+2026-10-28T06:17:06.8399737Z       ---
+2026-10-28T06:17:06.8400284Z       duration_ms: 3959.583122
+2026-10-28T06:17:06.8400821Z       type: 'test'
+2026-10-28T06:17:06.8401179Z       ...
+2026-10-28T06:17:07.6167771Z     # Subtest: native 200% browser zoom keeps the card and management clear of the composer
+2026-10-28T06:17:07.6169689Z     ok 15 - native 200% browser zoom keeps the card and management clear of the composer
+2026-10-28T06:17:07.6170570Z       ---
+2026-10-28T06:17:07.6171238Z       duration_ms: 777.865956
+2026-10-28T06:17:07.6171834Z       type: 'test'
+2026-10-28T06:17:07.6172190Z       ...
+2026-10-28T06:17:09.0785742Z     # Subtest: system and explicit PAIA theme transitions keep frame contrast without reordering or losing an edit
+2026-10-28T06:17:09.0788490Z     ok 16 - system and explicit PAIA theme transitions keep frame contrast without reordering or losing an edit
+2026-10-28T06:17:09.0789428Z       ---
+2026-10-28T06:17:09.0789866Z       duration_ms: 1461.815235
+2026-10-28T06:17:09.0790299Z       type: 'test'
+2026-10-28T06:17:09.0790526Z       ...
+2026-10-28T06:17:13.1812195Z     # Subtest: fixed entry retains pointer/keyboard ownership, legacy metadata and whole-surface lifecycle
+2026-10-28T06:17:13.1814241Z     ok 17 - fixed entry retains pointer/keyboard ownership, legacy metadata and whole-surface lifecycle
+2026-10-28T06:17:13.1815425Z       ---
+2026-10-28T06:17:13.1816004Z       duration_ms: 4101.413236
+2026-10-28T06:17:13.1816849Z       type: 'test'
+2026-10-28T06:17:13.1818752Z       ...
+2026-10-28T06:17:33.9467298Z     # Subtest: Settings style, details and actual position-reset clicks preserve the concurrent Prompt draft and failure focus
+2026-10-28T06:17:33.9469398Z     ok 18 - Settings style, details and actual position-reset clicks preserve the concurrent Prompt draft and failure focus
+2026-10-28T06:17:33.9470435Z       ---
+2026-10-28T06:17:33.9471085Z       duration_ms: 20766.491682
+2026-10-28T06:17:33.9471637Z       type: 'test'
+2026-10-28T06:17:33.9472031Z       ...
+2026-10-28T06:17:34.7130016Z     # Subtest: Settings reset retains a composing frame while a tall composer makes geometry unavailable
+2026-10-28T06:17:34.7131558Z     ok 19 - Settings reset retains a composing frame while a tall composer makes geometry unavailable
+2026-10-28T06:17:34.7132667Z       ---
+2026-10-28T06:17:34.7133314Z       duration_ms: 765.717027
+2026-10-28T06:17:34.7133983Z       type: 'test'
+2026-10-28T06:17:34.7134530Z       ...
+2026-10-28T06:17:36.8851483Z     # Subtest: legacy gesture metadata persists without moving the entry; idle CPU is bounded; no send, Provider, reply capture or site storage
+2026-10-28T06:17:36.8853726Z     ok 20 - legacy gesture metadata persists without moving the entry; idle CPU is bounded; no send, Provider, reply capture or site storage
+2026-10-28T06:17:36.8855128Z       ---
+2026-10-28T06:17:36.8855888Z       duration_ms: 2172.120871
+2026-10-28T06:17:36.8857297Z       type: 'test'
+2026-10-28T06:17:36.8857662Z       ...
+2026-10-28T06:17:37.0115798Z     1..20
+2026-10-28T06:17:37.0117460Z ok 2 - CPV1-09 surface release isolated native Chrome
+2026-10-28T06:17:37.0118436Z   ---
+2026-10-28T06:17:37.0118780Z   duration_ms: 71442.502749
+2026-10-28T06:17:37.0119165Z   type: 'test'
+2026-10-28T06:17:37.0119466Z   ...
+2026-10-28T06:17:41.9262865Z 1..2
+2026-10-28T06:17:41.9263285Z # tests 42
+2026-10-28T06:17:41.9263661Z # suites 0
+2026-10-28T06:17:41.9264018Z # pass 42
+2026-10-28T06:17:41.9265892Z # fail 0
+2026-10-28T06:17:41.9266281Z # cancelled 0
+2026-10-28T06:17:41.9266682Z # skipped 0
+2026-10-28T06:17:41.9267273Z # todo 0
+2026-10-28T06:17:41.9267673Z # duration_ms 143084.237011
+2026-10-28T06:17:41.9401504Z ##[group]Run xvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-12-next-prompt-chrome-e2e.test.mjs
+2026-10-28T06:17:41.9402473Z [36;1mxvfb-run -a env PAIA_HEADLESS=0 node --test --test-concurrency=1 tests/cpv1-12-next-prompt-chrome-e2e.test.mjs[0m
+2026-10-28T06:17:41.9424064Z shell: /usr/bin/bash -e {0}
+2026-10-28T06:17:41.9424320Z env:
+2026-10-28T06:17:41.9424502Z   CI: 1
+2026-10-28T06:17:41.9424687Z   PAIA_HEADLESS: 1
+2026-10-28T06:17:41.9424914Z   PLAYWRIGHT_MODULE: playwright
+2026-10-28T06:17:41.9425177Z   PAIA_TEST_CONCURRENCY: 4
+2026-10-28T06:17:41.9425487Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:17:41.9425923Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-28T06:17:41.9426372Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:17:41.9426991Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:17:41.9427465Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:17:41.9427858Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-28T06:17:41.9428424Z   CHROME_PATH: /usr/bin/google-chrome
+2026-10-28T06:17:41.9428679Z ##[endgroup]
+2026-10-28T06:17:42.0266258Z TAP version 13
+2026-10-28T06:17:49.5756485Z # Subtest: Stage 3A-1 source production direct loop
+2026-10-28T06:17:49.5758562Z     # Subtest: OFF and enable are prospective with zero historical snapshot reads
+2026-10-28T06:17:49.5764686Z     ok 1 - OFF and enable are prospective with zero historical snapshot reads
+2026-10-28T06:17:49.5765947Z       ---
+2026-10-28T06:17:49.5766387Z       duration_ms: 3309.472539
+2026-10-28T06:17:49.5767094Z       type: 'test'
+2026-10-28T06:17:49.5767449Z       ...
+2026-10-28T06:17:54.3825804Z     # Subtest: streaming silence cannot complete; unpresentable condition defers and exact direct insert preserves selection without Send
+2026-10-28T06:17:54.3828727Z     ok 2 - streaming silence cannot complete; unpresentable condition defers and exact direct insert preserves selection without Send
+2026-10-28T06:17:54.3830811Z       ---
+2026-10-28T06:17:54.3831636Z       duration_ms: 4807.267754
+2026-10-28T06:17:54.3832881Z       type: 'test'
+2026-10-28T06:17:54.3833279Z       ...
+2026-10-28T06:17:55.6624983Z     # Subtest: choice peers preserve exact option meaning and do not invent a preferred first choice
+2026-10-28T06:17:55.6626736Z     ok 3 - choice peers preserve exact option meaning and do not invent a preferred first choice
+2026-10-28T06:17:55.6628281Z       ---
+2026-10-28T06:17:55.6628841Z       duration_ms: 1279.57813
+2026-10-28T06:17:55.6629319Z       type: 'test'
+2026-10-28T06:17:55.6629686Z       ...
+2026-10-28T06:18:00.2822555Z     # Subtest: actual saved Family match inserts original text and rejects changed eligibility
+2026-10-28T06:18:00.2827052Z     ok 4 - actual saved Family match inserts original text and rejects changed eligibility
+2026-10-28T06:18:00.2827820Z       ---
+2026-10-28T06:18:00.2828248Z       duration_ms: 4619.249163
+2026-10-28T06:18:00.2828655Z       type: 'test'
+2026-10-28T06:18:00.2829004Z       ...
+2026-10-28T06:18:03.3516071Z     # Subtest: actual Settings revocation hides the candidate and rejects a held native insertion
+2026-10-28T06:18:03.3518488Z     ok 5 - actual Settings revocation hides the candidate and rejects a held native insertion
+2026-10-28T06:18:03.3519497Z       ---
+2026-10-28T06:18:03.3519957Z       duration_ms: 3068.758896
+2026-10-28T06:18:03.3520514Z       type: 'test'
+2026-10-28T06:18:03.3521016Z       ...
+2026-10-28T06:18:04.7619316Z     # Subtest: late availability response cannot resurrect the invalidated current-reply suggestion
+2026-10-28T06:18:04.7622879Z     ok 6 - late availability response cannot resurrect the invalidated current-reply suggestion
+2026-10-28T06:18:04.7624716Z       ---
+2026-10-28T06:18:04.7626159Z       duration_ms: 1410.286916
+2026-10-28T06:18:04.7627134Z       type: 'test'
+2026-10-28T06:18:04.7627669Z       ...
+2026-10-28T06:18:07.8120119Z     # Subtest: actual Settings position reset preserves unsaved card and respects hidden-page Next invalidation
+2026-10-28T06:18:07.8121854Z     ok 7 - actual Settings position reset preserves unsaved card and respects hidden-page Next invalidation
+2026-10-28T06:18:07.8122729Z       ---
+2026-10-28T06:18:07.8123344Z       duration_ms: 3049.502892
+2026-10-28T06:18:07.8123790Z       type: 'test'
+2026-10-28T06:18:07.8124124Z       ...
+2026-10-28T06:18:19.8965731Z     # Subtest: revision, regenerate, continue, new user and revoke invalidate stale candidates
+2026-10-28T06:18:19.8967397Z     ok 8 - revision, regenerate, continue, new user and revoke invalidate stale candidates
+2026-10-28T06:18:19.8968193Z       ---
+2026-10-28T06:18:19.8968460Z       duration_ms: 12084.857904
+2026-10-28T06:18:19.8968729Z       type: 'test'
+2026-10-28T06:18:19.8968940Z       ...
+2026-10-28T06:18:27.0389461Z     # Subtest: IME/edit busy skip automatic display and a current suggestion resumes only after idle
+2026-10-28T06:18:27.0391300Z     ok 9 - IME/edit busy skip automatic display and a current suggestion resumes only after idle
+2026-10-28T06:18:27.0394594Z       ---
+2026-10-28T06:18:27.0397688Z       duration_ms: 7139.317584
+2026-10-28T06:18:27.0398153Z       type: 'test'
+2026-10-28T06:18:27.0398525Z       ...
+2026-10-28T06:18:30.0856532Z     # Subtest: uncertain native edit is one-shot and preserves the draft for explicit inspection
+2026-10-28T06:18:30.0863312Z     ok 10 - uncertain native edit is one-shot and preserves the draft for explicit inspection
+2026-10-28T06:18:30.0864624Z       ---
+2026-10-28T06:18:30.0865323Z       duration_ms: 3048.357998
+2026-10-28T06:18:30.0865795Z       type: 'test'
+2026-10-28T06:18:30.0866142Z       ...
+2026-10-28T06:18:39.5795378Z     # Subtest: private light/dark/compact original capsule preserves full text, hit regions and no stored reply or model request
+2026-10-28T06:18:39.5798006Z     ok 11 - private light/dark/compact original capsule preserves full text, hit regions and no stored reply or model request
+2026-10-28T06:18:39.5799029Z       ---
+2026-10-28T06:18:39.5799414Z       duration_ms: 9494.026995
+2026-10-28T06:18:39.5799800Z       type: 'test'
+2026-10-28T06:18:39.5800138Z       ...
+2026-10-28T06:18:45.1646710Z     # Subtest: worker restart recovers prospectively and ordinary first-click reuse still works after revoke
+2026-10-28T06:18:45.1649528Z     ok 12 - worker restart recovers prospectively and ordinary first-click reuse still works after revoke
+2026-10-28T06:18:45.1650464Z       ---
+2026-10-28T06:18:45.1650730Z       duration_ms: 5584.448147
+2026-10-28T06:18:45.1651202Z       type: 'test'
+2026-10-28T06:18:45.1651555Z       ...
+2026-10-28T06:19:15.7991812Z     # Subtest: revoked Stage 3 preserves exact first-click multiline reuse with one ordinary insertion
+2026-10-28T06:19:15.7999530Z     not ok 13 - revoked Stage 3 preserves exact first-click multiline reuse with one ordinary insertion
+2026-10-28T06:19:15.8000577Z       ---
+2026-10-28T06:19:15.8001188Z       duration_ms: 30634.216305
+2026-10-28T06:19:15.8002098Z       type: 'test'
+2026-10-28T06:19:15.8003244Z       location: '/home/runner/work/paia/paia/extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs:20:39'
+2026-10-28T06:19:15.8004393Z       failureType: 'testCodeFailure'
+2026-10-28T06:19:15.8005160Z       error: |-
+2026-10-28T06:19:15.8005925Z         locator.click: Timeout 30000ms exceeded.
+2026-10-28T06:19:15.8006689Z         Call log:
+2026-10-28T06:19:15.8008195Z           - waiting for getByRole('button', { name: 'ordinary Stage 1/2 Explicit complete-text review.', exact: true })
+2026-10-28T06:19:15.8009231Z         
+2026-10-28T06:19:15.8009820Z       code: 'ERR_TEST_FAILURE'
+2026-10-28T06:19:15.8010438Z       name: 'TimeoutError'
+2026-10-28T06:19:15.8011357Z       stack: |-
+2026-10-28T06:19:15.8012949Z         /home/runner/work/paia/paia/extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs:147:141
+2026-10-28T06:19:15.8015999Z         async TestContext.<anonymous> (/home/runner/work/paia/paia/extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs:20:63)
+2026-10-28T06:19:15.8018551Z         async check (/home/runner/work/paia/paia/extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs:20:31)
+2026-10-28T06:19:15.8041595Z         async TestContext.<anonymous> (/home/runner/work/paia/paia/extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs:144:3)
+2026-10-28T06:19:15.8042536Z       ...
+2026-10-28T06:19:16.0587881Z     1..13
+2026-10-28T06:19:16.0589001Z not ok 1 - Stage 3A-1 source production direct loop
+2026-10-28T06:19:16.0590050Z   ---
+2026-10-28T06:19:16.0590619Z   duration_ms: 93668.583963
+2026-10-28T06:19:16.0591044Z   type: 'test'
+2026-10-28T06:19:16.0591938Z   location: '/home/runner/work/paia/paia/extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs:16:43'
+2026-10-28T06:19:16.0593039Z   failureType: 'testCodeFailure'
+2026-10-28T06:19:16.0594485Z   error: 'Stage3 fixture stopped after failing revoked Stage 3 preserves exact first-click multiline reuse with one ordinary insertion'
+2026-10-28T06:19:16.0595878Z   code: 'ERR_TEST_FAILURE'
+2026-10-28T06:19:16.0596433Z   stack: |-
+2026-10-28T06:19:16.0597896Z     check (file:///home/runner/work/paia/paia/extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs:20:191)
+2026-10-28T06:19:16.0600087Z     async TestContext.<anonymous> (file:///home/runner/work/paia/paia/extension/tests/cpv1-12-next-prompt-chrome-e2e.test.mjs:144:3)
+2026-10-28T06:19:16.0600834Z     async Test.run (node:internal/test_runner/test:1054:7)
+2026-10-28T06:19:16.0601358Z     async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+2026-10-28T06:19:16.0601780Z   ...
+2026-10-28T06:19:27.4479566Z # Subtest: Stage 3A-1 release production direct loop
+2026-10-28T06:19:27.4481778Z     # Subtest: OFF and enable are prospective with zero historical snapshot reads
+2026-10-28T06:19:27.4484327Z     ok 1 - OFF and enable are prospective with zero historical snapshot reads
+2026-10-28T06:19:27.4485469Z       ---
+2026-10-28T06:19:27.4486305Z       duration_ms: 3288.131476
+2026-10-28T06:19:27.4487466Z       type: 'test'
+2026-10-28T06:19:27.4488017Z       ...
+2026-10-28T06:19:32.2946763Z     # Subtest: streaming silence cannot complete; unpresentable condition defers and exact direct insert preserves selection without Send
+2026-10-28T06:19:32.2954075Z     ok 2 - streaming silence cannot complete; unpresentable condition defers and exact direct insert preserves selection without Send
+2026-10-28T06:19:32.2955270Z       ---
+2026-10-28T06:19:32.2955770Z       duration_ms: 4846.135924
+2026-10-28T06:19:32.2956180Z       type: 'test'
+2026-10-28T06:19:32.2956726Z       ...
+2026-10-28T06:19:33.6089716Z     # Subtest: choice peers preserve exact option meaning and do not invent a preferred first choice
+2026-10-28T06:19:33.6091735Z     ok 3 - choice peers preserve exact option meaning and do not invent a preferred first choice
+2026-10-28T06:19:33.6092741Z       ---
+2026-10-28T06:19:33.6093233Z       duration_ms: 1314.505391
+2026-10-28T06:19:33.6093644Z       type: 'test'
+2026-10-28T06:19:33.6093974Z       ...
+2026-10-28T06:19:38.4202041Z     # Subtest: actual saved Family match inserts original text and rejects changed eligibility
+2026-10-28T06:19:38.4203768Z     ok 4 - actual saved Family match inserts original text and rejects changed eligibility
+2026-10-28T06:19:38.4205796Z       ---
+2026-10-28T06:19:38.4206205Z       duration_ms: 4810.727756
+2026-10-28T06:19:38.4206709Z       type: 'test'
+2026-10-28T06:19:38.4207475Z       ...
+2026-10-28T06:19:41.4568866Z     # Subtest: actual Settings revocation hides the candidate and rejects a held native insertion
+2026-10-28T06:19:41.4570111Z     ok 5 - actual Settings revocation hides the candidate and rejects a held native insertion
+2026-10-28T06:19:41.4570793Z       ---
+2026-10-28T06:19:41.4571036Z       duration_ms: 3036.3549
+2026-10-28T06:19:41.4571321Z       type: 'test'
+2026-10-28T06:19:41.4571553Z       ...
+2026-10-28T06:19:42.8550062Z     # Subtest: late availability response cannot resurrect the invalidated current-reply suggestion
+2026-10-28T06:19:42.8553238Z     ok 6 - late availability response cannot resurrect the invalidated current-reply suggestion
+2026-10-28T06:19:42.8564548Z       ---
+2026-10-28T06:19:42.8564851Z       duration_ms: 1397.994091
+2026-10-28T06:19:42.8565138Z       type: 'test'
+2026-10-28T06:19:42.8565352Z       ...
+2026-10-28T06:19:45.9268496Z     # Subtest: actual Settings position reset preserves unsaved card and respects hidden-page Next invalidation
+2026-10-28T06:19:45.9269931Z     ok 7 - actual Settings position reset preserves unsaved card and respects hidden-page Next invalidation
+2026-10-28T06:19:45.9270812Z       ---
+2026-10-28T06:19:45.9271182Z       duration_ms: 3071.538023
+2026-10-28T06:19:45.9271592Z       type: 'test'
+2026-10-28T06:19:45.9271885Z       ...
+2026-10-28T06:19:57.8788779Z     # Subtest: revision, regenerate, continue, new user and revoke invalidate stale candidates
+2026-10-28T06:19:57.8790851Z     ok 8 - revision, regenerate, continue, new user and revoke invalidate stale candidates
+2026-10-28T06:19:57.8791605Z       ---
+2026-10-28T06:19:57.8792013Z       duration_ms: 11952.355931
+2026-10-28T06:19:57.8792416Z       type: 'test'
+2026-10-28T06:19:57.8792742Z       ...
+2026-10-28T06:20:04.9454239Z     # Subtest: IME/edit busy skip automatic display and a current suggestion resumes only after idle
+2026-10-28T06:20:04.9456190Z     ok 9 - IME/edit busy skip automatic display and a current suggestion resumes only after idle
+2026-10-28T06:20:04.9458802Z       ---
+2026-10-28T06:20:04.9459414Z       duration_ms: 7066.121927
+2026-10-28T06:20:04.9460031Z       type: 'test'
+2026-10-28T06:20:04.9460439Z       ...
+2026-10-28T06:20:08.1424694Z     # Subtest: uncertain native edit is one-shot and preserves the draft for explicit inspection
+2026-10-28T06:20:08.1426214Z     ok 10 - uncertain native edit is one-shot and preserves the draft for explicit inspection
+2026-10-28T06:20:08.1427405Z       ---
+2026-10-28T06:20:08.1427701Z       duration_ms: 3197.064186
+2026-10-28T06:20:08.1427969Z       type: 'test'
+2026-10-28T06:20:08.1428176Z       ...
+2026-10-28T06:20:17.5758956Z     # Subtest: private light/dark/compact original capsule preserves full text, hit regions and no stored reply or model request
+2026-10-28T06:20:17.5760263Z     ok 11 - private light/dark/compact original capsule preserves full text, hit regions and no stored reply or model request
+2026-10-28T06:20:17.5760858Z       ---
+2026-10-28T06:20:17.5761098Z       duration_ms: 9432.983949
+2026-10-28T06:20:17.5761348Z       type: 'test'
+2026-10-28T06:20:17.5761553Z       ...
+2026-10-28T06:20:23.2880568Z     # Subtest: worker restart recovers prospectively and ordinary first-click reuse still works after revoke
+2026-10-28T06:20:23.2881814Z     ok 12 - worker restart recovers prospectively and ordinary first-click reuse still works after revoke
+2026-10-28T06:20:23.2882344Z       ---
+2026-10-28T06:20:23.2882584Z       duration_ms: 5711.606313
+2026-10-28T06:20:23.2882850Z       type: 'test'
+2026-10-28T06:20:23.2883191Z       ...
+2026-10-28T06:20:24.3272145Z     # Subtest: revoked Stage 3 preserves exact first-click multiline reuse with one ordinary insertion
+2026-10-28T06:20:24.3273628Z     ok 13 - revoked Stage 3 preserves exact first-click multiline reuse with one ordinary insertion
+2026-10-28T06:20:24.3274493Z       ---
+2026-10-28T06:20:24.3274906Z       duration_ms: 1039.484661
+2026-10-28T06:20:24.3275340Z       type: 'test'
+2026-10-28T06:20:24.3275708Z       ...
+2026-10-28T06:20:24.4996433Z     1..13
+2026-10-28T06:20:24.4997978Z ok 2 - Stage 3A-1 release production direct loop
+2026-10-28T06:20:24.4998696Z   ---
+2026-10-28T06:20:24.4999193Z   duration_ms: 68441.297936
+2026-10-28T06:20:24.4999695Z   type: 'test'
+2026-10-28T06:20:24.5000140Z   ...
+2026-10-28T06:20:29.3804917Z 1..2
+2026-10-28T06:20:29.3805326Z # tests 28
+2026-10-28T06:20:29.3807245Z # suites 0
+2026-10-28T06:20:29.3807688Z # pass 26
+2026-10-28T06:20:29.3808125Z # fail 2
+2026-10-28T06:20:29.3808591Z # cancelled 0
+2026-10-28T06:20:29.3808964Z # skipped 0
+2026-10-28T06:20:29.3809301Z # todo 0
+2026-10-28T06:20:29.3809697Z # duration_ms 167366.244459
+2026-10-28T06:20:29.3928504Z ##[error]Process completed with exit code 1.
+2026-10-28T06:20:29.4041709Z ##[group]Run actions/upload-artifact@v4
+2026-10-28T06:20:29.4042028Z with:
+2026-10-28T06:20:29.4042242Z   name: prompt-surface-evidence
+2026-10-28T06:20:29.4042607Z   path: extension/work/prompt-surface/
+extension/work/prompt-next/
+
+2026-10-28T06:20:29.4042990Z   if-no-files-found: warn
+2026-10-28T06:20:29.4043222Z   compression-level: 6
+2026-10-28T06:20:29.4043442Z   overwrite: false
+2026-10-28T06:20:29.4043656Z   include-hidden-files: false
+2026-10-28T06:20:29.4043888Z env:
+2026-10-28T06:20:29.4044061Z   CI: 1
+2026-10-28T06:20:29.4044247Z   PAIA_HEADLESS: 1
+2026-10-28T06:20:29.4044463Z   PLAYWRIGHT_MODULE: playwright
+2026-10-28T06:20:29.4044720Z   PAIA_TEST_CONCURRENCY: 4
+2026-10-28T06:20:29.4045016Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:20:29.4045450Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-28T06:20:29.4045880Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:20:29.4046299Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:20:29.4047206Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-28T06:20:29.4047601Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-28T06:20:29.4047969Z   CHROME_PATH: /usr/bin/google-chrome
+2026-10-28T06:20:29.4048230Z ##[endgroup]
+2026-10-28T06:20:29.5925438Z (node:5302) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-28T06:20:29.5927364Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-28T06:20:29.6106478Z Multiple search paths detected. Calculating the least common ancestor of all paths
+2026-10-28T06:20:29.6109897Z The least common ancestor is /home/runner/work/paia/paia/extension/work. This will be the root directory of the artifact
+2026-10-28T06:20:29.6111403Z With the provided path, there will be 52 files uploaded
+2026-10-28T06:20:29.6125850Z Artifact name is valid!
+2026-10-28T06:20:29.6154103Z Root directory input is valid!
+2026-10-28T06:20:29.8625730Z Beginning upload of artifact content to blob storage
+2026-10-28T06:20:29.9735408Z (node:5302) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-28T06:20:30.0766603Z Uploaded bytes 830428
+2026-10-28T06:20:30.0951794Z Finished uploading artifact content to blob storage!
+2026-10-28T06:20:30.0953682Z SHA256 digest of uploaded artifact zip is 770501929a89ae93ca9cd42a72debc48d0f549306489d45df85a9c39725f5ac2
+2026-10-28T06:20:30.0955280Z Finalizing artifact upload
+2026-10-28T06:20:30.5650201Z Artifact prompt-surface-evidence.zip successfully finalized. Artifact ID 12796805501
+2026-10-28T06:20:30.5651675Z Artifact prompt-surface-evidence has been successfully uploaded! Final size is 830428 bytes. Artifact ID is 12796805501
+2026-10-28T06:20:30.5658608Z Artifact download URL: https://github.com/haohongfei2001-png/paia/actions/runs/40641707107/artifacts/12796805501
+2026-10-28T06:20:30.5899460Z Post job cleanup.
+2026-10-28T06:20:30.6840899Z [command]/usr/bin/git version
+2026-10-28T06:20:30.6891111Z git version 2.56.0
+2026-10-28T06:20:30.6933862Z Temporarily overriding HOME='/home/runner/work/_temp/ecf69057-e6d8-4b8b-9196-7a585ea53f66' before making global git config changes
+2026-10-28T06:20:30.6935449Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-28T06:20:30.6940753Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/paia/paia
+2026-10-28T06:20:30.6993284Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-28T06:20:30.7045760Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-28T06:20:30.7389372Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-28T06:20:30.7427219Z http.https://github.com/.extraheader
+2026-10-28T06:20:30.7441646Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-28T06:20:30.7489584Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-28T06:20:30.7789508Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-28T06:20:30.7898713Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-28T06:20:30.8330208Z Cleaning up orphan processes
+2026-10-28T06:20:30.8737806Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
