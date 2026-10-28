@@ -1,0 +1,29 @@
+✖ original source issuer current comparison with independent permission true (188.866831ms)
+✔ original source issuer current comparison with independent permission false (108.596372ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1574.597147
+
+✖ failing tests:
+
+test at services/ai-gateway/tests/maintenance-current-comparison-source.test.mjs:19:35
+✖ original source issuer current comparison with independent permission true (188.866831ms)
+  AssertionError [ERR_ASSERTION]: {"state":"UNAVAILABLE","financialAuthority":false,"dispatchAllowed":false}
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///tmp/paia-current-context-comparison-a-20261027/services/ai-gateway/tests/maintenance-current-comparison-source.test.mjs:27:155)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

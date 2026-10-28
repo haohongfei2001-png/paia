@@ -1,0 +1,133 @@
+{
+  "base": "223e0fb147eb9c7ca044a28ed7ea0d8c54e36ed6",
+  "baseTree": "a66a30ad4463f8a8cf419f01cea304d0f3cc1c21",
+  "aCommit": "9b26ba548c72a30ba121c4299bbff48f226b0fe8",
+  "integratedTree": "61344b497a14c1e9f8cb02b2201820c72ef27ff4",
+  "bFrozenDependencyCommit": "f68a2a1626b7f325e8203bd11c578731ea87c1bb",
+  "aPaths": {
+    "extension/core/ai-usage/local-maintenance-session.js": "7916fbbaa22cabaa694e0702cf7b2661f132f5d700a6b9e2f073246cf6e9dc4b",
+    "extension/core/ai-usage/maintenance-existing-context.js": "1b53c95510a465e0265009379e433227ec77ccef6606d0c6ad5e502f27f8dcb0",
+    "extension/core/ai-usage/maintenance-payload.js": "b2a766c2079f60c2b094c922cfd93a11c2f77c07f92e8a358b65852a1fe6fafe",
+    "extension/core/ai-usage/maintenance-source-processing.js": "b6c5ba8676c3bc1dc18ca764a42d5def9d0e8af4c231ded5f3f8a06ed40063ab",
+    "extension/tests/ai-maintenance-current-context-comparison.test.mjs": "4fd932266412d0844752496d94134d06008043514df222080efb0832b674a151",
+    "services/ai-gateway/tests/maintenance-current-comparison-source.test.mjs": "67a02ac79890a7f9ed05852adcbf4fd8893191d612c3f5eac1408646ed9882c9"
+  },
+  "bDependencyFiles": {
+    "extension/core/context-maintenance.js": "80ed8686b6e2100bf9b6d742bfea75e3a7269d0aa51d1739f3b8f8b93d03d0cf",
+    "extension/core/ai-usage/maintenance-service-response.js": "dff7e58a64d2a17e81a6bdfafcc236523a75f69834aa6a34a7a345da7699e740",
+    "extension/tests/context-current-comparison.test.mjs": "c796e6b1c69566d24a5ecc7fbd6011e4dcd4ef772ed7907598ff3c411493f247"
+  },
+  "testClaims": {
+    "extensionNewCases": 10,
+    "sourceNewCases": 2,
+    "finalCombinedSuiteRun": false,
+    "finalSourceFileWholeRun": false,
+    "offSetup": "Final OFF restores same manual setup which passed original source runtime invocation; ON alone uses historical automatic setup. No OFF rerun.",
+    "checks": "git diff --check clean; runtime syntax checks performed. Local targeted synthetic tests only, not full acceptance."
+  },
+  "boundedBehavior": {
+    "currentItems": 20,
+    "metadataRows": 512,
+    "requestsPerOpportunity": "existing 2 unchanged",
+    "bytes": "existing shared content and physical request remainder",
+    "continuation": "none; no durable cursor and no new opportunity",
+    "incomplete": "outbound summary complete=false and local currentContextComparisonIncomplete/remainingWork true; no DEFER cleared"
+  },
+  "knownBoundaries": [
+    "Newly manual/protected context_item dirty may cause original sourceOnly selector rejection before this candidate path; Foundation rules intentionally not expanded. Such targets comparison tested in real local session/domain; original source positive tested genuine history automatic target.",
+    "Section promotion profiles and structural correction children omit current comparison rather than merge unsupported response protocols.",
+    "Single bounded page and byte omissions remain unresolved; no claim full corpus duplicate detection, provider production qualification, real network behavior, full canonical automatic stage acceptance."
+  ],
+  "logs": [
+    {
+      "sha256": "0204ff05e75a428e1d612714dcd38cf549d3e3d4a42a94c3e9d8b3af61806bdb",
+      "result": "NOT_REACHED",
+      "notes": "Sparse baseline omitted ui/input-search.js; source baseline added without edit.",
+      "path": "work/05526-current-context/a-00.log"
+    },
+    {
+      "sha256": "84592f83f3bef096c28f6cc3ac5fc869f75eb2f64027123f5923afe099e701e9",
+      "result": "RED 0/1",
+      "notes": "Real original child sent once; current Context candidate absent from payload.",
+      "path": "work/05526-current-context/a-01.log"
+    },
+    {
+      "sha256": "b1c992155754125cf643e75dfc71188fd163a3a5e8e8fdf3794d31effd83dc6c",
+      "result": "0/1 fixture assertion",
+      "notes": "Payload now present; both facets COMMITTED; overall PARTIAL due independent manual dirty units, fixture incorrectly expected global COMMITTED.",
+      "path": "work/05526-current-context/a-02.log"
+    },
+    {
+      "sha256": "e778eb944b0b4f2bd451a4fe48e1cdc1f9674df3a6925e8e7a93fe5fb959aaf7",
+      "result": "2/7 pass",
+      "notes": "Payload and 20/21 page passed. Duplicate was COMMITTED/outcome NO_CHANGE but assertion confused state; four negatives changed issuer identity after Session capture and did not reach target.",
+      "path": "work/05526-current-context/a-03.log"
+    },
+    {
+      "sha256": "63632dc58ebcf342f70e2dffe767b808235221040b407776d2a7d675e72fb937",
+      "result": "5/5 targeted pass",
+      "notes": "Only duplicate and four affected negatives; fixture correct owner identity/callback ordering and state/outcome; no runtime relaxation.",
+      "path": "work/05526-current-context/a-04.log"
+    },
+    {
+      "sha256": "76533c9790b3db0fde3b175b24cf361614d8f204433be840a90f0fd28f51ce96",
+      "result": "NOT_REACHED",
+      "notes": "Missing existing pg package. Reused read-only installed pg 8.23.1 matching current lock via untracked symlink; no install/network.",
+      "path": "work/05526-current-context/a-05.log"
+    },
+    {
+      "sha256": "078f98b2af64e1c255e8b08d753c86d4976f0691ff50b38b08924b638b2aef0c",
+      "result": "1/2 pass",
+      "notes": "Original source Settings OFF passed. ON failed before comparison because newly manual context_item dirty is excluded by original sourceOnly Foundation selector.",
+      "path": "work/05526-current-context/a-06.log"
+    },
+    {
+      "sha256": "e45103eb5066d25a54eee9dbe53db94f8be2cab3b855469becf1c92ec5c186fa",
+      "result": "1 targeted diagnosis, rejected",
+      "notes": "Original session.opportunity exposed Foundation.current:221 sourceOnly context_item exclusion. No runtime diagnostic edits.",
+      "path": "work/05526-current-context/a-07.log"
+    },
+    {
+      "sha256": "42430b7008e11176e4efdb81f5b1cb8f2f9ac133ca4dc2b14cd54312aef4ebe3",
+      "result": "1/1 limited pass",
+      "notes": "ON uses legitimate prior owning local session old automatic Item then new Input, source issuer actual path reached one simulated physical call with two DEFERs. Its first noACK predicate used nonexistent childOperationId and was not valid proof.",
+      "path": "work/05526-current-context/a-08.log"
+    },
+    {
+      "sha256": "4d61802642f16f4828a59e71d8023a426c97630ce3a29f40b42556b1f369df5d",
+      "result": "1/1 exact targeted pass",
+      "notes": "Only ON, corrected canonical jobId matching proves same new job has 0 ACK and 2 DEFERs; runtime unchanged.",
+      "path": "work/05526-current-context/a-09.log"
+    },
+    {
+      "sha256": "836f175e55639ff4420114e5940290bbe3e3b21ba44909ed28833dec94b6dd1e",
+      "result": "2/2 first pass",
+      "notes": "Independent new-source automatic update stable ID/associations, new provenance only; original envelope bytes omissions truthful.",
+      "path": "work/05526-current-context/a-10.log"
+    },
+    {
+      "sha256": "6b21a39ec9bf0668f6cd8f39f72ff8fe5802de734db16b67d2308e401ced45f1",
+      "result": "1/1 first pass",
+      "notes": "Metadata-only selection never touches Item body/section, old content tables not read; uncaptured raw cannot begin material reader.",
+      "path": "work/05526-current-context/a-11.log"
+    },
+    {
+      "path": "work/05526-current-context/current-comparison-first-20261027T1627Z.tap",
+      "sha256": "371678c3396c40d52ef733eba4c6dd833894c520ad97b09051a30408caae4c57",
+      "result": "B first 20/24; only four fixture prototype comparisons corrected and rerun4/4, runtime unchanged"
+    },
+    {
+      "path": "work/05526-current-context/current-comparison-four-correction-20261027T1628Z.tap",
+      "sha256": "4ab0c63042f398b1dbe320e831c445bb42ed6e8da93089d43f526c0d72c21e6c",
+      "result": "B first 20/24; only four fixture prototype comparisons corrected and rerun4/4, runtime unchanged"
+    }
+  ],
+  "unchangedNullConfigurations": {
+    "extension/core/ai-usage/assist-service-configuration.js": "75c427fad618799fa52a6b4951d50869af2c41d1cfa0c52ca493571fd918c580",
+    "extension/core/ai-usage/historical-service-configuration.js": "c07bbf91a865ffc07c644b3127c160790816f93319555aadb6be1c7ebda50dd8",
+    "extension/core/ai-usage/maintenance-service-configuration.js": "d94bc0c0e8ab1393a011822c4114176efcf724c8020459f1f70fac8fdd4e17a5",
+    "extension/core/ai-usage/organize-service-configuration.js": "aa072890a1a7ee8488236ce9415db2da6f565f2aae6eb563875939bc81711030"
+  },
+  "permission": "Existing processing permission plus exact authenticated Item-field payload scope; enabled cards constrain but never grant. No old Source/Entry/Topic body permission.",
+  "receiptVersion": "New duplicate-current schemaVersion2 body-free receipt in existing Context maintenance receipt table; no database schema migration; v1 NO_CHANGE semantics unchanged."
+}

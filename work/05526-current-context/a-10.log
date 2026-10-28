@@ -1,0 +1,10 @@
+✔ current comparison new-source update preserves Item identity and uses only independently new evidence (1178.119283ms)
+✔ current comparison bytes omissions remain truthful inside the original request budget (663.940055ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2330.313869

@@ -1,0 +1,30 @@
+✖ current comparison uses opened current Item text in the real maintenance child payload (751.147966ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1212.990825
+
+✖ failing tests:
+
+test at extension/tests/ai-maintenance-current-context-comparison.test.mjs:65:1
+✖ current comparison uses opened current Item text in the real maintenance child payload (751.147966ms)
+  AssertionError [ERR_ASSERTION]: {"state":"PARTIAL","dispatchAllowed":false,"financialAuthority":false,"jobId":"aiu:job:4b5b31c9ba9ac5f35d2b75e839af467e41c0957b1f34cbfa63da8e7bcc385f2f","facets":[{"facet":"topic","units":1,"state":"COMMITTED"},{"facet":"context","units":1,"state":"COMMITTED"}],"nextCursor":null,"complete":true,"deferredUnits":2,"blockedUnits":2,"remainingWork":true,"processedState":"COMMITTED"}
+  + actual - expected
+  
+  + 'PARTIAL'
+  - 'COMMITTED'
+  
+      at TestContext.<anonymous> (file:///tmp/paia-current-context-comparison-a-20261027/extension/tests/ai-maintenance-current-context-comparison.test.mjs:69:195)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'PARTIAL',
+    expected: 'COMMITTED',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

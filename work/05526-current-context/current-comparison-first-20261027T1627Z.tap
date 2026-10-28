@@ -1,0 +1,134 @@
+✔ cross-source duplicate retains exact automatic Item and writes only a versioned comparison receipt (481.10117ms)
+✔ cross-source duplicate retains exact manual Item and writes only a versioned comparison receipt (196.199926ms)
+✔ cross-source duplicate retains exact protected Item and writes only a versioned comparison receipt (178.590422ms)
+✔ old NO_CHANGE still refuses unrelated new evidence; new UPDATE uses only independently captured new provenance (330.401332ms)
+✔ current duplicate refuses missing-grant without a receipt (113.112479ms)
+✔ current duplicate refuses processing-off without a receipt (133.257882ms)
+✔ current duplicate refuses revoked without a receipt (83.929822ms)
+✔ current duplicate refuses closed-card without a receipt (98.794526ms)
+✔ current duplicate refuses changed-body without a receipt (97.935849ms)
+✔ current duplicate refuses changed-revision without a receipt (88.94534ms)
+✔ current duplicate refuses removed without a receipt (103.198512ms)
+✔ comparison receipt-stage target drift rolls back the original transaction (96.330757ms)
+✔ comparison receipt-stage new-source drift rolls back the original transaction (129.300183ms)
+✔ comparison receipt-stage access drift rolls back the original transaction (288.355793ms)
+✔ comparison command cannot carry old source authority, associations or a legacy no-change operation (137.68459ms)
+✔ current comparison chooses a bounded separate version 2 schema without widening version 1 (296.706551ms)
+✔ real response mapper constructs automatic current duplicate from only new evidence (196.366842ms)
+✔ real response mapper constructs manual current duplicate from only new evidence (133.803098ms)
+✔ new-evidence UPDATE reuses stable Item associations while replacing only independently supported body (202.223662ms)
+✖ comparison-only manual Item cannot become NO_CHANGE (119.156626ms)
+✖ comparison-only manual Item cannot become REMOVE_CANDIDATE (118.071598ms)
+✖ comparison-only manual Item cannot become UPDATE_FROM_NEW_EVIDENCE (164.384626ms)
+✔ new duplicate cannot use a qualification-free caller flag (142.966602ms)
+✖ new UPDATE lacking old structural closure remains exact DEFER (142.366765ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 20
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4757.370701
+
+✖ failing tests:
+
+test at extension/tests/context-current-comparison.test.mjs:83:84
+✖ comparison-only manual Item cannot become NO_CHANGE (119.156626ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   [Object: null prototype] {
+  -   {
+        facet: 'context',
+        key: '["input","block:af2681fa-1624-47fc-bc2b-808ff3700401"]',
+        scope: 'synthetic-scope'
+      }
+    ]
+  
+      at TestContext.<anonymous> (file:///tmp/paia-cross-source-response-20261027T1618Z/extension/tests/context-current-comparison.test.mjs:84:392)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { key: '["input","block:af2681fa-1624-47fc-bc2b-808ff3700401"]', facet: 'context', scope: 'synthetic-scope' } ],
+    expected: [ { key: '["input","block:af2681fa-1624-47fc-bc2b-808ff3700401"]', facet: 'context', scope: 'synthetic-scope' } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/context-current-comparison.test.mjs:83:84
+✖ comparison-only manual Item cannot become REMOVE_CANDIDATE (118.071598ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   [Object: null prototype] {
+  -   {
+        facet: 'context',
+        key: '["input","block:117aa253-9d4e-452f-96ab-5479c2dafd77"]',
+        scope: 'synthetic-scope'
+      }
+    ]
+  
+      at TestContext.<anonymous> (file:///tmp/paia-cross-source-response-20261027T1618Z/extension/tests/context-current-comparison.test.mjs:84:392)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { key: '["input","block:117aa253-9d4e-452f-96ab-5479c2dafd77"]', facet: 'context', scope: 'synthetic-scope' } ],
+    expected: [ { key: '["input","block:117aa253-9d4e-452f-96ab-5479c2dafd77"]', facet: 'context', scope: 'synthetic-scope' } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/context-current-comparison.test.mjs:83:84
+✖ comparison-only manual Item cannot become UPDATE_FROM_NEW_EVIDENCE (164.384626ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   [Object: null prototype] {
+  -   {
+        facet: 'context',
+        key: '["input","block:b0bf8b21-28f4-4b7e-ac2f-6566b7142dce"]',
+        scope: 'synthetic-scope'
+      }
+    ]
+  
+      at TestContext.<anonymous> (file:///tmp/paia-cross-source-response-20261027T1618Z/extension/tests/context-current-comparison.test.mjs:84:392)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { key: '["input","block:b0bf8b21-28f4-4b7e-ac2f-6566b7142dce"]', facet: 'context', scope: 'synthetic-scope' } ],
+    expected: [ { key: '["input","block:b0bf8b21-28f4-4b7e-ac2f-6566b7142dce"]', facet: 'context', scope: 'synthetic-scope' } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at extension/tests/context-current-comparison.test.mjs:87:1
+✖ new UPDATE lacking old structural closure remains exact DEFER (142.366765ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   [Object: null prototype] {
+  -   {
+        facet: 'context',
+        key: '["input","block:c536e77b-5708-4e09-8f5b-004ef873aa62"]',
+        scope: 'synthetic-scope'
+      }
+    ]
+  
+      at TestContext.<anonymous> (file:///tmp/paia-cross-source-response-20261027T1618Z/extension/tests/context-current-comparison.test.mjs:88:401)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ { key: '["input","block:c536e77b-5708-4e09-8f5b-004ef873aa62"]', facet: 'context', scope: 'synthetic-scope' } ],
+    expected: [ { key: '["input","block:c536e77b-5708-4e09-8f5b-004ef873aa62"]', facet: 'context', scope: 'synthetic-scope' } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

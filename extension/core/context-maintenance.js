@@ -8,7 +8,7 @@ import {validBoundFields,boundContextEvidence} from './context-bound-entry.js';
 import {validAuthoredFields,authoredSelectedFields,authoredContextEvidence} from './context-authored-entry.js';
 import {ArchiveError} from './constants.js';
 import {hashText} from './dedupe.js';
-import {validContextTemporal,CONTEXT_TEMPORAL_TEXT_LIMIT} from './context-temporal.js';
+import {validContextTemporal,contextTemporalProjection,CONTEXT_TEMPORAL_TEXT_LIMIT} from './context-temporal.js';
 import {ContextCardsService,CONTEXT_CARDS_ROW,CONTEXT_LIMITS,CONTEXT_ITEM_CARDS,validContextCards} from './context-cards.js';
 import {contextTopicOperationId as uuid,contextTopicEpoch as epochOK,contextTopicDigest as digestOK} from './context-topic-preferences.js';
 import {revisionOK,idOK} from './thought-model.js';
@@ -53,10 +53,26 @@ async function selectedMaterialSnapshot(store,transaction,evidence,budget,qualif
 const stamp=x=>typeof x==='string'&&x.length<=64&&Number.isFinite(Date.parse(x));
 const opaque=x=>bounded(x,200);
 const signalOK=x=>typeof AbortSignal!=='undefined'&&x instanceof AbortSignal;
-function scopeFor(c){return {...structuralContextGroups([...new Map(c.evidence.filter(e=>e.humanSection||e.humanTopic).map(e=>[JSON.stringify(e.humanSection||e.humanTopic),e.humanSection||e.humanTopic])).values()],m=>structuredClone(m)),card:c.card,topics:[...new Set(c.evidence.map(e=>e.topicId))].sort(),inputs:c.evidence.filter(e=>!['humanEntry','boundEntry'].includes(e.kind)).map(e=>({inputId:e.inputId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.inputId.localeCompare(b.inputId)),...(c.evidence.some(e=>e.kind==='humanEntry')?{authoredEntries:c.evidence.filter(e=>e.kind==='humanEntry').map(e=>({entryId:e.entryId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.entryId.localeCompare(b.entryId))}:{}),...(c.evidence.some(e=>e.kind==='boundEntry')?{boundEntries:c.evidence.filter(e=>e.kind==='boundEntry').map(e=>({entryId:e.entryId,inputId:e.inputId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.entryId.localeCompare(b.entryId))}:{})};}
+function scopeFor(c){return {...(c.operation==='DUPLICATE_CURRENT'?{currentContextComparison:{version:1,mode:'current_item_text',items:[contextCurrentComparisonDescriptor(c.comparison)]}}:{}),...structuralContextGroups([...new Map(c.evidence.filter(e=>e.humanSection||e.humanTopic).map(e=>[JSON.stringify(e.humanSection||e.humanTopic),e.humanSection||e.humanTopic])).values()],m=>structuredClone(m)),card:c.card,topics:[...new Set(c.evidence.map(e=>e.topicId))].sort(),inputs:c.evidence.filter(e=>!['humanEntry','boundEntry'].includes(e.kind)).map(e=>({inputId:e.inputId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.inputId.localeCompare(b.inputId)),...(c.evidence.some(e=>e.kind==='humanEntry')?{authoredEntries:c.evidence.filter(e=>e.kind==='humanEntry').map(e=>({entryId:e.entryId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.entryId.localeCompare(b.entryId))}:{}),...(c.evidence.some(e=>e.kind==='boundEntry')?{boundEntries:c.evidence.filter(e=>e.kind==='boundEntry').map(e=>({entryId:e.entryId,inputId:e.inputId,selectedFields:[...e.selectedFields].sort()})).sort((a,b)=>a.entryId.localeCompare(b.entryId))}:{})};}
 function validScope(x){
- const authored=Object.hasOwn(x||{},'authoredEntries'),bound=Object.hasOwn(x||{},'boundEntries'),structural=Object.hasOwn(x||{},'structuralSections'),topicStructural=Object.hasOwn(x||{},'structuralTopics');
- return exact(x,['card','topics','inputs',...(authored?['authoredEntries']:[]),...(bound?['boundEntries']:[]),...(structural?['structuralSections']:[]),...(topicStructural?['structuralTopics']:[])])&&CONTEXT_ITEM_CARDS.includes(x.card)&&array(x.topics,CONTEXT_LINEAGE_LIMITS.topics,1)&&x.topics.every(idOK)&&new Set(x.topics).size===x.topics.length&&array(x.inputs,CONTEXT_LINEAGE_LIMITS.inputs,authored?0:1)&&new Set(x.inputs.map(i=>i?.inputId)).size===x.inputs.length&&x.inputs.every(i=>exact(i,['inputId','selectedFields'])&&idOK(i.inputId)&&array(i.selectedFields,2,1)&&i.selectedFields.every(f=>['body','note'].includes(f))&&new Set(i.selectedFields).size===i.selectedFields.length)&&(!authored||array(x.authoredEntries,CONTEXT_LINEAGE_LIMITS.inputs,1)&&new Set(x.authoredEntries.map(e=>e?.entryId)).size===x.authoredEntries.length&&x.authoredEntries.every(e=>exact(e,['entryId','selectedFields'])&&idOK(e.entryId)&&validAuthoredFields(e.selectedFields)))&&(!bound||array(x.boundEntries,CONTEXT_LINEAGE_LIMITS.inputs,1)&&new Set(x.boundEntries.map(e=>e?.entryId)).size===x.boundEntries.length&&x.boundEntries.every(e=>exact(e,['entryId','inputId','selectedFields'])&&idOK(e.entryId)&&validBoundFields(e.selectedFields)&&x.inputs.some(i=>i.inputId===e.inputId&&i.selectedFields.includes('body'))))&&(!structural||array(x.structuralSections,CONTEXT_LINEAGE_LIMITS.inputs,1)&&x.structuralSections.every(s=>s?.kind!=='topic'&&validStructuralContextEvidence(s)&&x.topics.includes(s.topicId)&&s.entries.every(e=>x.inputs.some(i=>i.inputId===e.inputId&&i.selectedFields.includes('body')))))&&(!topicStructural||array(x.structuralTopics,CONTEXT_LINEAGE_LIMITS.inputs,1)&&x.structuralTopics.every(s=>s?.kind==='topic'&&validStructuralContextEvidence(s)&&x.topics.includes(s.topicId)&&s.entries.every(e=>x.inputs.some(i=>i.inputId===e.inputId&&i.selectedFields.includes('body')))))&&x.inputs.length+(x.authoredEntries?.length||0)+(x.boundEntries?.length||0)<=CONTEXT_LINEAGE_LIMITS.inputs;
+ const authored=Object.hasOwn(x||{},'authoredEntries'),bound=Object.hasOwn(x||{},'boundEntries'),structural=Object.hasOwn(x||{},'structuralSections'),topicStructural=Object.hasOwn(x||{},'structuralTopics'),comparison=Object.hasOwn(x||{},'currentContextComparison');
+ return exact(x,['card','topics','inputs',...(authored?['authoredEntries']:[]),...(bound?['boundEntries']:[]),...(structural?['structuralSections']:[]),...(topicStructural?['structuralTopics']:[]),...(comparison?['currentContextComparison']:[])])&&(!comparison||validComparisonScope(x.currentContextComparison,x.card))&&CONTEXT_ITEM_CARDS.includes(x.card)&&array(x.topics,CONTEXT_LINEAGE_LIMITS.topics,1)&&x.topics.every(idOK)&&new Set(x.topics).size===x.topics.length&&array(x.inputs,CONTEXT_LINEAGE_LIMITS.inputs,authored?0:1)&&new Set(x.inputs.map(i=>i?.inputId)).size===x.inputs.length&&x.inputs.every(i=>exact(i,['inputId','selectedFields'])&&idOK(i.inputId)&&array(i.selectedFields,2,1)&&i.selectedFields.every(f=>['body','note'].includes(f))&&new Set(i.selectedFields).size===i.selectedFields.length)&&(!authored||array(x.authoredEntries,CONTEXT_LINEAGE_LIMITS.inputs,1)&&new Set(x.authoredEntries.map(e=>e?.entryId)).size===x.authoredEntries.length&&x.authoredEntries.every(e=>exact(e,['entryId','selectedFields'])&&idOK(e.entryId)&&validAuthoredFields(e.selectedFields)))&&(!bound||array(x.boundEntries,CONTEXT_LINEAGE_LIMITS.inputs,1)&&new Set(x.boundEntries.map(e=>e?.entryId)).size===x.boundEntries.length&&x.boundEntries.every(e=>exact(e,['entryId','inputId','selectedFields'])&&idOK(e.entryId)&&validBoundFields(e.selectedFields)&&x.inputs.some(i=>i.inputId===e.inputId&&i.selectedFields.includes('body'))))&&(!structural||array(x.structuralSections,CONTEXT_LINEAGE_LIMITS.inputs,1)&&x.structuralSections.every(s=>s?.kind!=='topic'&&validStructuralContextEvidence(s)&&x.topics.includes(s.topicId)&&s.entries.every(e=>x.inputs.some(i=>i.inputId===e.inputId&&i.selectedFields.includes('body')))))&&(!topicStructural||array(x.structuralTopics,CONTEXT_LINEAGE_LIMITS.inputs,1)&&x.structuralTopics.every(s=>s?.kind==='topic'&&validStructuralContextEvidence(s)&&x.topics.includes(s.topicId)&&s.entries.every(e=>x.inputs.some(i=>i.inputId===e.inputId&&i.selectedFields.includes('body')))))&&x.inputs.length+(x.authoredEntries?.length||0)+(x.boundEntries?.length||0)<=CONTEXT_LINEAGE_LIMITS.inputs;
+}
+
+// The separately versioned current-Item comparison scope is a selected text
+// grant, never authority for the Item's old Input/Source/Topic lineage.
+export function contextCurrentComparisonDescriptor(item){return {kind:'currentContextItem',itemId:item.itemId,revision:item.revision,card:item.card,origin:item.origin,protected:item.protected,userEdited:item.userEdited,lifecycle:item.lifecycle,selectedFields:['body','section',...(Object.hasOwn(item,'temporal')?['temporal']:[])]};}
+function validComparisonDescriptor(item){
+ return exact(item,['kind','itemId','revision','card','origin','protected','userEdited','lifecycle','selectedFields'])&&item.kind==='currentContextItem'&&uuid(item.itemId)&&revisionOK(item.revision)&&item.revision>0&&CONTEXT_ITEM_CARDS.includes(item.card)&&['automatic','manual'].includes(item.origin)&&typeof item.protected==='boolean'&&item.userEdited===item.protected&&(item.origin!=='manual'||item.protected)&&item.lifecycle==='active'&&(same(item.selectedFields,['body','section'])||item.card==='now'&&same(item.selectedFields,['body','section','temporal']));
+}
+function validComparisonScope(scope,card){return exact(scope,['version','mode','items'])&&scope.version===1&&scope.mode==='current_item_text'&&array(scope.items,1,1)&&validComparisonDescriptor(scope.items[0])&&scope.items[0].card===card;}
+export function validCurrentContextComparisonItem(item){
+ const temporal=Object.hasOwn(item||{},'temporal');return exact(item,['itemRef','itemId','revision','card','origin','protected','userEdited','lifecycle','body','section',...(temporal?['temporal','temporalStatus']:[])])&&bounded(item.itemRef,80)&&validComparisonDescriptor(contextCurrentComparisonDescriptor(item))&&bounded(item.body,CONTEXT_LIMITS.body)&&item.body.trim()&&bounded(item.section,SECTION_LIMIT)&&item.section.trim()&&(!temporal||item.card==='now'&&validContextTemporal(item.temporal)&&['expired','not_expired','unknown'].includes(item.temporalStatus));
+}
+function comparisonItem(item,itemRef){return {itemRef,itemId:item.id,revision:item.revision,card:item.card,origin:item.origin,protected:item.protected,userEdited:item.userEdited,lifecycle:item.lifecycle,body:item.body,section:item.section,...(item.card==='now'?contextTemporalProjection(item):{})};}
+export function validateContextMaintenanceDuplicateCurrent(c){
+ need(exact(c,['version','operation','operationId','epoch','itemId','card','expectedRevision','comparison','evidence'])&&c.version===1&&c.operation==='DUPLICATE_CURRENT'&&uuid(c.operationId)&&epochOK(c.epoch)&&uuid(c.itemId)&&CONTEXT_ITEM_CARDS.includes(c.card)&&revisionOK(c.expectedRevision)&&c.expectedRevision>0&&validCurrentContextComparisonItem(c.comparison)&&c.comparison.itemId===c.itemId&&c.comparison.card===c.card&&c.comparison.revision===c.expectedRevision&&validContextEvidenceSpecs(c.evidence)&&c.evidence.every(e=>e.expectedTopicBinding.epoch===c.epoch),'INVALID_REQUEST');
+ need(requestWithinBudget(c),'INVALID_REQUEST');return c;
 }
 
 // A negative-only pre-dispatch byte check, never evidence or processing authority.
@@ -90,10 +106,11 @@ function validateContextMaintenanceOutcome(c,operation){
  need(requestWithinBudget(c),'INVALID_REQUEST');return c;
 }
 function validResult(x){
- return exact(x,['ok','itemId','revision','disposition','externalAllowed'])&&x.ok===true&&uuid(x.itemId)&&revisionOK(x.revision)&&x.revision>0&&['created','updated','duplicate','protected','removed','no_change','invalidated'].includes(x.disposition)&&x.externalAllowed===false;
+ return exact(x,['ok','itemId','revision','disposition','externalAllowed'])&&x.ok===true&&uuid(x.itemId)&&revisionOK(x.revision)&&x.revision>0&&['created','updated','duplicate','protected','removed','no_change','invalidated','duplicate_current'].includes(x.disposition)&&x.externalAllowed===false;
 }
 function validReceipt(r){
- return exact(r,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','accountId','processorId','authorizationGeneration','scopeDigest','requestItemId','card','expectedRevision','associationId','associationDigest','result'])&&typeof r.id==='string'&&r.id.startsWith(PREFIX)&&uuid(r.id.slice(PREFIX.length))&&r.namespace===NAMESPACE&&r.schemaVersion===1&&uuid(r.ownerId)&&stamp(r.createdAt)&&digestOK(r.digest)&&epochOK(r.epoch)&&opaque(r.accountId)&&opaque(r.processorId)&&revisionOK(r.authorizationGeneration)&&digestOK(r.scopeDigest)&&uuid(r.requestItemId)&&CONTEXT_ITEM_CARDS.includes(r.card)&&revisionOK(r.expectedRevision)&&uuid(r.associationId)&&digestOK(r.associationDigest)&&validResult(r.result)&&r.result.itemId===r.ownerId;
+ if(r?.schemaVersion===2)return exact(r,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','accountId','processorId','authorizationGeneration','scopeDigest','requestItemId','card','expectedRevision','targetOrigin','result'])&&typeof r.id==='string'&&r.id.startsWith(PREFIX)&&uuid(r.id.slice(PREFIX.length))&&r.namespace===NAMESPACE&&uuid(r.ownerId)&&stamp(r.createdAt)&&digestOK(r.digest)&&epochOK(r.epoch)&&opaque(r.accountId)&&opaque(r.processorId)&&revisionOK(r.authorizationGeneration)&&digestOK(r.scopeDigest)&&r.requestItemId===r.ownerId&&CONTEXT_ITEM_CARDS.includes(r.card)&&revisionOK(r.expectedRevision)&&r.expectedRevision>0&&['manual','automatic'].includes(r.targetOrigin)&&validResult(r.result)&&r.result.disposition==='duplicate_current'&&r.result.itemId===r.ownerId&&r.result.revision===r.expectedRevision;
+ return exact(r,['id','namespace','schemaVersion','ownerId','createdAt','digest','epoch','accountId','processorId','authorizationGeneration','scopeDigest','requestItemId','card','expectedRevision','associationId','associationDigest','result'])&&typeof r.id==='string'&&r.id.startsWith(PREFIX)&&uuid(r.id.slice(PREFIX.length))&&r.namespace===NAMESPACE&&r.schemaVersion===1&&uuid(r.ownerId)&&stamp(r.createdAt)&&digestOK(r.digest)&&epochOK(r.epoch)&&opaque(r.accountId)&&opaque(r.processorId)&&revisionOK(r.authorizationGeneration)&&digestOK(r.scopeDigest)&&uuid(r.requestItemId)&&CONTEXT_ITEM_CARDS.includes(r.card)&&revisionOK(r.expectedRevision)&&uuid(r.associationId)&&digestOK(r.associationDigest)&&validResult(r.result)&&r.result.disposition!=='duplicate_current'&&r.result.itemId===r.ownerId;
 }
 const identity=r=>JSON.stringify([r.accountId,r.processorId,r.authorizationGeneration,r.scope]);
 const result=(item,disposition)=>({ok:true,itemId:item.id,revision:item.revision,disposition,externalAllowed:false});
@@ -139,6 +156,12 @@ export class ContextMaintenanceService {
   need(validReceipt(r)&&r.digest===query.digest&&r.epoch===query.epoch&&r.accountId===authority.accountId&&r.processorId===authority.processorId&&r.authorizationGeneration===authority.authorizationGeneration&&r.scopeDigest===scopeDigest,'INVALID_REQUEST');
   need(r.card===authority.scope.card,'INVALID_REQUEST');
   const item=(await this.#cards.row(t)).items.find(x=>x.id===r.ownerId);
+  if(r.schemaVersion===2){
+   need(item&&item.origin===r.targetOrigin&&item.card===r.card&&item.revision>=r.result.revision&&validComparisonScope(authority.scope.currentContextComparison,r.card),'INVALID_REQUEST');
+   const target=authority.scope.currentContextComparison.items[0];need(target.itemId===r.ownerId&&target.revision===r.expectedRevision&&target.origin===r.targetOrigin,'INVALID_REQUEST');
+   if(request)need(request.operation==='DUPLICATE_CURRENT'&&request.itemId===r.ownerId&&request.card===r.card&&request.expectedRevision===r.expectedRevision,'INVALID_REQUEST');
+   return r.result;
+  }
   need(item?.origin==='automatic'&&item.card===r.card&&item.revision>=r.result.revision&&item.maintenance.associationIds.includes(r.associationId),'INVALID_REQUEST');
   if(['created','updated','invalidated'].includes(r.result.disposition))need(r.requestItemId===r.ownerId&&r.result.revision===r.expectedRevision+1&&(r.result.disposition==='created'?r.expectedRevision===0:r.expectedRevision>0),'INVALID_REQUEST');
   if(r.result.disposition==='no_change')need(r.requestItemId===r.ownerId&&r.expectedRevision>0&&r.result.revision===r.expectedRevision,'INVALID_REQUEST');
@@ -148,6 +171,7 @@ export class ContextMaintenanceService {
   return r.result;
  }
  maintain(caller,input,options={}){return this.#maintain(caller,input,options,validateContextMaintenanceChange);}
+ compareDuplicate(caller,input,options={}){return this.#maintain(caller,input,options,validateContextMaintenanceDuplicateCurrent);}
  noChange(caller,input,options={}){return this.#maintain(caller,input,options,validateContextMaintenanceNoChange);}
  invalidate(caller,input,options={}){return this.#maintain(caller,input,options,validateContextMaintenanceInvalidation);}
  #maintain(caller,input,{signal=null}={},validate){
@@ -173,7 +197,7 @@ export class ContextMaintenanceService {
   let captured=null;
   try{
   need(contextLineageReady(this.#s));const database=this.#s.repository.db;
-  const digest=await historical(()=>hashText(serialized)),scopeDigest=await historical(()=>hashText(JSON.stringify(scope))),associationDigest=await historical(()=>hashText(JSON.stringify(c.associationIds))),query={operationId:c.operationId,digest,epoch:c.epoch,associationDigest};
+  const digest=await historical(()=>hashText(serialized)),scopeDigest=await historical(()=>hashText(JSON.stringify(scope))),associationDigest=c.operation==='DUPLICATE_CURRENT'?null:await historical(()=>hashText(JSON.stringify(c.associationIds))),query={operationId:c.operationId,digest,epoch:c.epoch,associationDigest};
   need(contextLineageReady(this.#s)&&this.#s.repository.db===database);
   const prior=await contextLineageRead(this.#s,async t=>{await this.#cards.admitted(t,c.epoch);const value=await this.#receipt(t,query,authority,scopeDigest,c);this.#current(caller,authority,null,true);return value;},['meta','operationReceipts'],database,recoveryWork);
   if(prior)return prior;
@@ -194,7 +218,7 @@ export class ContextMaintenanceService {
   await cancellable(()=>contextLineageRead(this.#s,async t=>{need(same(await selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget,qualification),material));},undefined,database,recoveryWork),[phase.signal]);
 
   const current=await this.#verify(caller,scope,[phase.signal]);need(identity(current)===identity(authority));this.#current(caller,current,phase.signal);
-  let transaction=null,transactionReader=null,expiryTimer=null,expectedItem=null,publication=null,publicationState=null;
+  let transaction=null,transactionReader=null,expiryTimer=null,expectedItem=null,comparisonAccess=null,publication=null,publicationState=null;
   const publicationToken=()=>publication;
   const seal=()=>{publicationState.stagedAuthority=publicationState.beforeAuthority;const after=JSON.parse(publicationState.beforeAuthority);if(transactionReader.backupChanged)after[5]=(after[5]||0)+1;publicationState.afterAuthority=JSON.stringify(after);publicationState.frozen=true;};
   // Constructor-private capability: never read from a request or model DTO.
@@ -206,7 +230,7 @@ export class ContextMaintenanceService {
    this.#current(caller,current,phase.signal);this.#current(caller,authority,phase.signal);
    await fenceContextLineage(this.#s,captured.captured,{transaction:t});
    need(same(await selectedMaterialSnapshot(this.#s,t,c.evidence,workBudget,qualification),material));
-   need(expectedItem&&same((await this.#cards.row(t)).items.find(item=>item.id===expectedItem.id),expectedItem));need(publicationState&&await rootReadAuthority(t)===publicationState.beforeAuthority);
+   const finalCards=await this.#cards.row(t);need(expectedItem&&same(finalCards.items.find(item=>item.id===expectedItem.id),expectedItem));if(comparisonAccess)need(same({global:finalCards.access.global,card:finalCards.access[c.card]},comparisonAccess));need(publicationState&&await rootReadAuthority(t)===publicationState.beforeAuthority);
    this.#current(caller,current,phase.signal);this.#current(caller,authority,phase.signal);return true;
   };
   const abort=()=>{try{transaction?.abort();}catch{}};
@@ -225,9 +249,17 @@ export class ContextMaintenanceService {
    await fenceContextLineage(this.#s,captured.captured,{transaction:t});this.#current(caller,current,phase.signal);
    const replay=await this.#receipt(t,query,current,scopeDigest,c);this.#current(caller,current,phase.signal);if(replay){expectedItem=structuredClone((await this.#cards.row(t)).items.find(item=>item.id===replay.itemId));await finalFence(t);seal();return replay;}
    const row=await this.#cards.row(t);this.#current(caller,current,phase.signal);
+   let item,outcome;
+   if(c.operation==='DUPLICATE_CURRENT'){
+    item=row.items.find(x=>x.id===c.itemId);
+    if(!item||item.lifecycle!=='active'||!row.access.global.enabled||!row.access[c.card].enabled||!same(comparisonItem(item,c.comparison.itemRef),c.comparison))return conflict();
+    // Only this new delta was checked. Do not rewrite/requalify old provenance,
+    // attach its associations or mutate even a human/protected Item revision.
+    comparisonAccess=structuredClone({global:row.access.global,card:row.access[c.card]});outcome=result(item,'duplicate_current');
+   }else{
    const matches=row.items.filter(x=>x.origin==='automatic'&&x.maintenance.associationIds.some(id=>c.associationIds.includes(id)));
    if(matches.length>1)return conflict();
-   const target=row.items.find(x=>x.id===c.itemId),associated=matches[0];let item=associated||target,outcome;
+   const target=row.items.find(x=>x.id===c.itemId),associated=matches[0];item=associated||target;
    if(associated&&target&&associated.id!==target.id)return conflict();
    if(item?.origin==='manual'||item&&(item.card!==c.card||!associated))return conflict();
    if(item){
@@ -275,9 +307,11 @@ export class ContextMaintenanceService {
     need(validContextCards(row),'CONTEXT_LIMIT');this.#current(caller,current,phase.signal);
     expectedItem=structuredClone(item);await t.put('meta',row);this.#current(caller,current,phase.signal);outcome=result(item,c.expectedRevision===0?'created':'updated');
    }
+   }
    if(expectedItem===null)expectedItem=structuredClone(item);
    this.#current(caller,current,phase.signal);need(!authority.revocationSignal.aborted);
-   await t.put('operationReceipts',{id:PREFIX+c.operationId,namespace:NAMESPACE,schemaVersion:1,ownerId:item.id,createdAt:this.#s.clock(),digest,epoch:c.epoch,accountId:current.accountId,processorId:current.processorId,authorizationGeneration:current.authorizationGeneration,scopeDigest,requestItemId:c.itemId,card:c.card,expectedRevision:c.expectedRevision,associationId:c.associationIds.find(id=>item.maintenance.associationIds.includes(id)),associationDigest,result:outcome});
+   if(c.operation==='DUPLICATE_CURRENT')await t.put('operationReceipts',{id:PREFIX+c.operationId,namespace:NAMESPACE,schemaVersion:2,ownerId:item.id,createdAt:this.#s.clock(),digest,epoch:c.epoch,accountId:current.accountId,processorId:current.processorId,authorizationGeneration:current.authorizationGeneration,scopeDigest,requestItemId:c.itemId,card:c.card,expectedRevision:c.expectedRevision,targetOrigin:item.origin,result:outcome});
+   else await t.put('operationReceipts',{id:PREFIX+c.operationId,namespace:NAMESPACE,schemaVersion:1,ownerId:item.id,createdAt:this.#s.clock(),digest,epoch:c.epoch,accountId:current.accountId,processorId:current.processorId,authorizationGeneration:current.authorizationGeneration,scopeDigest,requestItemId:c.itemId,card:c.card,expectedRevision:c.expectedRevision,associationId:c.associationIds.find(id=>item.maintenance.associationIds.includes(id)),associationDigest,result:outcome});
    // Bound human fields and selected Topic/Section interpretation settle with their
    // original Input/Source authority after both Item and receipt are staged.
    // This owner also serves direct callers without a session settlement guard.

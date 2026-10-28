@@ -1,0 +1,23 @@
+✖ original source issuer current comparison with independent permission true (136.46239ms)
+ℹ {"phase":"original-session-opportunity","code":"UNAVAILABLE","message":"UNAVAILABLE","stack":"Error: UNAVAILABLE\n    at fail (file:///tmp/paia-current-context-comparison-a-20261027/extension/core/ai-usage/contracts.js:6:52)\n    at AIUsageFoundation.current (file:///tmp/paia-current-context-comparison-a-20261027/extension/core/ai-usage/foundation.js:221:226)\n    at async file:///tmp/paia-current-context-comparison-a-20261027/extension/core/ai-usage/maintenance-batch.js:83:3\n    at async ArchiveRepository.transaction (file:///tmp/paia-current-context-comparison-a-20261027/extension/core/idb-repository.js:963:1126)\n    at async execute (file:///tmp/paia-current-context-comparison-a-20261027/extension/core/indexed-store.js:182:11)"}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 787.264176
+
+✖ failing tests:
+
+test at services/ai-gateway/tests/maintenance-current-comparison-source.test.mjs:19:35
+✖ original source issuer current comparison with independent permission true (136.46239ms)
+  Error: UNAVAILABLE
+      at fail (file:///tmp/paia-current-context-comparison-a-20261027/extension/core/ai-usage/contracts.js:6:52)
+      at AIUsageFoundation.current (file:///tmp/paia-current-context-comparison-a-20261027/extension/core/ai-usage/foundation.js:221:226)
+      at async file:///tmp/paia-current-context-comparison-a-20261027/extension/core/ai-usage/maintenance-batch.js:83:3
+      at async ArchiveRepository.transaction (file:///tmp/paia-current-context-comparison-a-20261027/extension/core/idb-repository.js:963:1126)
+      at async execute (file:///tmp/paia-current-context-comparison-a-20261027/extension/core/indexed-store.js:182:11) {
+    code: 'UNAVAILABLE'
+  }

@@ -1,0 +1,12 @@
+✔ comparison-only manual Item cannot become NO_CHANGE (264.038667ms)
+✔ comparison-only manual Item cannot become REMOVE_CANDIDATE (141.147282ms)
+✔ comparison-only manual Item cannot become UPDATE_FROM_NEW_EVIDENCE (133.722074ms)
+✔ new UPDATE lacking old structural closure remains exact DEFER (166.150911ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1145.602039

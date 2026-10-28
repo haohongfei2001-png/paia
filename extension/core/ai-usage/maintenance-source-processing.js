@@ -1,3 +1,4 @@
+import {maintenanceCurrentContextScope,assertMaintenanceCurrentContext} from './maintenance-existing-context.js';
 import {requireMaintenanceProcessingSelection} from './maintenance-processing-source-denial.js';
 import {readMaintenanceProcessingSelection,readMaintenanceProcessingRequestPermit} from './local-maintenance-session.js';
 import {readMaintenanceQualificationRequestPermit} from './maintenance-qualification.js';
@@ -40,6 +41,7 @@ function originalPermit(r,transaction,scope,permit){
  if(qualified){need(p.kind==='qualification'&&qualified.scope===scope&&qualified.request===p.request&&qualified.selectionSpec===p.selectionSpec&&qualified.phase===p.phase&&qualified.binding===p.binding&&qualified.parent===p.parent&&qualified.budget===p.budget);}
  else need(p.kind==='payload'&&p.scope===scope);
  if(r.client!==null)need(r.client===p.client);else r.client=p.client;
+ if(Object.hasOwn(scope,'currentContextComparison')){need(!qualified&&p.kind==='payload'&&p.currentContextComparison&&scope.facets.includes('context')&&equal(scope.currentContextComparison,maintenanceCurrentContextScope(p.currentContextComparison)));need(new TextEncoder().encode(JSON.stringify(scope)).length<=32768);const {currentContextComparison,...originalFields}=scope;scope=originalFields;}else need(!p.currentContextComparison||maintenanceCurrentContextScope(p.currentContextComparison).items.length===0);
  if(p.authoredEntry){need(!p.structuralRestore&&!p.structuralRename&&!p.freshPlacement);return {...validateFreshAuthoredPermit(p,qualified,scope,plan),selected};}
  if(p.freshPlacement){need(!p.structuralRestore&&!p.structuralRename);return {...validateFreshPlacementPermit(p,qualified,scope,plan),selected};}
  if(p.structuralRename){need(!p.structuralRestore);return renamePermit(p,selected,qualified,scope,plan);}
@@ -233,6 +235,7 @@ export function createMaintenanceSourceProcessing({store,consentOwner,caller,con
     await f.capPromise;currentFamily(r,f);
     await assertMaintenanceProcessingConsentSnapshot(f.cap,consentOwner,store,original,{workBudget:f.selection.budget});currentFamily(r,f);
     await policy(r,f,original,scope,selected);currentFamily(r,f);
+    if(selected.p.currentContextComparison){await assertMaintenanceCurrentContext(store,original,selected.p.currentContextComparison);currentFamily(r,f);}
     if(selected.restore&&selected.p.phase==='child'){const parent=receipts.get(selected.p.parent);need(parent&&parent.r===r&&parent.f===f&&parent.restore===selected.restore&&selected.p.parent.scope.purpose==='ai-maintenance-payload');for(const key of ['logicalJobId','childOperationId','principalId','libraryId','consentEpoch'])need(selected.p.parent.scope[key]===selected.p.binding[key]);currentFamily(r,f);}
     if(selected.rename&&selected.p.phase==='child'){const parent=receipts.get(selected.p.parent);need(parent&&parent.r===r&&parent.f===f&&parent.rename===selected.rename&&selected.p.parent.scope.purpose==='ai-maintenance-payload');for(const key of ['logicalJobId','childOperationId','principalId','libraryId','consentEpoch'])need(selected.p.parent.scope[key]===selected.p.binding[key]);currentFamily(r,f);}
     if(selected.authored&&selected.p.phase==='child'){const parent=receipts.get(selected.p.parent);need(parent&&parent.r===r&&parent.f===f&&parent.authored===selected.authored&&selected.p.parent.scope.purpose==='ai-maintenance-payload');for(const key of ['logicalJobId','childOperationId','principalId','libraryId','consentEpoch'])need(selected.p.parent.scope[key]===selected.p.binding[key]);currentFamily(r,f);}

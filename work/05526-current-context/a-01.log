@@ -1,0 +1,30 @@
+✖ current comparison uses opened current Item text in the real maintenance child payload (813.059821ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1293.443011
+
+✖ failing tests:
+
+test at extension/tests/ai-maintenance-current-context-comparison.test.mjs:65:1
+✖ current comparison uses opened current Item text in the real maintenance child payload (813.059821ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - '0fde0b44-9afb-49ed-af0c-f11a6b910996'
+  
+      at TestContext.<anonymous> (file:///tmp/paia-current-context-comparison-a-20261027/extension/tests/ai-maintenance-current-context-comparison.test.mjs:69:111)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: '0fde0b44-9afb-49ed-af0c-f11a6b910996',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

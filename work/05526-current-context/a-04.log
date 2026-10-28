@@ -1,0 +1,13 @@
+✔ current comparison duplicate commits only exact new delta ACK and leaves human Item unchanged (691.91512ms)
+✔ current comparison rejects missing grant before provider (85.587934ms)
+✔ current comparison rejects revoked grant before provider (82.89329ms)
+✔ current comparison rejects changed card before provider (167.783346ms)
+✔ current comparison rejects changed revision before provider (152.111923ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1599.327819

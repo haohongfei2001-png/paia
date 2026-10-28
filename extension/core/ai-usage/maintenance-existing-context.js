@@ -1,3 +1,4 @@
+import {assertMaintenanceProcessingReceipt} from './maintenance-processing-receipt.js';
 import {maintenanceQualificationWorkBudget} from './maintenance-qualification.js';
 import {CONTEXT_CARDS_ROW,CONTEXT_LIMITS,CONTEXT_ITEM_CARDS} from '../context-cards.js';
 import {CONTEXT_READ_LIMITS} from '../context-read.js';
@@ -271,3 +272,57 @@ export async function assertMaintenanceExistingContext(store,t,handle,{settledIt
  live(h);return !deferral?.found.size;
 }
 export function releaseMaintenanceExistingContext(handle){const h=held.get(handle);if(!h)return;h.released=true;releaseContextLineage(h.lineage);h.items.length=0;h.selected.length=0;h.snapshot=null;h.scope=null;h.read=null;h.assertProcessing=null;h.lineage=null;h.entrySnapshots.clear();h.structureSnapshots.clear();h.removeAbort?.();h.removeAbort=null;held.delete(handle);}
+
+// Current-Item comparison is not lineage qualification. The old Source graph
+// is metadata only; no Source/Entry/Topic body reader is reachable here.
+const comparisons=new WeakMap();
+function comparisonState(handle){const h=comparisons.get(handle);need(h&&!h.released,'UNAVAILABLE');return h;}
+function comparisonMetadata(item){
+ const origin=own(item,'origin');need(['manual','automatic'].includes(origin));
+ const m=origin==='automatic'?metadata(item):{...values(item,['id','card','revision','order','origin','protected','userEdited','lifecycle','createdAt','updatedAt','deletedBy']),hasTemporal:false};
+ need(contextTopicOperationId(m.id)&&CONTEXT_ITEM_CARDS.includes(m.card)&&revisionOK(m.revision)&&m.revision>0&&typeof m.protected==='boolean'&&m.userEdited===m.protected&&(origin!=='manual'||m.protected));return m;
+}
+function comparisonDescriptor(m){return {kind:'currentContextItem',itemId:m.id,revision:m.revision,card:m.card,origin:m.origin,protected:m.protected,userEdited:m.userEdited,lifecycle:m.lifecycle,selectedFields:['body','section',...(m.hasTemporal?['temporal']:[])]};}
+const comparisonEnvelope=items=>({version:1,mode:'current_item_text',items});
+function comparisonAccess(row){if(!row)return null;const access=own(row,'access'),out={};for(const key of ['global',...CONTEXT_ITEM_CARDS]){const a=own(access,key);out[key]=values(a,['enabled','revision']);need(typeof out[key].enabled==='boolean'&&revisionOK(out[key].revision));}return out;}
+export async function selectMaintenanceCurrentContext(store,t,{exclude=[],workBudget}={}){
+ need(list(exclude,MAINTENANCE_EXISTING_CONTEXT_LIMITS.items)&&workBudget,'UNAVAILABLE');
+ const budget=forkContextScopeWorkBudget(workBudget,{database:store.repository.db}),reader=contextScopeTransactionReader(store,t,budget),admission=await contextLineageAdmission(store,reader),row=await reader.get('meta',CONTEXT_CARDS_ROW),access=comparisonAccess(row),selected=[];let omitted=0;
+ if(row){need(row.id===CONTEXT_CARDS_ROW&&row.version===1&&list(row.items,CONTEXT_LIMITS.items));const seen=new Set();
+  for(const item of row.items){const id=own(item,'id');need(contextTopicOperationId(id)&&!seen.has(id));seen.add(id);
+   const card=own(item,'card');if(!access.global.enabled||!access[card]?.enabled||own(item,'lifecycle')!=='active'||exclude.includes(id))continue;
+   const m=comparisonMetadata(item);if(selected.length+exclude.length>=MAINTENANCE_EXISTING_CONTEXT_LIMITS.items){omitted++;continue;}selected.push(m);
+  }
+ }
+ const handle=Object.freeze({});comparisons.set(handle,{store,database:store.repository.db,admission,access,selected,omitted,budget,items:[],captured:false,released:false,signal:null,assertProcessing:null});return handle;
+}
+export function maintenanceCurrentContextScope(handle){return comparisonEnvelope(comparisonState(handle).selected.map(comparisonDescriptor));}
+export function maintenanceCurrentContextSummary(handle){const h=comparisonState(handle),n=h.captured?h.items.length:h.selected.length,omitted=h.omitted+h.selected.length-n;return {version:1,coverage:'open_cards_current_items',selectedItems:n,omittedItems:omitted,complete:omitted===0};}
+export async function assertMaintenanceCurrentContext(store,t,handle,{publications=[],settledItems=[]}={}){
+ const h=comparisonState(handle);need(h.store===store);live(h);const reader=contextScopeTransactionReader(store,t,h.budget),published=publishedExpected(h,t,publications),admission=await contextLineageAdmission(store,reader,h.admission.epoch);
+ need(admission.gate===h.admission.gate&&(!h.selected.length||h.captured&&!h.items.length||admission.authority===published.authority));
+ const row=await reader.get('meta',CONTEXT_CARDS_ROW);need(equal(comparisonAccess(row),h.access));const settled=new Map();
+ for(const x of settledItems){need(x?.itemId===x.item?.id&&h.items.some(v=>v.original.id===x.itemId)&&!settled.has(x.itemId));settled.set(x.itemId,x.item);}
+ for(const m of h.captured?h.items:h.selected){const original=h.captured?m.original:m,actual=row?.items?.find(x=>x.id===original.id),expected=settled.get(original.id)||original;need(actual);if(h.captured){need(equal(actual,expected));need(equal(contextTemporalProjection(original),Object.hasOwn(m.dto,'temporal')?{temporal:m.dto.temporal,temporalStatus:m.dto.temporalStatus}:null));}else need(equal(comparisonMetadata(actual),expected));}
+ live(h);return true;
+}
+export async function captureMaintenanceCurrentContext(store,handle,{read:reader,receipt,processing,signal=null,limits,publications=[],settledItems=[]}={}){
+ const h=comparisonState(handle);need(h.store===store&&typeof reader==='function'&&limits,'UNAVAILABLE');
+ // Authentication must precede ANY Item text access. The private selector is
+ // merely a snapshot, never an independent issuer or an open-card grant.
+ assertMaintenanceProcessingReceipt(receipt,processing,store);need(equal(receipt.scope.currentContextComparison,maintenanceCurrentContextScope(handle)),'UNAVAILABLE');
+ h.assertProcessing=()=>{assertMaintenanceProcessingReceipt(receipt,processing,store);return true;};h.signal=signal;live(h);
+ if(h.captured){await reader(t=>assertMaintenanceCurrentContext(store,t,handle,{publications,settledItems}));return handle;}
+ try{await reader(async t=>{await assertMaintenanceCurrentContext(store,t,handle,{publications});const row=await contextScopeTransactionReader(store,t,h.budget).get('meta',CONTEXT_CARDS_ROW);let used=2;
+  for(const m of h.selected){live(h);const item=row?.items.find(x=>x.id===m.id);need(item&&equal(comparisonMetadata(item),m));
+   const body=own(item,'body'),section=own(item,'section');need(typeof body==='string'&&body.length<=CONTEXT_LIMITS.body&&typeof section==='string'&&section.length<=80);
+   const original={...copy(m),body,section};delete original.hasTemporal;
+   if(m.hasTemporal){const temporal=own(item.maintenance,'temporal');need(m.card==='now'&&validContextTemporal(temporal));original.maintenance.temporal=copy(temporal);}
+   const dto=semanticItem(original,h.items.length),size=bytes(dto)+(h.items.length?1:0);if(used+size>Math.min(limits.maxContentBytes,limits.maxRequestBytes))continue;
+   used+=size;h.items.push({original,dto});
+  }h.captured=true;
+ });await reader(t=>assertMaintenanceCurrentContext(store,t,handle,{publications}));return handle;}catch(error){releaseMaintenanceCurrentContext(handle);throw error;}
+}
+export function maintenanceCurrentContextPayload(handle){const h=comparisonState(handle);live(h);need(h.captured,'UNAVAILABLE');return comparisonEnvelope(h.items.map(x=>copy(x.dto)));}
+export function maintenanceCurrentContextMetadata(handle){const h=comparisonState(handle);live(h);need(h.captured,'UNAVAILABLE');return comparisonEnvelope(h.items.map(x=>({...copy(x.dto),epoch:h.admission.epoch,associationIds:[...(x.original.maintenance?.associationIds||[])],...(x.original.maintenance?{provenance:copy(x.original.maintenance.provenance)}:{})})));}
+export function releaseMaintenanceCurrentContext(handle){const h=comparisons.get(handle);if(!h)return;h.released=true;h.items.length=0;h.selected.length=0;h.assertProcessing=null;h.signal=null;comparisons.delete(handle);}
