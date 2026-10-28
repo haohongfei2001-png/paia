@@ -1,0 +1,48 @@
+✔ original configured source locally ACKs a genuine protection-only correction without provider work (663.151023ms)
+✔ source local protection admission preserves disabled processing and unrelated human obligations (488.701471ms)
+✖ source local protection semantic drift at first ACK rolls back the exact local settlement (482.224816ms)
+✖ source local protection dispose at first ACK rolls back the exact local settlement (461.172902ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2602.876057
+
+✖ failing tests:
+
+test at services/ai-gateway/tests/maintenance-protection-local-source.test.mjs:45:49
+✖ source local protection semantic drift at first ACK rolls back the exact local settlement (482.224816ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///tmp/paia-context-protection-local-source-20261028/services/ai-gateway/tests/maintenance-protection-local-source.test.mjs:48:58)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at services/ai-gateway/tests/maintenance-protection-local-source.test.mjs:45:49
+✖ source local protection dispose at first ACK rolls back the exact local settlement (461.172902ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///tmp/paia-context-protection-local-source-20261028/services/ai-gateway/tests/maintenance-protection-local-source.test.mjs:48:58)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

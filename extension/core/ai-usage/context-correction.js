@@ -4,8 +4,10 @@ import {prefix} from '../thought-model.js';
 import {MemoryService} from '../memory/service.js';
 import {hashText} from '../dedupe.js';
 import {CONSENT_VERSION} from '../constants.js';
-import {digest,equal,exact,fail,integer,token} from './contracts.js';
+import {digest,equal,exact,fail,integer,token,validateCoverage} from './contracts.js';
 import {DIRTY_PREFIX,KNOWN_PREFIX} from './delta.js';
+import {requireRepositoryTransactionScope,requireRepositoryTransactionDataMethods} from '../idb-repository.js';
+import {contextScopeTransactionReader,assertContextScopeWorkBudgetFacts} from '../context-topic-scope.js';
 
 // An ephemeral capability minted only by the existing human Context change
 // owner. Neither a request field, arbitrary meta write nor a replayed receipt
@@ -63,6 +65,59 @@ export async function qualifyContextProtectionCorrections(foundation,items){
 export async function assertContextProtectionCorrections(store,t,items,captured){
  for(const item of items){const actual=await capture(store,t,item);if(!actual||!equal(actual,captured.get(item.key)))fail('STALE_BASE');}
 }
+
+// Fixed local-only bridge for the existing protection correction owner. This
+// handle cannot issue processing receipts or qualify any Input/Source body.
+// It belongs to one Foundation/session and its original bounded scan ledger;
+// the original human receipt and unchanged semantic digest remain the proof.
+const localProtectionAdmissions=new WeakMap();
+function localProtectionState(handle,foundation){
+ const h=localProtectionAdmissions.get(handle);
+ if(!h||h.foundation!==foundation||h.store!==foundation.s||h.store.repository!==h.repository||h.repository.db!==h.database||h.signal.aborted||h.isCurrent()!==true)fail('UNAVAILABLE');
+ assertContextScopeWorkBudgetFacts(h.workBudget,{database:h.database});return h;
+}
+function localProtectionReader(h,t){
+ const identity=requireRepositoryTransactionScope(h.repository,t);requireRepositoryTransactionDataMethods(h.repository,t);
+ if(identity.database!==h.database)fail('STALE_BASE');
+ return contextScopeTransactionReader(h.store,t,h.workBudget);
+}
+export async function prepareContextProtectionLocalAdmission(foundation,request,{generation,signal,isCurrent,workBudget}={}){
+ if(!foundation?.s||!integer(generation)||!(signal instanceof AbortSignal)||typeof isCurrent!=='function')fail('UNAVAILABLE');
+ exact(request,['type','intent','items','coverage','children','contractVersion','routeVersion']);
+ if(request.type!=='AI_MAINTENANCE'||request.intent!=='maintenance'||!Array.isArray(request.items)||request.items.length>50)fail('UNAVAILABLE');
+ const store=foundation.s,repository=store.repository,database=repository.db,h={foundation,store,repository,database,generation,signal,isCurrent,workBudget,request:null,captured:new Map(),jobId:null},handle=Object.freeze({});
+ localProtectionAdmissions.set(handle,h);
+ try{
+  localProtectionState(handle,foundation);const original=structuredClone(request),coverage=validateCoverage(original.coverage,'AI_MAINTENANCE'),candidates=original.items.filter(item=>item.descriptor?.kind==='context_item'&&item.descriptor.localCorrection);
+  if(!candidates.length){releaseContextProtectionLocalAdmission(handle,foundation);return null;}
+  // Keep the original source metadata ceiling BEFORE reading any Item fields
+  // or hashing its semantic snapshot. An over-bound page remains pending; do
+  // not choose a first twenty or acquire a second allowance for this owner.
+  if(candidates.length>20||candidates.some(item=>!Array.isArray(item.descriptor.sourceRecordIds))||new Set(candidates.flatMap(item=>item.descriptor.sourceRecordIds)).size>20)fail('UNAVAILABLE');
+  let entered=false,found=[];
+  await foundation.read(async transaction=>{if(entered)fail('UNAVAILABLE');entered=true;const t=localProtectionReader(h,transaction);localProtectionState(handle,foundation);
+   for(const item of candidates){const value=await capture(store,t,item);localProtectionState(handle,foundation);if(value)found.push({item:structuredClone(item),value:structuredClone(value)});}
+  });
+  if(!entered)fail('UNAVAILABLE');localProtectionState(handle,foundation);
+  // Hash outside the original readonly transaction, then revalidate the exact
+  // captured owner facts before any admission can be consumed.
+  for(const {item,value}of found){if(await digest(semantic(value.item))!==item.descriptor.localCorrection.semanticDigest)fail('STALE_BASE');localProtectionState(handle,foundation);h.captured.set(item.key,value);}
+  if(!h.captured.size){releaseContextProtectionLocalAdmission(handle,foundation);return null;}
+  const items=original.items.filter(item=>h.captured.has(item.key)),units=coverage.filter(unit=>h.captured.has(unit.key));
+  if(items.length>20||new Set(items.flatMap(item=>item.descriptor.sourceRecordIds)).size>20||units.some(unit=>!['topic','context'].includes(unit.facet))||items.some(item=>!units.some(unit=>unit.key===item.key)))fail('UNAVAILABLE');
+  h.request={...original,items,coverage:units,children:[units]};
+  await foundation.read(t=>assertContextProtectionLocalAdmission(handle,foundation,t,h.request));return handle;
+ }catch(error){releaseContextProtectionLocalAdmission(handle,foundation);throw error;}
+}
+export function contextProtectionLocalRequest(handle,foundation){return structuredClone(localProtectionState(handle,foundation).request);}
+export async function assertContextProtectionLocalAdmission(handle,foundation,transaction,job){
+ const h=localProtectionState(handle,foundation),r=h.request;
+ if(!r||job?.type!=='AI_MAINTENANCE'||!equal(job.items,r.items)||!equal(job.coverage,r.coverage)||job.contractVersion!==undefined&&job.contractVersion!==r.contractVersion||job.routeVersion!==undefined&&job.routeVersion!==r.routeVersion||h.jobId!==null&&job.id!==undefined&&job.id!==h.jobId)fail('UNAVAILABLE');
+ const t=localProtectionReader(h,transaction);await assertContextProtectionCorrections(h.store,t,r.items,h.captured);localProtectionState(handle,foundation);return true;
+}
+export function bindContextProtectionLocalJob(handle,foundation,job){const h=localProtectionState(handle,foundation);if(job.id!==null&&(typeof job.id!=='string'||h.jobId!==null&&h.jobId!==job.id))fail('UNAVAILABLE');h.jobId=job.id;}
+export function contextProtectionLocalJob(handle,foundation){return localProtectionState(handle,foundation).jobId;}
+export function releaseContextProtectionLocalAdmission(handle,foundation){const h=localProtectionAdmissions.get(handle);if(!h)return;if(h.foundation!==foundation)fail('UNAVAILABLE');h.captured.clear();h.request=null;localProtectionAdmissions.delete(handle);}
 
 
 // Finite text-correction/current-restoration mapper. A human-controlled

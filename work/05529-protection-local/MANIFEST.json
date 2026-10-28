@@ -1,0 +1,190 @@
+{
+  "status": "LOCAL FROZEN; NOT released, packaged, pushed, deployed or installed",
+  "repository": "local-only evidence reference: paia-context-protection-local-source-20261028",
+  "baseline": {
+    "commit": "3fccf5926349d0e8c492f8b8b9fae046fc5b5cf8",
+    "version": "0.55.28",
+    "tree": "23e30af1c7b56d63d9b31cb146c2c7281b56ab69"
+  },
+  "final": {
+    "commit": "51521246e1dfb3888c010617a397e6c6bc7a9227",
+    "tree": "be2cf4def20b4d2662048ceee532ed7d3760ce91",
+    "files": {
+      "extension/core/ai-usage/context-correction.js": {
+        "sha256": "26564b0e996991d3022466030a9d528955a5fb69e9723907503eaf9851573a96",
+        "bytes": 21950
+      },
+      "extension/core/ai-usage/foundation.js": {
+        "sha256": "a6cdb820b4a372c6ba545579fe43f175e1cb8b3c93fee9e0dca9dd76b9a03201",
+        "bytes": 137062
+      },
+      "extension/core/ai-usage/local-maintenance-session.js": {
+        "sha256": "6cf4ad4ce785a88a1977c8070347befd2a656a929b03eb3bf777d50f1e488293",
+        "bytes": 240987
+      },
+      "extension/core/ai-usage/maintenance-batch.js": {
+        "sha256": "bf6b45c77292bbe27a1d82f193ce45e3e238de6ae7ce6ac6acb974f50ee5ba09",
+        "bytes": 10954
+      },
+      "extension/tests/ai-context-protection-local-admission.test.mjs": {
+        "sha256": "8037e3b84419417b65475a196bd279d6b173b2ca6d5996d2c72318495cf5dbe2",
+        "bytes": 10477
+      },
+      "services/ai-gateway/tests/maintenance-protection-local-source.test.mjs": {
+        "sha256": "24759087c40df8724e2aab3f837b79b308969937a229133532c4ce5a39b3d70f",
+        "bytes": 7599
+      }
+    }
+  },
+  "scope": "Original automatic Context Item protection-only human change, unchanged semantic digest, exact original operation receipt, local-only NO_CHANGE settlement. Configured source route can now reach existing local owner without permitting any context_item remote processing.",
+  "contracts": [
+    "Private ephemeral attestation binds original Foundation/session, store/repository/database, generation/signal/current callback, original work budget, exact selected items/signatures/facets and receipt/item snapshots.",
+    "Local handle admits only fixed current/plan/resolveLocalSubset transactions; generic current/plan/reserve/dispatch retain source context_item refusal.",
+    "Original human consent/receipt plus Foundation authority remains required; no new processing opt-in requirement for a zero-provider local correction.",
+    "Original current awaits precede final owner snapshot; source instance cleanup releases handle; late disposal/semantic injection rolls back checked facets.",
+    "Candidates>20 or source metadata union>20 reject before Item capture/digest, no selecting first20 or extra page.",
+    "Mixed page only acknowledges genuine correction subset; unrelated manual obligation remains byte-exact, incoming cursor/complete:false/pendingBatchUnits retained; no remote preparation or DEFER clearing."
+  ],
+  "source_runs": [
+    {
+      "label": "initial environment setup failure, NOT runtime RED",
+      "commit": "f1f7e3a85890499ea41c91ea3c3229948e6f05c4",
+      "result": "1 file failed before imports completed; missing side-effect import history-time.js materialization",
+      "raw": {
+        "path": "work/05529-protection-local/paia-protection-local-source-red-20261028.log",
+        "sha256": "5c65927aa0125116169056285f848a2ee4d602c461741d362416dc4967c743a9",
+        "bytes": 1590
+      }
+    },
+    {
+      "label": "actual original source guard RED",
+      "commit": "f1f7e3a85890499ea41c91ea3c3229948e6f05c4",
+      "result": "1 FAIL; original AIUsageFoundation.current:221 UNAVAILABLE via maintenance-batch:83; original source config and genuine receipt setup reached",
+      "raw": {
+        "path": "work/05529-protection-local/paia-protection-local-source-red-runtime-20261028.log",
+        "sha256": "d4a59202cefa4230f7f54f0ada874050b6c1af1308bd5462eeee519b75c78db9",
+        "bytes": 1157
+      }
+    },
+    {
+      "label": "first integrated four source controls",
+      "commit": "6da90ad384977910004c795a13037e352d45bb7b",
+      "result": "2 PASS / 2 FAIL; positive local ACK and disabled-processing mixed pending PASS; two injected negatives failed reached=false because injection replaced captured repository.put method. Actual rejection stack was swallowed by assert.rejects; captured-method attribution is static, not printed original exception.",
+      "raw": {
+        "path": "work/05529-protection-local/paia-protection-local-source-first-four-20261028.log",
+        "sha256": "3f3d305c077372c64c95607faca7a9c667d5445bce468a0e088ffdd139fa796d",
+        "bytes": 2081
+      }
+    },
+    {
+      "label": "final-current predecessor three necessary source controls",
+      "commit": "6fdcef45aae084b6d52d7b801603dd616d59e0c4",
+      "command": "node --test --test-name-pattern='original configured source locally|at first ACK' services/ai-gateway/tests/maintenance-protection-local-source.test.mjs",
+      "result": "3 PASS: genuine source positive and native ACK-success semantic-drift/dispose injections. Mixed source case NOT rerun.",
+      "raw": {
+        "path": "work/05529-protection-local/paia-protection-local-source-final-three-20261028.log",
+        "sha256": "0aeacb5d6d1ecba5244aacfc589077dc2dca5730b171e6b5b793ad1913e9957e",
+        "bytes": 444
+      }
+    }
+  ],
+  "owner_runs": [
+    {
+      "label": "owner first six",
+      "runtime_commit": "2d6af9cdab5fe0a7a9169a5635fb7ef684a1f071",
+      "test_fixture_sha256": null,
+      "test_fixture_identity_limit": "Original pre-correction test bytes/hash were not saved. Do not substitute corrected 2d6 test hash.",
+      "result": "4 PASS / 2 FAIL (missing authority.scope fixture field)",
+      "raw": {
+        "path": "work/05529-protection-local/local-protection-admission-first.tap",
+        "sha256": "84b0844d2ca5d744b79789889e33d7d20ce8398575b6a32ca1b705f56deda60e",
+        "bytes": 2345
+      }
+    },
+    {
+      "label": "owner corrected authority subset only",
+      "runtime_commit": "2d6af9cdab5fe0a7a9169a5635fb7ef684a1f071",
+      "result": "2 PASS; only the two fixture-corrected controls rerun",
+      "raw": {
+        "path": "work/05529-protection-local/local-protection-admission-corrected-authority.tap",
+        "sha256": "2a59ab62653d6739d8e8f7afd8c55c46eec711107de0ef76eccf3a7012db95e4",
+        "bytes": 323
+      }
+    },
+    {
+      "label": "owner final-current new control",
+      "runtime_commit": "aca7b997f9f64e09720f450600b2b3455d19fe4d",
+      "result": "1 PASS; new after-current drift control only",
+      "raw": {
+        "path": "work/05529-protection-local/local-protection-final-current-first.tap",
+        "sha256": "941749dbdf1566b00ba2349baf391bd31aed00378874bba2b28e974abf465176",
+        "bytes": 219
+      }
+    },
+    {
+      "label": "owner original pre-read ceiling new control",
+      "runtime_commit": "59e10f867a29d5ac7b363d38f4a75f864dd68a7b",
+      "result": "1 PASS; untrusted 21-candidate and 21-source metadata rejected before any Foundation.read, readCount=0; this is denial evidence, not real-source positive qualification",
+      "raw": {
+        "path": "work/05529-protection-local/local-protection-pre-read-bound-first.tap",
+        "sha256": "d3ad838d62b072d87804733d146beb4ebdc4386db36dea9d84cd63ce604f60b0",
+        "bytes": 220
+      }
+    }
+  ],
+  "observed_final_source_predecessor": [
+    "Positive reached real configured source, original protected Item body/row unchanged, exact Topic+Context NO_CHANGE ACK, one local usage receipt, attemptCount=0/effectiveResultCount=0/spendState=NO_PROVIDER_COST; physical requests=0 and HTTP call list empty.",
+    "Each final negative observed exactly one native ACK-success injection then prepare rejection and full transaction rollback; no new local ACK/usage, dirty correction preserved, Context row unchanged, physical=0 and HTTP calls empty."
+  ],
+  "limitations": [
+    "No aggregate final all-controls pass is claimed. 6fd source3 passed before final pre-read-limit insertion; final515 differs only the new pre-read guard in that runtime owner. Existing one-candidate valid-array source branches are statically unchanged but were NOT rerun.",
+    "Mixed disabled-processing source control passed only on6da before final-current and bound repairs; not represented as a final515 run.",
+    "Final negative expected-rejection code/stack was not printed on passing tests; semantic meta.put success count was not separately recorded. Evidence proves rejection/rollback after ACK-success injection, not unique failure-check/error-code attribution.",
+    "First source2 negative errors were swallowed by assert.rejects; raw preserves reached=false failure only. First owner6 pre-correction fixture hash unavailable as above.",
+    "Only local mocked-source/native fake IndexedDB controls; no live browser/provider/PostgreSQL/installation/full suite/performance qualification.",
+    "Four source configurations remain NULL; no schema/provider/account/permission activation, budget/physical-request allowance changes, Port/Sync or version changes.",
+    "HELD Section92d and frozen .55.26/.55.27/.55.28 candidate trees untouched. No same-delta paging or joint-fence optimization."
+  ],
+  "artifacts": [
+    {
+      "path": "local-only evidence reference: combined-3fcc-to-6fd.diff",
+      "sha256": "f1a6e56e26ee9083d773cdb3824650a95a67b7c672b1f6db5536faf359278246",
+      "bytes": 53037
+    },
+    {
+      "path": "local-only evidence reference: combined-3fcc-to-final.diff",
+      "sha256": "b6604139455de8fc04d48dd2756c345790d70a39384c2890e3674999eb7b43e6",
+      "bytes": 54726
+    },
+    {
+      "path": "local-only evidence reference: final-pre-read-bound.diff",
+      "sha256": "b68da96eb4156083b41aa051d744edac79bba4a6cf89cac6522c076e9627352f",
+      "bytes": 1539
+    },
+    {
+      "path": "local-only evidence reference: runtime-3fcc-to-final.diff",
+      "sha256": "17ba0fe5dff697d6204e1833d148fcc04e3d7b3525a61f07603b5e36ac65ccec",
+      "bytes": 35914
+    },
+    {
+      "path": "local-only evidence reference: session-batch-6fd.diff",
+      "sha256": "7df912f951285b1d31d0ca38c3587be5f6950cc082c0abae61b78b790087dbe9",
+      "bytes": 16481
+    },
+    {
+      "path": "local-only evidence reference: source-identities.json",
+      "sha256": "38a7ed35f59ddea4b419ff6dca7f45a1ca676397ad494f9970180107f7033649",
+      "bytes": 4125
+    }
+  ],
+  "working_tree": "Tracked source clean; one untracked reusable node_modules symlink points to preexisting dependency store. Not included in commit.",
+  "unchangedNullConfigurations": {
+    "extension/core/ai-usage/assist-service-configuration.js": "75c427fad618799fa52a6b4951d50869af2c41d1cfa0c52ca493571fd918c580",
+    "extension/core/ai-usage/historical-service-configuration.js": "c07bbf91a865ffc07c644b3127c160790816f93319555aadb6be1c7ebda50dd8",
+    "extension/core/ai-usage/maintenance-service-configuration.js": "d94bc0c0e8ab1393a011822c4114176efcf724c8020459f1f70fac8fdd4e17a5",
+    "extension/core/ai-usage/organize-service-configuration.js": "aa072890a1a7ee8488236ce9415db2da6f565f2aae6eb563875939bc81711030"
+  },
+  "actualRemoteBase": "630953dcc78128fc0a56d2743ff7069695d9cdd9",
+  "staticContractBoundary": "Production Foundation is private to the original session. The retained original generation/signal closure narrows lifetime; the supplied generation integer alone is not authority. This is not a guarantee against malicious modules already holding a leaked private production Foundation.",
+  "packaging": "Version/records only; no new tests or runtime edits."
+}

@@ -1,0 +1,22 @@
+✖ original configured source locally ACKs a genuine protection-only correction without provider work (675.989663ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1192.076526
+
+✖ failing tests:
+
+test at services/ai-gateway/tests/maintenance-protection-local-source.test.mjs:32:1
+✖ original configured source locally ACKs a genuine protection-only correction without provider work (675.989663ms)
+  Error: UNAVAILABLE
+      at fail (file:///tmp/paia-context-protection-local-source-20261028/extension/core/ai-usage/contracts.js:6:52)
+      at AIUsageFoundation.current (file:///tmp/paia-context-protection-local-source-20261028/extension/core/ai-usage/foundation.js:221:226)
+      at async file:///tmp/paia-context-protection-local-source-20261028/extension/core/ai-usage/maintenance-batch.js:83:3
+      at async ArchiveRepository.transaction (file:///tmp/paia-context-protection-local-source-20261028/extension/core/idb-repository.js:963:1126)
+      at async execute (file:///tmp/paia-context-protection-local-source-20261028/extension/core/indexed-store.js:182:11) {
+    code: 'UNAVAILABLE'
+  }

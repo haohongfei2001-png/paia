@@ -1,0 +1,11 @@
+✔ original configured source locally ACKs a genuine protection-only correction without provider work (694.926375ms)
+✔ source local protection semantic drift at first ACK rolls back the exact local settlement (612.70513ms)
+✔ source local protection dispose at first ACK rolls back the exact local settlement (525.143803ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2472.814153

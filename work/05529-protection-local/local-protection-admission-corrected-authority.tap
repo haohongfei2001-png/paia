@@ -1,0 +1,10 @@
+✔ private correction admission settles only the original subset with zero-cost local receipts (619.455331ms)
+✔ late original Item drift rolls back both local ACKs and the zero-cost receipt (438.650563ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1432.32537

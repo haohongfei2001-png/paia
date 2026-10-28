@@ -1,0 +1,38 @@
+✖ private correction admission settles only the original subset with zero-cost local receipts (652.715246ms)
+✔ cloned, foreign-Foundation and released local handles never admit source currentness (515.654165ms)
+✔ captured local admission rejects changed-body before a local plan (501.255563ms)
+✔ captured local admission rejects revoked before a local plan (465.127927ms)
+✔ a copied semantic-digest claim cannot replace the original current human proof (470.149868ms)
+✖ late original Item drift rolls back both local ACKs and the zero-cost receipt (372.299298ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 4
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3421.530508
+
+✖ failing tests:
+
+test at extension/tests/ai-context-protection-local-admission.test.mjs:30:1
+✖ private correction admission settles only the original subset with zero-cost local receipts (652.715246ms)
+  Error: UNAVAILABLE
+      at fail (file:///tmp/paia-v2-pt08-composition-20261028/extension/core/ai-usage/contracts.js:6:52)
+      at AIUsageFoundation.authority (file:///tmp/paia-v2-pt08-composition-20261028/extension/core/ai-usage/foundation.js:99:92)
+      at async file:///tmp/paia-v2-pt08-composition-20261028/extension/core/ai-usage/foundation.js:280:231
+      at async ArchiveRepository.transaction (file:///tmp/paia-v2-pt08-composition-20261028/extension/core/idb-repository.js:963:1126)
+      at async execute (file:///tmp/paia-v2-pt08-composition-20261028/extension/core/indexed-store.js:182:11) {
+    code: 'UNAVAILABLE'
+  }
+
+test at extension/tests/ai-context-protection-local-admission.test.mjs:59:1
+✖ late original Item drift rolls back both local ACKs and the zero-cost receipt (372.299298ms)
+  Error: UNAVAILABLE
+      at fail (file:///tmp/paia-v2-pt08-composition-20261028/extension/core/ai-usage/contracts.js:6:52)
+      at AIUsageFoundation.authority (file:///tmp/paia-v2-pt08-composition-20261028/extension/core/ai-usage/foundation.js:99:92)
+      at async file:///tmp/paia-v2-pt08-composition-20261028/extension/core/ai-usage/foundation.js:280:231
+      at async ArchiveRepository.transaction (file:///tmp/paia-v2-pt08-composition-20261028/extension/core/idb-repository.js:963:1126)
+      at async execute (file:///tmp/paia-v2-pt08-composition-20261028/extension/core/indexed-store.js:182:11) {
+    code: 'UNAVAILABLE'
+  }

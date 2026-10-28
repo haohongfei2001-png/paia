@@ -1,7 +1,8 @@
 import {canonical,equal,exact,fail,opaque,unitKey,validateCoverage,CHILD_LIMITS} from './contracts.js';
 import {DIRTY_PREFIX,KNOWN_PREFIX} from './delta.js';
 import {contextScopeTransactionReader} from '../context-topic-scope.js';
-const deferredSelections=new WeakMap();
+const deferredSelections=new WeakMap(),localProtectionSelections=new WeakMap(),unqualifiedLocalBatches=new WeakSet();
+export function readMaintenanceLocalContextProtectionBatch(batch,foundation){const held=localProtectionSelections.get(batch);return held?.foundation===foundation?held.handle:null;}
 const frozen=x=>{if(x&&typeof x==='object'){for(const v of Object.values(x))frozen(v);Object.freeze(x);}return x;};
 // An original bounded-page metadata witness, never an executable request or grant.
 export function readMaintenanceDeferredRestoreBatch(batch,foundation){const held=deferredSelections.get(batch);return held?.foundation===foundation?held:null;}
@@ -37,13 +38,13 @@ export function unsupportedMaintenanceCoverage(items,coverage,qualifiedEntries=n
 }
 // A current, metadata-only candidate for the existing foundation.plan interface.
 // No alarm, service window, reservation, provider call or new durable queue.
-export async function readMaintenanceBatch(foundation,options,workBudget=null){
+export async function readMaintenanceBatch(foundation,options,workBudget=null,localProtection=null){
  options=structuredClone(options);
  exact(options,['scope','contractVersion','routeVersion','cursor','limit'],['scope','contractVersion','routeVersion']);
  const {scope,contractVersion,routeVersion,cursor=null,limit=37}=options;
  if(![scope,contractVersion,routeVersion].every(opaque)||!Number.isInteger(limit)||limit<1||limit>50||cursor!==null&&(typeof cursor!=='string'||!cursor.startsWith(DIRTY_PREFIX)))fail();
  if(typeof foundation?.read!=='function'||typeof foundation?.current!=='function'||typeof foundation?.authority!=='function')fail('UNAVAILABLE');
- const read=()=>foundation.read(async transaction=>{
+ const read=async()=>{const batch=await foundation.read(async transaction=>{
   const t=workBudget===null?transaction:contextScopeTransactionReader(foundation.s,transaction,workBudget);
   const page=await t.primaryRangePage('meta',{prefix:DIRTY_PREFIX,after:cursor,limit});
   // Active DEFER rows have no per-unit index or executable condition owner.
@@ -79,15 +80,29 @@ export async function readMaintenanceBatch(foundation,options,workBudget=null){
   const sorted=validateCoverage(coverage,TYPE),children=[];
   for(let offset=0;offset<sorted.length;offset+=50)children.push(sorted.slice(offset,offset+50));
   if(children.length>CHILD_LIMITS[TYPE])fail();
+  const candidate=result('CANDIDATE_ONLY',{...boundary,request:{type:TYPE,intent:'maintenance',items,coverage:sorted,children,contractVersion,routeVersion}});
+  // Only the original local owner may qualify this metadata outside the scan's
+  // transaction. It is not a request grant, dispatch flag or cleared obligation.
+  if(localProtection!==null&&items.some(i=>i.descriptor.kind==='context_item'&&i.descriptor.localCorrection?.kind==='protection_only')){unqualifiedLocalBatches.add(candidate);return candidate;}
   const authority=await foundation.authority(transaction,TYPE,{items,coverage:sorted});
   await foundation.current(transaction,{type:TYPE,items,coverage:sorted,authority,cancelEpoch:0});
-  return result('CANDIDATE_ONLY',{...boundary,request:{type:TYPE,intent:'maintenance',items,coverage:sorted,children,contractVersion,routeVersion}});
+  return candidate;
  });
+ if(!unqualifiedLocalBatches.has(batch))return batch;
+ const handle=await foundation.prepareLocalContextProtection(batch.request,{...localProtection,workBudget});
+ try{
+  const request=handle?foundation.localContextProtectionRequest(handle):batch.request;
+  await foundation.read(async t=>{const authority=await foundation.authority(t,TYPE,request),job={...request,authority,cancelEpoch:0};if(handle)await foundation.currentLocalContextProtection(t,job,handle);else await foundation.current(t,job);});
+  if(!handle)return batch;
+  const omitted=batch.request.coverage.length-request.coverage.length,qualified={...batch,request,...(omitted?{nextCursor:cursor,complete:false,pendingBatchUnits:omitted}:{})};
+  localProtectionSelections.set(qualified,{foundation,handle});return qualified;
+ }catch(error){if(handle)foundation.releaseLocalContextProtection(handle);throw error;}
+ };
  const initial=await read();
  if(initial.reason!=='DEFER_SCAN_BOUND'||typeof foundation.archiveObsoleteDeferred!=='function')return initial;
  let cleanup;
  try{cleanup=await foundation.archiveObsoleteDeferred({limit:LIMIT});}catch(error){if(error.code==='DEFER_RECORD_INVALID')return {...initial,cleanup:{blocked:true,reason:error.code}};throw error;}
  // One bounded archival transaction and one fresh qualification read, never a
  // loop, background scheduler, condition guess or provider retry.
- return {...await read(),cleanup};
+ const next=await read(),cleaned={...next,cleanup},local=localProtectionSelections.get(next);if(local)localProtectionSelections.set(cleaned,local);return cleaned;
 }

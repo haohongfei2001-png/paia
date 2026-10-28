@@ -35,7 +35,7 @@ import {readAuthoredEntryContext,authoredContextEvidenceMatches,authoredSelected
 import {hashText} from '../dedupe.js';
 import {createContextScopeWorkBudget,forkContextScopeWorkBudget,contextScopeTransactionReader,assertContextScopeWorkBudgetFacts,CONTEXT_TOPIC_SCOPE_LIMITS,assertContextScopeTransactionIdentity} from '../context-topic-scope.js';
 import {AIUsageFoundation} from './foundation.js';
-import {readMaintenanceBatch,readMaintenanceDeferredRestoreBatch,unsupportedMaintenanceCoverage} from './maintenance-batch.js';
+import {readMaintenanceBatch,readMaintenanceDeferredRestoreBatch,readMaintenanceLocalContextProtectionBatch,unsupportedMaintenanceCoverage} from './maintenance-batch.js';
 import {createMaintenancePayload} from './maintenance-payload.js';
 import {canonical,digest,equal,exact,fail,opaque,unitKey,validateCoverage,localProviderDescriptor} from './contracts.js';
 import {TopicFormationService,readTopicFormationPublication} from '../topic-formation.js';
@@ -324,6 +324,7 @@ export class LocalMaintenanceSession {
  #replaceProcessingSelection(batch,options){
   const pending=this.#preparing;if(!this.#remote||!pending||!this.#sourceSelection)return;
   retireProcessingSelection(pending.selection);pending.selection=null;
+  const localProtection=readMaintenanceLocalContextProtectionBatch(batch,this.#foundation);if(localProtection){pending.localProtection=localProtection;return;}
   const deferred=readMaintenanceDeferredRestoreBatch(batch,this.#foundation);
   if(batch.status!=='CANDIDATE_ONLY'&&!deferred)return;
   if(deferred){if(deferred.budget!==pending.workBudget||!pending.identityWork||currentOriginalRecoveryWork(this.#store.repository)!==pending.identityWork)fail('UNAVAILABLE');checkOriginalRecoveryWork(this.#store.repository,pending.identityWork);}
@@ -684,7 +685,7 @@ export class LocalMaintenanceSession {
   const pending={key,promise:null,controller:new AbortController(),selection:null,wall:processingWall(),mono:processingMono()};this.#preparing=pending;
   // Opening the existing current-schema database handle reads no content or DDL. The first physical
   // transaction and every later phase share one ticket with the original clock.
-  const generation=this.#generation,repository=this.#store.repository,cleanup=()=>{const selected=processingSelections.get(pending.selection);if(selected&&!selected.state)retireProcessingSelection(pending.selection);if(this.#preparing===pending)this.#preparing=null;};
+  const generation=this.#generation,repository=this.#store.repository,cleanup=()=>{if(pending.localProtection)this.#foundation.releaseLocalContextProtection(pending.localProtection);const selected=processingSelections.get(pending.selection);if(selected&&!selected.state)retireProcessingSelection(pending.selection);if(this.#preparing===pending)this.#preparing=null;};
   const prepare=async()=>{
    if(this.#remote&&this.#topicIdentityProcessing){await repository.openExisting();if(this.#store.repository!==repository||generation!==this.#generation||processingAborted.call(pending.controller.signal))fail('UNAVAILABLE');pending.identityWork=createOriginalRecoveryWork(repository,{ms:Math.min(30000,this.#store.organizerBudget.limits.timeoutMs)-(processingMono()-pending.mono),isCurrent:()=>generation===this.#generation&&!processingAborted.call(pending.controller.signal)});return withOriginalRecoveryWork(repository,pending.identityWork,()=>this.#prepare(copied,pending.controller.signal));}
    return this.#prepare(copied,pending.controller.signal);
@@ -694,12 +695,12 @@ export class LocalMaintenanceSession {
  async #prepare(options,signal){
   this.#preparing.workBudget=createContextScopeWorkBudget({database:this.#store.repository.db});
   if(this.#topicIdentityProcessing)this.#preparing.lifecycleRestoreEpoch=await this.#foundation.read(async t=>(await contextScopeTransactionReader(this.#store,t,this.#preparing.workBudget).get('meta','recovery-restore-epoch'))?.value??null);
-  const generation=this.#generation;if(this.#remote){const recovered=await this.#remote.assertCanPlan(this.#foundation,id=>this.#jobs.has(id),()=>generation===this.#generation&&!signal.aborted);if(recovered)return this.#passiveHandle({status:'RECOVERED',complete:false},generation);}let batch=await readMaintenanceBatch(this.#foundation,options,this.#sourceSelection?this.#preparing.workBudget:null),deferredUnits=0;this.#replaceProcessingSelection(batch,options);
+  const generation=this.#generation;if(this.#remote){const recovered=await this.#remote.assertCanPlan(this.#foundation,id=>this.#jobs.has(id),()=>generation===this.#generation&&!signal.aborted);if(recovered)return this.#passiveHandle({status:'RECOVERED',complete:false},generation);}let batch=await readMaintenanceBatch(this.#foundation,options,this.#sourceSelection?this.#preparing.workBudget:null,this.#remote&&this.#sourceSelection?{generation,signal,isCurrent:()=>generation===this.#generation&&!signal.aborted}:null),deferredUnits=0;this.#replaceProcessingSelection(batch,options);
   if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
   // A configured local original-domain mapper resolves only its explicit old
   // retry condition. At most one mapper pass, distinct from obsolete cleanup.
   const mappingReady=this.#service?.responseAdapter&&(this.#provider||this.#remote)&&typeof this.#window?.acquire==='function'&&typeof this.#window?.isCurrent==='function';
-  if(mappingReady&&(batch.blockedUnits>0||batch.reason==='DEFER_SCAN_BOUND')){
+  if(mappingReady&&!readMaintenanceLocalContextProtectionBatch(batch,this.#foundation)&&(batch.blockedUnits>0||batch.reason==='DEFER_SCAN_BOUND')){
    if(this.#sourceSelection&&this.#remote){
     if(!readMaintenanceDeferredRestoreBatch(batch,this.#foundation))fail('UNAVAILABLE');
     const admitted=await this.#reconsiderDeferredRestore(batch,options);if(!admitted)fail('UNAVAILABLE');batch=admitted;
@@ -713,17 +714,17 @@ export class LocalMaintenanceSession {
   if(batch.status!=='CANDIDATE_ONLY')return this.#passiveHandle(batch,generation,deferredUnits);
   this.#preparing.requestIdentity=await prepareMaintenanceQualificationRequest(batch.request,{workBudget:this.#preparing.workBudget});
   if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
-  const localCorrections=await qualifyContextProtectionCorrections(this.#foundation,batch.request.items);
+  const localAdmission=readMaintenanceLocalContextProtectionBatch(batch,this.#foundation),localCorrections=localAdmission?new Map(batch.request.items.map(i=>[i.key,true])):await qualifyContextProtectionCorrections(this.#foundation,batch.request.items);
   if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
   if(localCorrections.size){
    const coverage=batch.request.coverage.filter(u=>localCorrections.has(u.key)&&['topic','context'].includes(u.facet)),items=batch.request.items.filter(i=>coverage.some(u=>u.key===i.key)),children=[];
    for(let at=0;at<coverage.length;at+=50)children.push(coverage.slice(at,at+50));
-   if(coverage.length){const request={...batch.request,items,coverage,children},job=await this.#foundation.plan(request);
+   if(coverage.length){const request={...batch.request,items,coverage,children},job=localAdmission?await this.#foundation.planLocalContextProtection(localAdmission):await this.#foundation.plan(request);
     if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
-    const owner={job,request,captured:localCorrections,generation,signal};this.#localCorrection=owner;
-    try{if(job.id!==null)await this.#foundation.resolveLocalSubset(job.id,{units:coverage});}finally{if(this.#localCorrection===owner)this.#localCorrection=null;}
+    const owner={job,request,captured:localCorrections,generation,signal,admission:localAdmission};this.#localCorrection=owner;
+    try{if(job.id!==null){if(localAdmission)await this.#foundation.resolveLocalContextProtection(localAdmission,job.id);else await this.#foundation.resolveLocalSubset(job.id,{units:coverage});}}finally{if(this.#localCorrection===owner)this.#localCorrection=null;}
     if(generation!==this.#generation||signal.aborted)fail('UNAVAILABLE');
-    const complete=coverage.length===batch.request.coverage.length&&batch.complete===true,remainingWork=!complete||(batch.blockedUnits??0)>0,progress={localResolvedUnits:coverage.length,remainingWork,blockedUnits:batch.blockedUnits??0,deferredUnits:0},state=remainingWork?'PARTIAL':'COMMITTED';
+    const complete=coverage.length===batch.request.coverage.length&&batch.complete===true,remainingWork=!complete||(batch.blockedUnits??0)>0,progress={localResolvedUnits:coverage.length,remainingWork,blockedUnits:batch.blockedUnits??0,deferredUnits:0,...(batch.pendingBatchUnits?{pendingBatchUnits:batch.pendingBatchUnits}:{})},state=remainingWork?'PARTIAL':'COMMITTED';
     const handle=Object.freeze(outcome(state,{jobId:job.id,nextCursor:coverage.length===batch.request.coverage.length?batch.nextCursor:options.cursor??null,complete,...progress}));this.#passive.set(handle,{generation,state,...progress});return handle;
    }
   }
@@ -1226,8 +1227,9 @@ export class LocalMaintenanceSession {
    const current=()=>local.generation===this.#generation&&!local.signal.aborted;
    if(!current()||r.logicalJobId!==local.job.id||r.outcome!=='NO_CHANGE'||!['topic','context'].includes(facet)||r.units.some(u=>u.facet!==facet||!local.request.coverage.some(v=>equal(u,v))))fail('STALE_BASE');
    const abort=()=>{try{t.tx.abort();}catch{}};local.signal.addEventListener('abort',abort,{once:true});const cleanup=()=>local.signal.removeEventListener('abort',abort);t.tx.addEventListener('complete',cleanup,{once:true});t.tx.addEventListener('abort',cleanup,{once:true});
-   await assertContextProtectionCorrections(this.#store,t,local.request.items,local.captured);
-   return {committed:true,coverage:r.units,isCurrent:current,fenceAfterSettlement:async transaction=>{await this.#foundation.current(transaction,await this.#foundation.job(transaction,local.job.id));await assertContextProtectionCorrections(this.#store,transaction,local.request.items,local.captured);return current();}};
+   const check=async transaction=>{if(local.admission)await this.#foundation.currentLocalContextProtection(transaction,await this.#foundation.job(transaction,local.job.id),local.admission);else await assertContextProtectionCorrections(this.#store,transaction,local.request.items,local.captured);};
+   await check(t);
+   return {committed:true,coverage:r.units,isCurrent:current,fenceAfterSettlement:async transaction=>{if(!local.admission)await this.#foundation.current(transaction,await this.#foundation.job(transaction,local.job.id));await check(transaction);return current();}};
   }
   const a=this.#active;
   if(a?.followingExcerpt){

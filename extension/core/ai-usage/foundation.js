@@ -1,4 +1,5 @@
 import {withOriginalRecoveryStoreAdmission} from '../indexed-store.js';
+import {prepareContextProtectionLocalAdmission,contextProtectionLocalRequest,assertContextProtectionLocalAdmission,bindContextProtectionLocalJob,contextProtectionLocalJob,releaseContextProtectionLocalAdmission} from './context-correction.js';
 import {takeMaintenanceDeferredRestoreHandoff} from './local-maintenance-session.js';
 import {readMaintenanceDeferredRestoreBatch} from './maintenance-batch.js';
 import {readMaintenanceServiceProcessingPlan,assertMaintenanceServiceLifecycleFacts} from './maintenance-service-client.js';
@@ -69,12 +70,27 @@ async function historicalExecution(provider,request,{signal,timeoutMs}){
 // Only constructor-injected domain owners can commit. The explicit Qwen service
 // path has no default endpoint, identity, registry or automatic paid retry.
 export class AIUsageFoundation {
- #createdMaintenancePlans=new WeakMap();#maintenanceSourceContext=null;
+ #createdMaintenancePlans=new WeakMap();#maintenanceSourceContext=null;#localProtectionTransactions=new WeakMap();
  #serverProviders=new Map();#resultReports=new Map();#historicalRecovery=new WeakMap();#assistRecovery=new WeakMap();#organizeRecovery=new WeakMap();#maintenanceRecovery=new WeakMap();
  #qualifyMaintenanceEntries;#qualifyMaintenancePlacements;#qualifyMaintenanceStructures;#qualifyMaintenanceContextEdits;#resolveRecoveryWork;
  constructor(store,{resolveRecoveryWork=null,maintenanceSourceContext=null,resolveAuthority=null,verifyOutcome=null,resolveAssistIntent=null,resolveHistoricalIntent=null,candidateResult=null,committers={},organizeClosure=null,assistResult=null,qualifyMaintenanceEntries=null,qualifyMaintenancePlacements=null,qualifyMaintenanceStructures=null,qualifyMaintenanceContextEdits=null}={}){if(resolveRecoveryWork!==null&&typeof resolveRecoveryWork!=='function')fail();this.#resolveRecoveryWork=resolveRecoveryWork;if(maintenanceSourceContext!==null&&!needsMaintenanceProcessingContext(maintenanceSourceContext))fail('UNAVAILABLE');this.#maintenanceSourceContext=maintenanceSourceContext;if(qualifyMaintenanceEntries!==null&&typeof qualifyMaintenanceEntries!=='function')fail();if(qualifyMaintenancePlacements!==null&&typeof qualifyMaintenancePlacements!=='function')fail();if(qualifyMaintenanceStructures!==null&&typeof qualifyMaintenanceStructures!=='function')fail();if(qualifyMaintenanceContextEdits!==null&&typeof qualifyMaintenanceContextEdits!=='function')fail();this.#qualifyMaintenanceContextEdits=qualifyMaintenanceContextEdits;this.#qualifyMaintenanceStructures=qualifyMaintenanceStructures;this.#qualifyMaintenancePlacements=qualifyMaintenancePlacements;this.#qualifyMaintenanceEntries=qualifyMaintenanceEntries;this.s=store;this.resolveHistoricalIntent=resolveHistoricalIntent;this.candidateResult=candidateResult;this.assistResult=assistResult;this.organizeClosure=organizeClosure;this.resolveAssistIntent=resolveAssistIntent;this.resolveAuthority=resolveAuthority;this.verifyOutcome=verifyOutcome;this.committers=Object.freeze({...committers});}
  async read(fn){const recoveryWork=this.#resolveRecoveryWork?.()??null;await this.s.finishFoundation({recoveryWork});const enqueue=()=>this.s.run(()=>this.s.repository.transaction(false,fn));return recoveryWork===null?enqueue():withOriginalRecoveryStoreAdmission(this.s,recoveryWork,enqueue);}
  async write(fn){return this.s.foundationWrite(fn,{recoveryWork:this.#resolveRecoveryWork?.()??null});}
+ // Only these fixed local methods enter the original correction attestation.
+ // Generic current/plan/reserve/dispatch never receive it. The transient entry
+ // is tied to one original native transaction, not ambient async session state.
+ prepareLocalContextProtection(request,options){if(this.#maintenanceSourceContext===null)fail('UNAVAILABLE');return prepareContextProtectionLocalAdmission(this,request,options);}
+ localContextProtectionRequest(handle){return contextProtectionLocalRequest(handle,this);}
+ releaseLocalContextProtection(handle){releaseContextProtectionLocalAdmission(handle,this);}
+ async #withLocalContextProtection(t,handle,fn){
+  contextProtectionLocalRequest(handle,this);requireRepositoryTransactionScope(this.s.repository,t);
+  const prior=this.#localProtectionTransactions.get(t.tx);if(prior&&prior!==handle)fail('UNAVAILABLE');
+  this.#localProtectionTransactions.set(t.tx,handle);
+  try{return await fn();}finally{if(!prior)this.#localProtectionTransactions.delete(t.tx);}
+ }
+ currentLocalContextProtection(t,job,handle){return this.#withLocalContextProtection(t,handle,async()=>{await this.current(t,job);return assertContextProtectionLocalAdmission(handle,this,t,job);});}
+ async planLocalContextProtection(handle){const job=await this.#plan(contextProtectionLocalRequest(handle,this),handle);bindContextProtectionLocalJob(handle,this,job);return job;}
+ resolveLocalContextProtection(handle,id){if(contextProtectionLocalJob(handle,this)!==id||typeof id!=='string')fail('UNAVAILABLE');return this.#resolveLocalSubset(id,{units:contextProtectionLocalRequest(handle,this).coverage},handle);}
  async authority(t,type,scope,signal=null){
   // Cancellation only narrows this original authority read. It grants no scope.
   const check=()=>{if(signal!==null){let aborted;try{aborted=nativeSignalAborted.call(signal);}catch{fail('UNAVAILABLE');}if(aborted)fail('UNAVAILABLE');}},read=async key=>{check();const row=await t.get('meta',key);check();return row;};check();
@@ -218,7 +234,14 @@ export class AIUsageFoundation {
   const sourceOnly=job.type==='AI_MAINTENANCE'&&this.#maintenanceSourceContext!==null;
   // Original source selector may inspect these exact current metadata kinds.
   // Their fields still require the private source qualification before mapping.
-  if(sourceOnly&&(job.items.length>20||new Set(job.items.flatMap(item=>item.descriptor.sourceRecordIds)).size>20||job.items.some(item=>!['input','library_entry','placement','topic','section'].includes(item.descriptor.kind))))fail('UNAVAILABLE');
+  if(sourceOnly){
+   if(job.items.length>20||new Set(job.items.flatMap(item=>item.descriptor.sourceRecordIds)).size>20)fail('UNAVAILABLE');
+   if(job.items.some(item=>!['input','library_entry','placement','topic','section'].includes(item.descriptor.kind))){
+    const local=this.#localProtectionTransactions.get(t.tx);
+    if(!local||job.items.some(item=>item.descriptor.kind!=='context_item'))fail('UNAVAILABLE');
+    await assertContextProtectionLocalAdmission(local,this,t,job);
+   }
+  }
   for(const item of job.items){const known=await t.get('meta',KNOWN_PREFIX+item.key);if(!known||known.signature!==item.signature||known.descriptor.removed)fail('STALE_BASE');
    if(!(sourceOnly?await this.#maintenanceSourcePresent(t,item.descriptor.sourceRecordIds):await this.s.sourcePresent(t,item.descriptor.sourceRecordIds)))fail('STALE_BASE');
    if(item.descriptor.kind==='input'){const live=await t.get('inputStates',item.descriptor.entityId);if(!live||deltaSignature(deltaDescription('inputStates',live))!==item.signature)fail('STALE_BASE');}
@@ -228,7 +251,8 @@ export class AIUsageFoundation {
   await assertAssistIntent(this,t,job);
   await assertOrganizeStyle(this.s,t,job);
  }
- async plan(request){
+ plan(request){return this.#plan(request,null);}
+ async #plan(request,localProtection){
   // Capture caller-owned evidence before any authority or storage await.
   request=structuredClone(request);
   exact(request,['type','items','coverage','children','contractVersion','routeVersion','intent','organizeStyle','organizeRequestKey','maintenanceRequestKey','assistIntent','commitMode','replyObligation','historicalIntent','candidateObligation'],['type','items','coverage','contractVersion','routeVersion','intent']);
@@ -266,7 +290,7 @@ export class AIUsageFoundation {
   if(type==='AI_ORGANIZE'&&targetScopes.length!==1)fail();
   const flightId='aiu:flight:'+await digest([snapshot.authority.principalId,snapshot.authority.libraryId,type,type==='AI_MAINTENANCE'?'library':candidates?'historical-candidates':targetScopes]);
   const proposed={...organizeRequest,...maintenanceRequest,...(assisted?{assistIntent}:{}),...(styled?{organizeStyle,organizeSemanticKey}:{}),id,kind:reply?ASSIST_RESULT_KIND:candidates?HISTORICAL_CANDIDATE_KIND:atomic?ATOMIC:KIND,...(reply?{replyObligation,resultCommitted:false}:candidates?{candidateObligation,historicalIntent,resultCommitted:false}:{}),...(atomic?{commitMode:request.commitMode}:{}),type,version:1,state:'PLANNED',stateKey:0,sequence:0,dedupeKey:id,items:structuredClone(items),coverage,childCoverage:children,childIds,scopeFingerprint,contractVersion,routeVersion,authority:snapshot.authority,flightId,cancelEpoch:0,committedCoverage:[],sourceRecordIds:[...new Set(items.flatMap(i=>i.descriptor.sourceRecordIds))]};
-  let created=false;const result=await this.write(async t=>{
+  let created=false;const create=async t=>{
    await this.current(t,proposed);
    const prior=await t.get('organizerJobs',id);if(prior){if(!knownJob(prior)||prior.kind!==proposed.kind)fail();if(prior.organizeRequestKey!==proposed.organizeRequestKey||prior.maintenanceRequestKey!==proposed.maintenanceRequestKey)fail('RESULT_BINDING_MISMATCH');
     if(!equal(prior.authority,proposed.authority)&&prior.cancelEpoch===0&&['PLANNED','RESERVED'].includes(prior.state)){
@@ -300,7 +324,7 @@ export class AIUsageFoundation {
    if(type==='AI_MAINTENANCE')for(const item of items){let dirty=await t.get('meta',DIRTY_PREFIX+item.key);if(dirty&&dirty.signature!==item.signature)fail('STALE_BASE');if(!dirty)dirty={...(await t.get('meta',KNOWN_PREFIX+item.key)),id:DIRTY_PREFIX+item.key,requirements:[],pendingFacets:[]};const needed=coverage.filter(c=>c.key===item.key&&!allCovered.includes(unitKey(c)));dirty.requirements=[...new Set([...(dirty.requirements||[]),...coverage.filter(c=>c.key===item.key).map(unitKey)])].sort();dirty.pendingFacets=[...new Set([...(dirty.pendingFacets||['topic','context']),...needed.map(c=>c.facet)])].sort();await t.put('meta',dirty);}
    if(atomic&&allCovered.length)fail('STALE_BASE');
    proposed.committedCoverage=allCovered;await t.put('organizerJobs',proposed);await t.put('meta',{id:flightId,jobId:id});created=true;return safeJob(proposed);
-  });
+  };const result=await this.write(t=>localProtection===null?create(t):this.#withLocalContextProtection(t,localProtection,()=>create(t)));
   if(created&&type==='AI_MAINTENANCE')this.#createdMaintenancePlans.set(result,canonical({id,authority:proposed.authority,coverage:proposed.coverage,childIds:proposed.childIds}));return result;
  }
  async #putJob(t,job){
@@ -976,9 +1000,10 @@ export class AIUsageFoundation {
  }
  // Multiple checked local facets publish together. The constructor-owned
  // committers still prove each exact subset; no provider result is synthesized.
- async resolveLocalSubset(id,{units}={}){
+ resolveLocalSubset(id,options={}){return this.#resolveLocalSubset(id,options,null);}
+ async #resolveLocalSubset(id,{units}={},localProtection){
   units=structuredClone(units);
-  return this.write(async t=>{const job=await this.job(t,id);if(job.kind!==KIND||job.type!=='AI_MAINTENANCE')fail();await this.current(t,job);const validated=validateCoverage(units,job.type);
+  const resolve=async t=>{const job=await this.job(t,id);if(job.kind!==KIND||job.type!=='AI_MAINTENANCE')fail();await this.current(t,job);const validated=validateCoverage(units,job.type);
    if(validated.some(u=>!job.coverage.some(v=>equal(u,v))))fail();
    const remaining=validated.filter(u=>!job.committedCoverage.includes(unitKey(u)));if(!remaining.length)return safeJob(job);if(terminal.has(job.state))fail('CANCELLED');
    for(let index=0;index<job.childIds.length;index++){
@@ -991,7 +1016,7 @@ export class AIUsageFoundation {
    // required exact owner snapshot and synchronous owner fence. No additional
    // authority await may reopen that final publication boundary.
    return safeJob(job);
-  });
+  };return this.write(t=>localProtection===null?resolve(t):this.#withLocalContextProtection(t,localProtection,()=>resolve(t)));
  }
  // Original maintenance following child only: a committed sibling can expose
  // missing Context qualification before this child has any financial request.
