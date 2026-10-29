@@ -10,11 +10,11 @@
     "headChangesRequireExplicitRebinding": true
   },
   "authorization": {
-    "scopeLabel": "ui-same-head-remaining-20261029",
+    "scopeLabel": "ui-recovery10-20261029",
     "cloudRuns": 1,
     "attempts": 1,
-    "maxCapturesPerRound": 49,
-    "maxExecutableStates": 49,
+    "maxCapturesPerRound": 10,
+    "maxExecutableStates": 10,
     "maxJobMinutesIncludingSetup": 10,
     "maxBrowserMs": 360000,
     "maxArtifactBytes": 67108864,
@@ -38,357 +38,6 @@
     "All seven implementation plans or full product completion"
   ],
   "scenes": [
-    {
-      "id": "orb-idle",
-      "group": "prompt",
-      "adapter": "prompt",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "orb-expanded",
-      "group": "prompt",
-      "adapter": "prompt",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "orb-capsule",
-      "group": "prompt",
-      "adapter": "prompt",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "nib-normal",
-      "group": "prompt",
-      "adapter": "prompt",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "nib-search",
-      "group": "prompt",
-      "adapter": "prompt",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "archive-reader-narrow",
-      "group": "archive",
-      "adapter": "archive-thought",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-reader-narrow",
-      "group": "thought",
-      "adapter": "archive-thought",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-home-narrow",
-      "group": "context",
-      "adapter": "bootstrap",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-inputs-narrow",
-      "group": "context",
-      "adapter": "bootstrap",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-group-narrow",
-      "group": "settings",
-      "adapter": "bootstrap",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "nib-narrow",
-      "group": "prompt",
-      "adapter": "prompt",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-home-dark",
-      "group": "thought",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "dark",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-reader-dark",
-      "group": "thought",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "dark",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-home-dark",
-      "group": "context",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "dark",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-inputs-dark",
-      "group": "context",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "dark",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-history-dark",
-      "group": "thought",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "dark",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-selected",
-      "group": "context",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-selected-narrow",
-      "group": "context",
-      "adapter": "gap-scenes",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-retained-dark",
-      "group": "context",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "dark",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-reply-consent",
-      "group": "settings",
-      "adapter": "settings-gap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-remote-consent",
-      "group": "settings",
-      "adapter": "settings-gap",
-      "width": 1280,
-      "height": 900,
-      "theme": "dark",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-next-consent",
-      "group": "settings",
-      "adapter": "settings-gap",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-capture-consent",
-      "group": "settings",
-      "adapter": "settings-gap",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-cancel-focus",
-      "group": "settings",
-      "adapter": "settings-gap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "nib-long-notice",
-      "group": "prompt",
-      "adapter": "prompt",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "nib-long-notice-narrow",
-      "group": "prompt",
-      "adapter": "prompt",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "nib-copy-failure",
-      "group": "prompt",
-      "adapter": "prompt",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-write-save",
-      "group": "thought",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-write-cancel",
-      "group": "thought",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-back-restore",
-      "group": "thought",
-      "adapter": "gap-scenes",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "archive-search-back",
-      "group": "archive",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "archive-sort-restore",
-      "group": "archive",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "archive-edit-save",
-      "group": "archive",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "archive-edit-undo",
-      "group": "archive",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-info-save",
-      "group": "context",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-rules-undo",
-      "group": "context",
-      "adapter": "gap-scenes",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-now-leave-blocked",
-      "group": "context",
-      "adapter": "gap-scenes",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-dirty-section-cancel",
-      "group": "thought",
-      "adapter": "gap-scenes",
-      "width": 390,
-      "height": 844,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "nib-keyboard-ime-dirty-dark",
-      "group": "prompt",
-      "adapter": "prompt",
-      "width": 390,
-      "height": 844,
-      "theme": "dark",
-      "execution": "ELIGIBLE"
-    },
     {
       "id": "archive-navigation-read-retry",
       "group": "archive",
@@ -546,33 +195,79 @@
     "claims": "Screenshots and actual source handlers over bounded synthetic RPC only; all original master/native/host limitations remain."
   },
   "priorEvidence": {
-    "run": 40837290382,
-    "head": "e2be589c8f47b08a4acd4cf999da6733b459a06d",
+    "earlier": {
+      "run": 40837290382,
+      "head": "e2be589c8f47b08a4acd4cf999da6733b459a06d",
+      "capturedIds": [
+        "archive-reader",
+        "thought-section-reader",
+        "context-inputs",
+        "archive-neutral",
+        "archive-browse",
+        "archive-search",
+        "thought-home",
+        "thought-second-section",
+        "thought-write",
+        "thought-options",
+        "thought-ascending",
+        "context-home",
+        "context-info",
+        "context-rules",
+        "context-now",
+        "context-readonly-section",
+        "settings-content",
+        "settings-reading",
+        "settings-ai",
+        "settings-privacy",
+        "settings-data",
+        "settings-about",
+        "settings-risk-dialog"
+      ],
+      "disposition": "Preserved distinct original23 captures/review; not rerun and not relabelled this attempt. Original run failed; two Copy states remain BLOCKED."
+    },
+    "run": 40849816756,
+    "head": "4429f31b1d29e022f491522b61c2f9f4b78e6061",
     "capturedIds": [
-      "archive-reader",
-      "thought-section-reader",
-      "context-inputs",
-      "archive-neutral",
-      "archive-browse",
-      "archive-search",
-      "thought-home",
-      "thought-second-section",
-      "thought-write",
-      "thought-options",
-      "thought-ascending",
-      "context-home",
-      "context-info",
-      "context-rules",
-      "context-now",
-      "context-readonly-section",
-      "settings-content",
-      "settings-reading",
-      "settings-ai",
-      "settings-privacy",
-      "settings-data",
-      "settings-about",
-      "settings-risk-dialog"
+      "orb-idle",
+      "orb-expanded",
+      "orb-capsule",
+      "nib-normal",
+      "nib-search",
+      "archive-reader-narrow",
+      "thought-reader-narrow",
+      "context-home-narrow",
+      "context-inputs-narrow",
+      "settings-group-narrow",
+      "nib-narrow",
+      "thought-home-dark",
+      "thought-reader-dark",
+      "context-home-dark",
+      "context-inputs-dark",
+      "thought-history-dark",
+      "context-selected",
+      "context-selected-narrow",
+      "context-retained-dark",
+      "settings-reply-consent",
+      "settings-remote-consent",
+      "settings-next-consent",
+      "settings-capture-consent",
+      "settings-cancel-focus",
+      "nib-long-notice",
+      "nib-long-notice-narrow",
+      "nib-copy-failure",
+      "thought-write-save",
+      "thought-write-cancel",
+      "thought-back-restore",
+      "archive-search-back",
+      "archive-sort-restore",
+      "archive-edit-save",
+      "archive-edit-undo",
+      "context-info-save",
+      "context-rules-undo",
+      "context-now-leave-blocked",
+      "thought-dirty-section-cancel",
+      "nib-keyboard-ime-dirty-dark"
     ],
-    "disposition": "Preserved distinct original23 captures/review; not rerun and not relabelled this attempt. Original run failed; two Copy states remain BLOCKED."
+    "disposition": "Preserve both failed attempts and their distinct23+39 captured states. Do not replay62. First recovery partially executed; nine not started. Two Copy states remain BLOCKED."
   }
 }

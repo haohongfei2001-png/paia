@@ -1,5 +1,5 @@
-name: PAIA Same Head 49 Remaining State UI Acceptance
-run-name: UI same-head 49 remaining states ${{ github.sha }}
+name: PAIA Same Head 10 Recovery State UI Acceptance
+run-name: UI same-head 10 recovery states ${{ github.sha }}
 on: create
 permissions:
   contents: read
@@ -8,14 +8,14 @@ concurrency:
   cancel-in-progress: false
 jobs:
   visual:
-    if: github.event_name == 'create' && github.event.ref_type == 'branch' && github.event.ref == 'evidence/ui-same-head-remaining-20261029' && github.run_attempt == 1
+    if: github.event_name == 'create' && github.event.ref_type == 'branch' && github.event.ref == 'evidence/ui-recovery10-20261029' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       CI: '1'
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
       PAIA_VISUAL_SOURCE_SHA: ${{ github.sha }}
-      PAIA_VISUAL_SCOPE: ui-same-head-remaining-20261029
+      PAIA_VISUAL_SCOPE: ui-recovery10-20261029
       PAIA_UI_RUNTIME_BASE_SHA: e99e7ac5aeea73f727acf707fc7f7e651fa2cf2f
     steps:
       - uses: actions/checkout@v4
@@ -32,7 +32,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "$PAIA_VISUAL_SOURCE_SHA"
           test "$GITHUB_SHA" = "$PAIA_VISUAL_SOURCE_SHA"
           test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD^)" = "e2be589c8f47b08a4acd4cf999da6733b459a06d"
+          test "$(git rev-parse HEAD^)" = "4429f31b1d29e022f491522b61c2f9f4b78e6061"
           echo "PAIA_VISUAL_CAPTURE_DEADLINE_MS=$(( $(date +%s) * 1000 + 480000 ))" >> "$GITHUB_ENV"
           mkdir -p "$RUNNER_TEMP/paia-ui-same-head-evidence"
           printf 'source=%s\nscope=%s\nrun=%s\nattempt=%s\n' "$PAIA_VISUAL_SOURCE_SHA" "$PAIA_VISUAL_SCOPE" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > "$RUNNER_TEMP/paia-ui-same-head-evidence/job-binding.txt"
@@ -57,7 +57,7 @@ jobs:
           fi
           node -p "require('./extension/node_modules/playwright/package.json').version"
           "$CHROME_BIN" --version
-      - name: One bounded 49-state actual-source capture attempt
+      - name: One bounded 10-state actual-source capture attempt
         timeout-minutes: 7
         shell: bash
         run: |
@@ -81,7 +81,7 @@ jobs:
         timeout-minutes: 1
         uses: actions/upload-artifact@v4
         with:
-          name: ui-same-head-remaining-49-${{ github.run_id }}
+          name: ui-recovery10-${{ github.run_id }}
           path: ${{ runner.temp }}/paia-ui-same-head-evidence/
           if-no-files-found: warn
           retention-days: 7
