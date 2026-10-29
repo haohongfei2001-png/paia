@@ -1,0 +1,87 @@
+name: PAIA Same Head 74 State UI Acceptance
+run-name: UI same-head 74 states ${{ github.sha }}
+on: create
+permissions:
+  contents: read
+concurrency:
+  group: paia-ui-restoration-oneoff-${{ github.sha }}
+  cancel-in-progress: false
+jobs:
+  visual:
+    if: github.event_name == 'create' && github.event.ref_type == 'branch' && github.event.ref == 'evidence/ui-same-head-20261029' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CI: '1'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      PAIA_VISUAL_SOURCE_SHA: ${{ github.sha }}
+      PAIA_VISUAL_SCOPE: ui-same-head-20261029
+      PAIA_UI_RUNTIME_BASE_SHA: e99e7ac5aeea73f727acf707fc7f7e651fa2cf2f
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Bind exact source and preserve setup identity
+        timeout-minutes: 1
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$PAIA_VISUAL_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$PAIA_VISUAL_SOURCE_SHA"
+          test "$GITHUB_SHA" = "$PAIA_VISUAL_SOURCE_SHA"
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$(git rev-parse HEAD^)" = "$PAIA_UI_RUNTIME_BASE_SHA"
+          echo "PAIA_VISUAL_CAPTURE_DEADLINE_MS=$(( $(date +%s) * 1000 + 480000 ))" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/paia-ui-same-head-evidence"
+          printf 'source=%s\nscope=%s\nrun=%s\nattempt=%s\n' "$PAIA_VISUAL_SOURCE_SHA" "$PAIA_VISUAL_SCOPE" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > "$RUNNER_TEMP/paia-ui-same-head-evidence/job-binding.txt"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Existing pinned dependencies, hosted Chrome and CJK fonts
+        timeout-minutes: 2
+        shell: bash
+        run: |
+          set -euo pipefail
+          exec > >(python -c $'import sys; f=open(sys.argv[1],"wb"); remaining=524288;\nwhile chunk:=sys.stdin.buffer.read(8192):\n sys.stdout.buffer.write(chunk); sys.stdout.buffer.flush(); kept=chunk[:remaining]; f.write(kept); remaining-=len(kept)\nf.close()' "$RUNNER_TEMP/paia-ui-same-head-evidence/setup.log") 2>&1
+          # The extension uses exact package.json versions and its existing
+          # npm-install convention; it has no extension package-lock to npm ci.
+          npm install --prefix extension --ignore-scripts --no-audit --no-fund --package-lock=false
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME_BIN"
+          echo "CHROME_PATH=$CHROME_BIN" >> "$GITHUB_ENV"
+          if [ -z "$(fc-list :lang=zh)" ]; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends fonts-noto-cjk fonts-noto-color-emoji
+          fi
+          node -p "require('./extension/node_modules/playwright/package.json').version"
+          "$CHROME_BIN" --version
+      - name: One bounded 74-state actual-source capture attempt
+        timeout-minutes: 7
+        shell: bash
+        run: |
+          set -euo pipefail
+          node extension/scripts/ui-restoration-visual-once/runner.mjs \
+            --source "$GITHUB_WORKSPACE" --sha "$PAIA_VISUAL_SOURCE_SHA" \
+            --round 1 --execute-approved \
+            --output "$RUNNER_TEMP/paia-ui-same-head-evidence" \
+            2>&1 | python -c $'import sys; f=open(sys.argv[1],"wb"); remaining=524288;\nwhile chunk:=sys.stdin.buffer.read(8192):\n sys.stdout.buffer.write(chunk); sys.stdout.buffer.flush(); kept=chunk[:remaining]; f.write(kept); remaining-=len(kept)\nf.close()' "$RUNNER_TEMP/paia-ui-same-head-evidence/run.log"
+      - name: Enforce bounded evidence size
+        id: evidence_size
+        if: always()
+        timeout-minutes: 1
+        shell: bash
+        run: |
+          set -euo pipefail
+          bytes=$(du -sb "$RUNNER_TEMP/paia-ui-same-head-evidence" | cut -f1)
+          test "$bytes" -le 67108864
+      - name: Preserve original result or first failure
+        if: always() && steps.evidence_size.outcome == 'success'
+        timeout-minutes: 1
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-same-head-74-${{ github.run_id }}
+          path: ${{ runner.temp }}/paia-ui-same-head-evidence/
+          if-no-files-found: warn
+          retention-days: 7

@@ -1,0 +1,25 @@
+{
+  "status": "BLOCKED_NOT_RUN",
+  "sceneIds": [
+    "reading-copy-departure-after-call",
+    "reading-copy-departure-before-read"
+  ],
+  "runtimeHead": "e99e7ac5aeea73f727acf707fc7f7e651fa2cf2f",
+  "runtimeTree": "1de2c7618b386ab63da1142f2e47863cd9978533",
+  "facts": [
+    {
+      "path": "extension/ui/topic-workspace.js",
+      "finding": "Original-tab controls are not installed; syncOriginalTabs forces content, switchOriginalMode rejects non-content. TopicTimeline readingCopyButton consumer is not reachable through current mounted page."
+    },
+    {
+      "path": "extension/ui/ai-presentation.js",
+      "finding": "refreshEvidence returns for fieldsOnly; sole production AIReadingEditor creation uses fieldsOnly:true, so excerpt readingCopyButton consumer is not mounted."
+    }
+  ],
+  "notSubstituted": "Reachable copyCurrentEntry calls copyReadingText directly and is not the requested readingCopyButton consumer. No ad hoc dormant UI installation or consumer replacement.",
+  "sourceHashes": {
+    "extension/ui/topic-workspace.js": "b4251542dd520751058245128c3fdc24ed18f4212212942bb3eaabcee5086459",
+    "extension/ui/ai-presentation.js": "48a2de84c5759ae39cca9465097196ec2a6099d000cd4fdca6456da92efa3519",
+    "extension/ui/reading-actions.js": "d48d5f3878620a0c4064b698cabe4320b714d740c4a609aef5393d6c6f88759e"
+  }
+}

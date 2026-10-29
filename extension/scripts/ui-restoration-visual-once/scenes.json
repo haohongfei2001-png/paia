@@ -1,0 +1,755 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Same-current-source visual and bounded synthetic UI interaction; not master parity or native/service qualification",
+  "runtime": {
+    "remoteHead": "e99e7ac5aeea73f727acf707fc7f7e651fa2cf2f",
+    "tree": "1de2c7618b386ab63da1142f2e47863cd9978533",
+    "version": "0.55.30",
+    "localEquivalent": "66d60df6",
+    "runtimePathCount": 650,
+    "headChangesRequireExplicitRebinding": true
+  },
+  "authorization": {
+    "scopeLabel": "ui-same-head-20261029",
+    "cloudRuns": 1,
+    "attempts": 1,
+    "maxCapturesPerRound": 74,
+    "maxExecutableStates": 72,
+    "maxJobMinutesIncludingSetup": 10,
+    "maxBrowserMs": 360000,
+    "maxArtifactBytes": 67108864,
+    "automaticRetry": false,
+    "executionRequiresParentApproval": true,
+    "firstFailureStop": true
+  },
+  "fixtureBounds": {
+    "topics": 8,
+    "sectionsPerTopic": 2,
+    "inputsTotal": 12,
+    "entriesTotal": 12,
+    "contextItems": 3,
+    "draftsTotal": 4,
+    "mutationsPerScene": 2
+  },
+  "excludedClaims": [
+    "Exact latest Thought/annual/Context master pixel parity and human final aesthetic approval",
+    "Actual installed extension host origins, real profiles, native persistence/receiver/service qualification across all product flows",
+    "OS IME, physical120Hz/NIB50ms and exhaustive viewport/theme/language/accessibility combinations",
+    "All seven implementation plans or full product completion"
+  ],
+  "scenes": [
+    {
+      "id": "archive-reader",
+      "group": "archive",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-section-reader",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-inputs",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "archive-neutral",
+      "group": "archive",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "archive-browse",
+      "group": "archive",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "archive-search",
+      "group": "archive",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-home",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-second-section",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-write",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-options",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-ascending",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-home",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-info",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-rules",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-now",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-readonly-section",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-content",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-reading",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-ai",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-privacy",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-data",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-about",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-risk-dialog",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "orb-idle",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "orb-expanded",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "orb-capsule",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "nib-normal",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "nib-search",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "archive-reader-narrow",
+      "group": "archive",
+      "adapter": "archive-thought",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-reader-narrow",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-home-narrow",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-inputs-narrow",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-group-narrow",
+      "group": "settings",
+      "adapter": "bootstrap",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "nib-narrow",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-home-dark",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-reader-dark",
+      "group": "thought",
+      "adapter": "archive-thought",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-home-dark",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-inputs-dark",
+      "group": "context",
+      "adapter": "bootstrap",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-history-dark",
+      "group": "thought",
+      "adapter": "gap-scenes",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-selected",
+      "group": "context",
+      "adapter": "gap-scenes",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-selected-narrow",
+      "group": "context",
+      "adapter": "gap-scenes",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-retained-dark",
+      "group": "context",
+      "adapter": "gap-scenes",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-reply-consent",
+      "group": "settings",
+      "adapter": "settings-gap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-remote-consent",
+      "group": "settings",
+      "adapter": "settings-gap",
+      "width": 1280,
+      "height": 900,
+      "theme": "dark",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-next-consent",
+      "group": "settings",
+      "adapter": "settings-gap",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-capture-consent",
+      "group": "settings",
+      "adapter": "settings-gap",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-cancel-focus",
+      "group": "settings",
+      "adapter": "settings-gap",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "nib-long-notice",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "nib-long-notice-narrow",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "nib-copy-failure",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-write-save",
+      "group": "thought",
+      "adapter": "gap-scenes",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-write-cancel",
+      "group": "thought",
+      "adapter": "gap-scenes",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-back-restore",
+      "group": "thought",
+      "adapter": "gap-scenes",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "archive-search-back",
+      "group": "archive",
+      "adapter": "gap-scenes",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "archive-sort-restore",
+      "group": "archive",
+      "adapter": "gap-scenes",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "archive-edit-save",
+      "group": "archive",
+      "adapter": "gap-scenes",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "archive-edit-undo",
+      "group": "archive",
+      "adapter": "gap-scenes",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-info-save",
+      "group": "context",
+      "adapter": "gap-scenes",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-rules-undo",
+      "group": "context",
+      "adapter": "gap-scenes",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-now-leave-blocked",
+      "group": "context",
+      "adapter": "gap-scenes",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "thought-dirty-section-cancel",
+      "group": "thought",
+      "adapter": "gap-scenes",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "nib-keyboard-ime-dirty-dark",
+      "group": "prompt",
+      "adapter": "prompt",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "archive-navigation-read-retry",
+      "group": "archive",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "productionOwner": "extension/ui/archive-navigator.js",
+      "assertionScope": "An isolated original scope read fails; scope stays parked; explicit Retry reads the same cursor once. A retired scope/route late reply cannot repaint newer selection.",
+      "maxSuccessfulSyntheticContentMutations": 0,
+      "implementation": "SOURCE_PREPARED_NOT_EXECUTED",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-draft-recovery-retry",
+      "group": "context",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "productionOwner": "extension/ui/context-cards.js",
+      "assertionScope": "Original draft enumeration fails visibly; explicit Retry singleflights and restores only missing qualified new items. Existing draft and card owner remain intact; no content write.",
+      "maxSuccessfulSyntheticContentMutations": 0,
+      "implementation": "SOURCE_PREPARED_NOT_EXECUTED",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-conflict-replacement-preserved",
+      "group": "context",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "productionOwner": "extension/ui/context-cards.js",
+      "assertionScope": "Original conflict Keep as new item encounters a rejected save; edit the replacement and exercise composition guard; repeating the original action preserves both newer text and original draft.",
+      "maxSuccessfulSyntheticContentMutations": 1,
+      "implementation": "SOURCE_PREPARED_NOT_EXECUTED",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "context-delete-ack-newer-draft",
+      "group": "context",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "productionOwner": "extension/ui/context-cards.js",
+      "assertionScope": "Delay original delete ACK while a newer edit appears; confirmed deletion cannot clear that newer draft or pretend it was saved. Inspect original retained-draft/Keep-as-new guidance.",
+      "maxSuccessfulSyntheticContentMutations": 1,
+      "implementation": "SOURCE_PREPARED_NOT_EXECUTED",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "reading-copy-departure-before-read",
+      "group": "reading",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "productionOwner": "extension/ui/reading-actions.js",
+      "assertionScope": "Use actual mounted copy control, hold its synthetic text read, leave owner, then settle read; assert zero clipboard calls and no stale fallback/feedback.",
+      "maxSuccessfulSyntheticContentMutations": 0,
+      "implementation": "BLOCKED_CURRENT_ROUTE_UNREACHABLE",
+      "blockedReason": "NO_CURRENT_PRODUCTION_READING_COPY_BUTTON_ROUTE",
+      "execution": "BLOCKED",
+      "blockedEvidence": "copy-route-evidence.json"
+    },
+    {
+      "id": "reading-copy-departure-after-call",
+      "group": "reading",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "productionOwner": "extension/ui/reading-actions.js",
+      "assertionScope": "Original copy reaches synthetic clipboard boundary exactly once; leave then settle denial; no stale dialog/feedback or duplicate write. Do not claim the dispatched system copy was cancelled.",
+      "maxSuccessfulSyntheticContentMutations": 0,
+      "implementation": "BLOCKED_CURRENT_ROUTE_UNREACHABLE",
+      "blockedReason": "NO_CURRENT_PRODUCTION_READING_COPY_BUTTON_ROUTE",
+      "execution": "BLOCKED",
+      "blockedEvidence": "copy-route-evidence.json"
+    },
+    {
+      "id": "history-latest-preview",
+      "group": "archive",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "productionOwner": "extension/ui/working-history.js",
+      "assertionScope": "Select two actual revision previews and settle older read last; sole current confirmation and focus belong to the latest exact side; old callback cannot restore.",
+      "maxSuccessfulSyntheticContentMutations": 0,
+      "implementation": "SOURCE_PREPARED_NOT_EXECUTED",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "history-restore-pending-departure",
+      "group": "archive",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "productionOwner": "extension/ui/working-history.js",
+      "assertionScope": "Confirm one original restore against synthetic ACK boundary; controls remain blocked while pending. Leave before settlement; no duplicate dispatch or late focus/dialog. Already dispatched restore is not recalled.",
+      "maxSuccessfulSyntheticContentMutations": 1,
+      "implementation": "SOURCE_PREPARED_NOT_EXECUTED",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-sync-prepared",
+      "group": "settings",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "productionOwner": "extension/ui/settings-details.js + settings-sync-recovery.js",
+      "assertionScope": "Open actual Data detail and explicitly read synthetic prepared status; original accounting/deadline limitation shown; no continue/retry/cancel operation control or mutation.",
+      "maxSuccessfulSyntheticContentMutations": 0,
+      "implementation": "SOURCE_PREPARED_NOT_EXECUTED",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-sync-outcome-unknown",
+      "group": "settings",
+      "width": 390,
+      "height": 844,
+      "theme": "dark",
+      "productionOwner": "extension/ui/settings-details.js + settings-sync-recovery.js",
+      "assertionScope": "Original read-only detail displays dispatched UNKNOWN distinctly; never success/failure and no resend/permission/runtime transition.",
+      "maxSuccessfulSyntheticContentMutations": 0,
+      "implementation": "SOURCE_PREPARED_NOT_EXECUTED",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-sync-finishing",
+      "group": "settings",
+      "width": 390,
+      "height": 844,
+      "theme": "light",
+      "productionOwner": "extension/ui/settings-details.js + settings-sync-recovery.js",
+      "assertionScope": "Original detail distinguishes selected-but-unconfirmed finishing; no successful full recovery or cloud-sync claim.",
+      "maxSuccessfulSyntheticContentMutations": 0,
+      "implementation": "SOURCE_PREPARED_NOT_EXECUTED",
+      "execution": "ELIGIBLE"
+    },
+    {
+      "id": "settings-sync-read-close-reopen",
+      "group": "settings",
+      "width": 1280,
+      "height": 900,
+      "theme": "light",
+      "productionOwner": "extension/ui/settings-details.js + settings-sync-recovery.js",
+      "assertionScope": "Hold one original status request; close/reopen and attempt refresh without another physical call. Old completion does not repaint; next explicit rejected read labels last observation honestly.",
+      "maxSuccessfulSyntheticContentMutations": 0,
+      "implementation": "SOURCE_PREPARED_NOT_EXECUTED",
+      "execution": "ELIGIBLE"
+    }
+  ],
+  "scopeDisposition": {
+    "plannedStates": 74,
+    "executableStates": 72,
+    "predeclaredBlockedNotRun": 2,
+    "reason": "Two readingCopyButton consumers have no current mounted production route; no dormant UI is installed.",
+    "claims": "Screenshots and actual source handlers over bounded synthetic RPC only; all original master/native/host limitations remain."
+  }
+}
