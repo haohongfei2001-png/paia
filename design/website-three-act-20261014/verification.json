@@ -1,0 +1,863 @@
+{
+  "scope": "Independent design prototype. Local HTTP Chromium and source guards; not production/physical-device/screen-reader certification.",
+  "checks": 214,
+  "failed": [],
+  "results": [
+    {
+      "check": "zh: [data-product-hero] literal text preserved",
+      "pass": true
+    },
+    {
+      "check": "zh: .core-close literal text preserved",
+      "pass": true
+    },
+    {
+      "check": "zh: .site-footer literal text preserved",
+      "pass": true
+    },
+    {
+      "check": "zh: .site-header literal text preserved",
+      "pass": true
+    },
+    {
+      "check": "zh: exactly three structural acts",
+      "pass": true
+    },
+    {
+      "check": "zh: no required interactions or writable sample inputs",
+      "pass": true
+    },
+    {
+      "check": "zh: four private Context directories",
+      "pass": true
+    },
+    {
+      "check": "zh: Context does not contain private body 我在为独立创作者设计一款工具。",
+      "pass": true
+    },
+    {
+      "check": "zh: Context does not contain private body Lead with the co",
+      "pass": true
+    },
+    {
+      "check": "zh: Context does not contain private body This week I am v",
+      "pass": true
+    },
+    {
+      "check": "zh: no font bytes embedded",
+      "pass": true
+    },
+    {
+      "check": "en: [data-product-hero] literal text preserved",
+      "pass": true
+    },
+    {
+      "check": "en: .core-close literal text preserved",
+      "pass": true
+    },
+    {
+      "check": "en: .site-footer literal text preserved",
+      "pass": true
+    },
+    {
+      "check": "en: .site-header literal text preserved",
+      "pass": true
+    },
+    {
+      "check": "en: exactly three structural acts",
+      "pass": true
+    },
+    {
+      "check": "en: no required interactions or writable sample inputs",
+      "pass": true
+    },
+    {
+      "check": "en: four private Context directories",
+      "pass": true
+    },
+    {
+      "check": "en: Context does not contain private body 我在为独立创作者设计一款工具。",
+      "pass": true
+    },
+    {
+      "check": "en: Context does not contain private body Lead with the co",
+      "pass": true
+    },
+    {
+      "check": "en: Context does not contain private body This week I am v",
+      "pass": true
+    },
+    {
+      "check": "en: no font bytes embedded",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: natural scroll reaches archive",
+      "pass": true
+    },
+    {
+      "check": "zh/1440/archive: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: natural scroll reaches topics",
+      "pass": true
+    },
+    {
+      "check": "zh/1440/topics: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: natural scroll reaches original",
+      "pass": true
+    },
+    {
+      "check": "zh/1440/original: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1440/original: complete text fits before source footer",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: natural scroll reaches organized",
+      "pass": true
+    },
+    {
+      "check": "zh/1440/organized: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1440/organized: complete text fits before source footer",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: natural scroll reaches orb",
+      "pass": true
+    },
+    {
+      "check": "zh/1440/orb: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: natural scroll reaches capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/1440/capsule: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: natural scroll reaches board",
+      "pass": true
+    },
+    {
+      "check": "zh/1440/board: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: natural scroll reaches context",
+      "pass": true
+    },
+    {
+      "check": "zh/1440/context: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: natural scroll reaches overview",
+      "pass": true
+    },
+    {
+      "check": "zh/1440/overview: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: overview includes archive",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: overview includes thought",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: overview includes chat",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: overview includes context",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: overview heading does not collide with reading frame",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: AI organization keeps exact same outer rectangle",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: orb/capsule/board keep exact host-relative anchor",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: reverse scroll returns to original topic cards",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "zh/1440: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: natural scroll reaches archive",
+      "pass": true
+    },
+    {
+      "check": "zh/1280/archive: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: natural scroll reaches topics",
+      "pass": true
+    },
+    {
+      "check": "zh/1280/topics: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: natural scroll reaches original",
+      "pass": true
+    },
+    {
+      "check": "zh/1280/original: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1280/original: complete text fits before source footer",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: natural scroll reaches organized",
+      "pass": true
+    },
+    {
+      "check": "zh/1280/organized: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1280/organized: complete text fits before source footer",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: natural scroll reaches orb",
+      "pass": true
+    },
+    {
+      "check": "zh/1280/orb: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: natural scroll reaches capsule",
+      "pass": true
+    },
+    {
+      "check": "zh/1280/capsule: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: natural scroll reaches board",
+      "pass": true
+    },
+    {
+      "check": "zh/1280/board: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: natural scroll reaches context",
+      "pass": true
+    },
+    {
+      "check": "zh/1280/context: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: natural scroll reaches overview",
+      "pass": true
+    },
+    {
+      "check": "zh/1280/overview: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: overview includes archive",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: overview includes thought",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: overview includes chat",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: overview includes context",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: overview heading does not collide with reading frame",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: AI organization keeps exact same outer rectangle",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: orb/capsule/board keep exact host-relative anchor",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: reverse scroll returns to original topic cards",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "zh/1280: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: small screen uses ordinary readable document",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: organized content not locked behind control",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: final compact recap is available",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "zh/1024: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "zh/768: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/768: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "zh/768: small screen uses ordinary readable document",
+      "pass": true
+    },
+    {
+      "check": "zh/768: organized content not locked behind control",
+      "pass": true
+    },
+    {
+      "check": "zh/768: final compact recap is available",
+      "pass": true
+    },
+    {
+      "check": "zh/768: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "zh/768: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "zh/390: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/390: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "zh/390: small screen uses ordinary readable document",
+      "pass": true
+    },
+    {
+      "check": "zh/390: organized content not locked behind control",
+      "pass": true
+    },
+    {
+      "check": "zh/390: final compact recap is available",
+      "pass": true
+    },
+    {
+      "check": "zh/390: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "zh/390: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "zh/320: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "zh/320: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "zh/320: small screen uses ordinary readable document",
+      "pass": true
+    },
+    {
+      "check": "zh/320: organized content not locked behind control",
+      "pass": true
+    },
+    {
+      "check": "zh/320: final compact recap is available",
+      "pass": true
+    },
+    {
+      "check": "zh/320: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "zh/320: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "zh: readable without full motion/scripts True",
+      "pass": true
+    },
+    {
+      "check": "zh: directories available in fallback True",
+      "pass": true
+    },
+    {
+      "check": "zh: readable without full motion/scripts False",
+      "pass": true
+    },
+    {
+      "check": "zh: directories available in fallback False",
+      "pass": true
+    },
+    {
+      "check": "en/1440: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/1440: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "en/1440: natural scroll reaches archive",
+      "pass": true
+    },
+    {
+      "check": "en/1440/archive: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1440: natural scroll reaches topics",
+      "pass": true
+    },
+    {
+      "check": "en/1440/topics: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1440: natural scroll reaches original",
+      "pass": true
+    },
+    {
+      "check": "en/1440/original: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1440/original: complete text fits before source footer",
+      "pass": true
+    },
+    {
+      "check": "en/1440: natural scroll reaches organized",
+      "pass": true
+    },
+    {
+      "check": "en/1440/organized: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1440/organized: complete text fits before source footer",
+      "pass": true
+    },
+    {
+      "check": "en/1440: natural scroll reaches orb",
+      "pass": true
+    },
+    {
+      "check": "en/1440/orb: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1440: natural scroll reaches capsule",
+      "pass": true
+    },
+    {
+      "check": "en/1440/capsule: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1440: natural scroll reaches board",
+      "pass": true
+    },
+    {
+      "check": "en/1440/board: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1440: natural scroll reaches context",
+      "pass": true
+    },
+    {
+      "check": "en/1440/context: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1440: natural scroll reaches overview",
+      "pass": true
+    },
+    {
+      "check": "en/1440/overview: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1440: overview includes archive",
+      "pass": true
+    },
+    {
+      "check": "en/1440: overview includes thought",
+      "pass": true
+    },
+    {
+      "check": "en/1440: overview includes chat",
+      "pass": true
+    },
+    {
+      "check": "en/1440: overview includes context",
+      "pass": true
+    },
+    {
+      "check": "en/1440: overview heading does not collide with reading frame",
+      "pass": true
+    },
+    {
+      "check": "en/1440: AI organization keeps exact same outer rectangle",
+      "pass": true
+    },
+    {
+      "check": "en/1440: orb/capsule/board keep exact host-relative anchor",
+      "pass": true
+    },
+    {
+      "check": "en/1440: reverse scroll returns to original topic cards",
+      "pass": true
+    },
+    {
+      "check": "en/1440: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "en/1440: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "en/1280: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/1280: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "en/1280: natural scroll reaches archive",
+      "pass": true
+    },
+    {
+      "check": "en/1280/archive: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1280: natural scroll reaches topics",
+      "pass": true
+    },
+    {
+      "check": "en/1280/topics: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1280: natural scroll reaches original",
+      "pass": true
+    },
+    {
+      "check": "en/1280/original: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1280/original: complete text fits before source footer",
+      "pass": true
+    },
+    {
+      "check": "en/1280: natural scroll reaches organized",
+      "pass": true
+    },
+    {
+      "check": "en/1280/organized: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1280/organized: complete text fits before source footer",
+      "pass": true
+    },
+    {
+      "check": "en/1280: natural scroll reaches orb",
+      "pass": true
+    },
+    {
+      "check": "en/1280/orb: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1280: natural scroll reaches capsule",
+      "pass": true
+    },
+    {
+      "check": "en/1280/capsule: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1280: natural scroll reaches board",
+      "pass": true
+    },
+    {
+      "check": "en/1280/board: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1280: natural scroll reaches context",
+      "pass": true
+    },
+    {
+      "check": "en/1280/context: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1280: natural scroll reaches overview",
+      "pass": true
+    },
+    {
+      "check": "en/1280/overview: no click task introduced",
+      "pass": true
+    },
+    {
+      "check": "en/1280: overview includes archive",
+      "pass": true
+    },
+    {
+      "check": "en/1280: overview includes thought",
+      "pass": true
+    },
+    {
+      "check": "en/1280: overview includes chat",
+      "pass": true
+    },
+    {
+      "check": "en/1280: overview includes context",
+      "pass": true
+    },
+    {
+      "check": "en/1280: overview heading does not collide with reading frame",
+      "pass": true
+    },
+    {
+      "check": "en/1280: AI organization keeps exact same outer rectangle",
+      "pass": true
+    },
+    {
+      "check": "en/1280: orb/capsule/board keep exact host-relative anchor",
+      "pass": true
+    },
+    {
+      "check": "en/1280: reverse scroll returns to original topic cards",
+      "pass": true
+    },
+    {
+      "check": "en/1280: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "en/1280: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "en/1024: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/1024: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "en/1024: small screen uses ordinary readable document",
+      "pass": true
+    },
+    {
+      "check": "en/1024: organized content not locked behind control",
+      "pass": true
+    },
+    {
+      "check": "en/1024: final compact recap is available",
+      "pass": true
+    },
+    {
+      "check": "en/1024: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "en/1024: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "en/768: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/768: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "en/768: small screen uses ordinary readable document",
+      "pass": true
+    },
+    {
+      "check": "en/768: organized content not locked behind control",
+      "pass": true
+    },
+    {
+      "check": "en/768: final compact recap is available",
+      "pass": true
+    },
+    {
+      "check": "en/768: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "en/768: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "en/390: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/390: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "en/390: small screen uses ordinary readable document",
+      "pass": true
+    },
+    {
+      "check": "en/390: organized content not locked behind control",
+      "pass": true
+    },
+    {
+      "check": "en/390: final compact recap is available",
+      "pass": true
+    },
+    {
+      "check": "en/390: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "en/390: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "en/320: no page overflow",
+      "pass": true
+    },
+    {
+      "check": "en/320: all private categories remain",
+      "pass": true
+    },
+    {
+      "check": "en/320: small screen uses ordinary readable document",
+      "pass": true
+    },
+    {
+      "check": "en/320: organized content not locked behind control",
+      "pass": true
+    },
+    {
+      "check": "en/320: final compact recap is available",
+      "pass": true
+    },
+    {
+      "check": "en/320: no script exceptions",
+      "pass": true
+    },
+    {
+      "check": "en/320: no AI/service/form requests",
+      "pass": true
+    },
+    {
+      "check": "en: readable without full motion/scripts True",
+      "pass": true
+    },
+    {
+      "check": "en: directories available in fallback True",
+      "pass": true
+    },
+    {
+      "check": "en: readable without full motion/scripts False",
+      "pass": true
+    },
+    {
+      "check": "en: directories available in fallback False",
+      "pass": true
+    }
+  ]
+}
