@@ -10,11 +10,11 @@
     "headChangesRequireExplicitRebinding": true
   },
   "authorization": {
-    "scopeLabel": "ui-same-head-20261029",
+    "scopeLabel": "ui-same-head-remaining-20261029",
     "cloudRuns": 1,
     "attempts": 1,
-    "maxCapturesPerRound": 74,
-    "maxExecutableStates": 72,
+    "maxCapturesPerRound": 49,
+    "maxExecutableStates": 49,
     "maxJobMinutesIncludingSetup": 10,
     "maxBrowserMs": 360000,
     "maxArtifactBytes": 67108864,
@@ -38,213 +38,6 @@
     "All seven implementation plans or full product completion"
   ],
   "scenes": [
-    {
-      "id": "archive-reader",
-      "group": "archive",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-section-reader",
-      "group": "thought",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-inputs",
-      "group": "context",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "archive-neutral",
-      "group": "archive",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "archive-browse",
-      "group": "archive",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "archive-search",
-      "group": "archive",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-home",
-      "group": "thought",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-second-section",
-      "group": "thought",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-write",
-      "group": "thought",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-options",
-      "group": "thought",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "thought-ascending",
-      "group": "thought",
-      "adapter": "archive-thought",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-home",
-      "group": "context",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-info",
-      "group": "context",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-rules",
-      "group": "context",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-now",
-      "group": "context",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "context-readonly-section",
-      "group": "context",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-content",
-      "group": "settings",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-reading",
-      "group": "settings",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-ai",
-      "group": "settings",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-privacy",
-      "group": "settings",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-data",
-      "group": "settings",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-about",
-      "group": "settings",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
-    {
-      "id": "settings-risk-dialog",
-      "group": "settings",
-      "adapter": "bootstrap",
-      "width": 1280,
-      "height": 900,
-      "theme": "light",
-      "execution": "ELIGIBLE"
-    },
     {
       "id": "orb-idle",
       "group": "prompt",
@@ -751,5 +544,35 @@
     "predeclaredBlockedNotRun": 2,
     "reason": "Two readingCopyButton consumers have no current mounted production route; no dormant UI is installed.",
     "claims": "Screenshots and actual source handlers over bounded synthetic RPC only; all original master/native/host limitations remain."
+  },
+  "priorEvidence": {
+    "run": 40837290382,
+    "head": "e2be589c8f47b08a4acd4cf999da6733b459a06d",
+    "capturedIds": [
+      "archive-reader",
+      "thought-section-reader",
+      "context-inputs",
+      "archive-neutral",
+      "archive-browse",
+      "archive-search",
+      "thought-home",
+      "thought-second-section",
+      "thought-write",
+      "thought-options",
+      "thought-ascending",
+      "context-home",
+      "context-info",
+      "context-rules",
+      "context-now",
+      "context-readonly-section",
+      "settings-content",
+      "settings-reading",
+      "settings-ai",
+      "settings-privacy",
+      "settings-data",
+      "settings-about",
+      "settings-risk-dialog"
+    ],
+    "disposition": "Preserved distinct original23 captures/review; not rerun and not relabelled this attempt. Original run failed; two Copy states remain BLOCKED."
   }
 }

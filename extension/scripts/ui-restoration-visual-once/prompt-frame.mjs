@@ -27,6 +27,22 @@ export async function installPromptCloseBridge(page,base,scene,transcript){
  });
 }
 export async function readPromptGeometry(page,base){
+ // Idle Orb intentionally has no private frame: the original content owner
+ // creates one only on expand/capsule/suggestion. This exact scene is not a
+ // fallback for a missing/incorrect frame in any opened Prompt state.
+ const sceneId=await page.evaluate(()=>globalThis.__PAIA_VISUAL_CONFIG?.scene?.id);
+ if(sceneId==='orb-idle'){
+  if(page.frames().some(frame=>frame!==page.mainFrame()))throw Error('PROMPT_IDLE_UNEXPECTED_CHILD_FRAME');
+  return page.evaluate(base=>{
+   const config=globalThis.__PAIA_VISUAL_CONFIG,url=new URL(location.href);
+   if(config?.scene?.id!=='orb-idle'||config.scene.group!=='prompt'||config.base!==base||url.origin!==base||url.pathname!=='/ui/archive.html'||url.search||url.hash)throw Error('PROMPT_IDLE_SCENE_IDENTITY');
+   const hosts=document.querySelectorAll('[data-paia-prompt-surface]');
+   if(hosts.length!==1)throw Error('PROMPT_IDLE_HOST_IDENTITY_COUNT_'+hosts.length);
+   const host=hosts[0],css=getComputedStyle(host),rect=node=>{if(!node)return null;const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};},bounds=rect(host);
+   if(host.hidden||host.dataset.surfaceForm!=='orb'||host.dataset.expanded!=='false'||css.display==='none'||css.visibility==='hidden'||bounds.width<=0||bounds.height<=0)throw Error('PROMPT_IDLE_HOST_NOT_VISIBLE_OR_COLLAPSED');
+   return {scope:'actual idle host DOM on loopback synthetic fixture; private frame intentionally not created; not extension or real-host qualification',mode:host.dataset.surfaceForm,host:bounds,hostExpanded:host.dataset.expanded,hostTheme:host.dataset.theme,privateFrameState:'NOT_CREATED_EXPECTED_IDLE',frameURL:null,frame:null,frameClip:null,ownerPlacement:null,composer:rect(document.querySelector('[data-visual-prompt-composer]')?.closest('form')),skin:null,skinRadius:null,skinFill:null,control:null,header:null,list:null,rows:null,rowCount:null,layoutPending:null,nativeTitleCount:null,customTooltipCount:null,status:null,editor:null,inputEvents:globalThis.__paiaVisualInputEvents||[],clipboardDenied:null,unmeasured:['closed-shadow skin and control internals','private-frame-only fields: no frame exists in this state']};
+  },base);
+ }
  const frame=resolvePromptFrame(page,base);
  return frame.evaluate(()=>{
   const rect=node=>{if(!node)return null;const r=node.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};

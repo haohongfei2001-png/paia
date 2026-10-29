@@ -23,10 +23,10 @@ function requireThat(ok,message){if(!ok)throw Error(message);}
 requireThat(arg('--source')&&expected,'Required: --source <frozen worktree> --sha <exact HEAD>');
 requireThat(git('rev-parse','HEAD')===expected,'Source HEAD does not equal the approved frozen SHA');
 requireThat(!git('status','--porcelain','--','extension/ui','extension/content','extension/core','extension/background','extension/adapter','extension/icons','extension/manifest.json'),'Runtime source is dirty; freeze before launch');
-requireThat(plan.scenes.length===74&&new Set(plan.scenes.map(s=>s.id)).size===74&&plan.authorization.maxCapturesPerRound===74&&plan.authorization.maxJobMinutesIncludingSetup===10&&executable.length===72,'Manifest must contain 74 distinct states with exactly72 executable within ten minutes');
+requireThat(plan.scenes.length===51&&new Set(plan.scenes.map(s=>s.id)).size===51&&plan.authorization.maxCapturesPerRound===49&&plan.authorization.maxJobMinutesIncludingSetup===10&&executable.length===49,'Manifest must contain 51 distinct remaining states with exactly49 executable within ten minutes');
 requireThat(JSON.stringify(plan.scenes.filter(s=>s.execution==='BLOCKED').map(s=>s.id).sort())===JSON.stringify([...blockedIds].sort()),'Only the two statically unreachable consumers may be predeclared NOT_RUN');
 requireThat(plan.runtime.remoteHead===runtime.remoteHead&&runtime.remoteHead==='e99e7ac5aeea73f727acf707fc7f7e651fa2cf2f'&&runtime.pathCount===650&&Object.keys(runtime.files).length===650,'Exact current-source binding is required');
-requireThat(git('show','-s','--format=%P','HEAD')===runtime.remoteHead,'Evidence commit must have exactly one parent: bound published main');
+requireThat(git('show','-s','--format=%P','HEAD')==='e2be589c8f47b08a4acd4cf999da6733b459a06d','Evidence commit must have exactly one parent: original failed evidence commit');
 for(const scene of plan.scenes)requireThat([390,1280].includes(scene.width)&&scene.height===(scene.width===390?844:900)&&['light','dark'].includes(scene.theme),'Viewport/theme scope changed');
 for(const file of harnessFiles){await stat(join(home,file));if(/\.(?:mjs|js)$/.test(file))execFileSync(process.execPath,['--check',join(home,file)],{stdio:'pipe'});}
 const tracked=git('ls-files','-z','extension/ui','extension/content','extension/core','extension/background','extension/adapter','extension/icons','extension/manifest.json').split('\0').filter(Boolean);
@@ -43,10 +43,10 @@ let executablePath=process.env.CHROME_PATH;
 if(!executablePath)for(const candidate of [chromium.executablePath(),'/usr/bin/chromium','/usr/bin/chromium-browser']){try{await stat(candidate);executablePath=candidate;break;}catch{}}
 requireThat(executablePath,'No already installed Chromium executable; no installation allowed');await stat(executablePath);
 binding.environment={playwrightModule,executablePath,node:process.version};
-if(args.includes('--preflight')){console.log(JSON.stringify({status:'SOURCE_PREFLIGHT_ONLY',head:expected,scenes:74,executableStates:72,predeclaredBlocked:blockedIds,sourceFiles:tracked.length,playwrightModule,executablePath,browserLaunched:false}));process.exit(0);}
+if(args.includes('--preflight')){console.log(JSON.stringify({status:'SOURCE_PREFLIGHT_ONLY',head:expected,scenes:51,executableStates:49,predeclaredBlocked:blockedIds,sourceFiles:tracked.length,playwrightModule,executablePath,browserLaunched:false}));process.exit(0);}
 requireThat(round===1,'This separately approved cloud job has exactly one attempt; no round2 or retry');
 requireThat(args.includes('--execute-approved'),'Execution requires explicit --execute-approved from the coordinating parent');
-requireThat(process.env.PAIA_VISUAL_SCOPE==='ui-same-head-20261029'&&process.env.GITHUB_RUN_ATTEMPT==='1'&&process.env.GITHUB_EVENT_NAME==='create'&&process.env.GITHUB_REF==='refs/heads/evidence/ui-same-head-20261029'&&process.env.GITHUB_SHA===expected,'Only the exact one-off branch creation attempt is admitted');
+requireThat(process.env.PAIA_VISUAL_SCOPE==='ui-same-head-remaining-20261029'&&process.env.GITHUB_RUN_ATTEMPT==='1'&&process.env.GITHUB_EVENT_NAME==='create'&&process.env.GITHUB_REF==='refs/heads/evidence/ui-same-head-remaining-20261029'&&process.env.GITHUB_SHA===expected,'Only the exact one-off branch creation attempt is admitted');
 await mkdir(output,{recursive:true});
 const lockPath=join(output,'session.lock');
 let browser,server,timer,fatal=null;
@@ -193,7 +193,7 @@ try{
    if(scene.id==='nib-copy-failure')requireThat(evidence.promptGeometry.clipboardDenied?.attempted===true,'CLIPBOARD_REFUSAL_NOT_REACHED');
    if(scene.id==='nib-keyboard-ime-dirty-dark')requireThat(evidence.promptGeometry.editor.visible&&evidence.promptGeometry.editor.text?.startsWith('合成输入 01')&&evidence.promptGeometry.inputEvents.some(e=>e.type==='compositionstart'&&e.trusted)&&evidence.promptGeometry.inputEvents.some(e=>e.type==='keydown'&&e.key==='Escape'&&e.trusted),'NATIVE_COMPOSITION_OR_DIRTY_GUARD_NOT_OBSERVED');
   }
-  requireThat(!evidence.fatal,evidence.fatal);requireThat(record.captures.length<74,'Capture ceiling exceeded');
+  requireThat(!evidence.fatal,evidence.fatal);requireThat(record.captures.length<49,'Capture ceiling exceeded');
   const filename=scene.id+'.png',png=await page.screenshot({animations:'disabled',timeout:Math.min(7000,Math.max(1,started+budget-Date.now()))});
   requireThat(pngBytes+png.length<=maxPNGBytes,'PNG_ARTIFACT_BOUND');
   const captured={scene,...evidence,requests,file:filename,sha256:hash(png),status:'CAPTURED_NOT_VISUALLY_ACCEPTED'};
@@ -211,8 +211,8 @@ try{
   failure.page=await activePage.evaluate(()=>({fatal:globalThis.__paiaVisualFatal,rpc:globalThis.__paiaVisualRPCLog,fixture:globalThis.__paiaVisualFixtureLimits,ready:globalThis.__paiaVisualResult?.status,dom:document.body?.innerText?.slice(0,24000),controls:[...document.querySelectorAll('button,input,textarea,select,[role=button]')].slice(0,120).map(e=>({tag:e.tagName,id:e.id,role:e.getAttribute('role'),label:e.getAttribute('aria-label'),text:e.textContent?.slice(0,160),disabled:e.disabled,hidden:e.hidden})),gapState:globalThis.__paiaGapStateEvidence?.(),recovery:Object.fromEntries(['contextRecovery','syncRecovery','archiveRecovery'].map(owner=>[owner,globalThis.__paiaRecoveryEvidence?.(owner)]))}));
   if(activeScene?.group==='prompt')try{failure.promptGeometry=await readPromptGeometry(activePage,new URL(activePage.url()).origin);}catch(diagnosticError){failure.promptGeometryError=String(diagnosticError);}
  }catch(diagnosticError){failure.diagnosticError=String(diagnosticError);}
- // A diagnostic screenshot is counted against74 and shares the PNG byte budget.
- if(activePage&&!activePage.isClosed()&&record.captures.length<74&&Date.now()<started+budget)try{
+ // A diagnostic screenshot is counted against49 and shares the PNG byte budget.
+ if(activePage&&!activePage.isClosed()&&record.captures.length<49&&Date.now()<started+budget)try{
   const png=await activePage.screenshot({animations:'disabled',timeout:Math.min(2000,Math.max(1,started+budget-Date.now()))});
   if(pngBytes+png.length<=maxPNGBytes){const file='FAILED-'+(activeScene?.id||'setup')+'.png';await writeFile(join(directory,file),png);pngBytes+=png.length;record.failedCapture={file,sha256:hash(png),status:'FAILURE_DIAGNOSTIC_NOT_ACCEPTED'};}else failure.screenshotError='PNG_ARTIFACT_BOUND';
  }catch(diagnosticError){failure.screenshotError=String(diagnosticError);}
