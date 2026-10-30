@@ -1,7 +1,6 @@
 """Read-only production readback. No user data, form submission or archive access."""
 from pathlib import Path
-from urllib.request import Request, urlopen
-from urllib.error import HTTPError
+from urllib.request import Request
 from playwright.sync_api import sync_playwright
 import hashlib, json, os
 from core_checks import verify_core
@@ -9,6 +8,7 @@ from origin_checks import verify_hero, verify_origin, verify_typography
 from presentation_checks import verify_presentation
 from polish12_checks import demo as verify_demo11
 from atelier_checks import enabled as atelier_enabled, verify_home as verify_atelier_home
+from readback_http import open_readback
 
 ROOT = Path(__file__).resolve().parents[1]
 ATELIER = atelier_enabled(ROOT)
@@ -33,12 +33,7 @@ try:
     for relative in paths:
         url = BASE + '/' + relative
         request = Request(url, headers={'User-Agent':'PAIA-Website-Readback/1.0','Cache-Control':'no-cache'})
-        try:
-            response = urlopen(request, timeout=30)
-        except HTTPError as error:
-            if error.code != 404 or Path(relative).name != '404.html':
-                raise
-            response = error
+        response = open_readback(request, timeout=30, allow_404=Path(relative).name == '404.html')
         with response:
             body = response.read(2_000_000)
             if response.geturl().split('/')[2] != 'inputarchive.com':
