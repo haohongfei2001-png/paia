@@ -33,7 +33,7 @@ def source_digest(root):
 
 
 def verify_static_harmony(root, check):
-    if any(f'data-atelier-version="{v}"' in (root/'index.html').read_text() for v in (9,10,11,12,13,16,17)):
+    if any(f'data-atelier-version="{v}"' in (root/'index.html').read_text() for v in (9,10,11,12,13,16)):
         # The owner replaced only the homepage; all prior assets and interior
         # outputs remain locked to the exact main checkpoint in this manifest.
         from atelier_checks import verify_static
