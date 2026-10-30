@@ -9,12 +9,13 @@ from urllib.parse import urlparse, unquote
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from functools import partial
 from threading import Thread
-import json, os, re, sys, struct, hashlib, traceback
+import json, os, re, sys, struct, hashlib, traceback, unittest
 from core_checks import verify_core
 from origin_checks import verify_origin, verify_assets, verify_hero, verify_typography
 from playwright.sync_api import sync_playwright
 from presentation_checks import verify_presentation
 from atelier_checks import enabled as atelier_enabled, verify_static as verify_atelier_static, verify_home as verify_atelier_home
+from test_readback_http import ReadbackHTTPTests
 
 ROOT = Path(__file__).resolve().parents[1]
 ATELIER = atelier_enabled(ROOT)
@@ -29,6 +30,9 @@ def check(condition, label):
     results.append({'check': label, 'pass': bool(condition)})
     if not condition:
         raise AssertionError(label)
+
+readback_tests = unittest.TextTestRunner().run(unittest.defaultTestLoader.loadTestsFromTestCase(ReadbackHTTPTests))
+check(readback_tests.wasSuccessful(), 'readback HTTP retry and failure boundaries')
 
 class Document(HTMLParser):
     def __init__(self, text):
